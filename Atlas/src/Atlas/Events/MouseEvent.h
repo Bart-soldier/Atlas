@@ -2,8 +2,6 @@
 
 #include "Event.h"
 
-#include <sstream>
-
 namespace Atlas
 {
 	class ATLAS_API MouseMovedEvent : public Event

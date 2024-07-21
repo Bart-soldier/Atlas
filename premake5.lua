@@ -18,6 +18,9 @@ project "Atlas"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
+	pchheader "atlaspch.h"
+	pchsource "Atlas/src/atlaspch.cpp"
+
 	files
 	{
 		"%{prj.name}/src/**.h",

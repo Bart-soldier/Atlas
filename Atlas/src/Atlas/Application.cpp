@@ -1,3 +1,4 @@
+#include "atlaspch.h"
 #include "Application.h"
 
 #include "Atlas/Events/ApplicationEvent.h"

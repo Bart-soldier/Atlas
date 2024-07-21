@@ -2,9 +2,6 @@
 
 #include "Atlas/Core.h"
 
-#include <string>
-#include <functional>
-
 namespace Atlas
 {
 	// Events are currently blocking, not buffered
