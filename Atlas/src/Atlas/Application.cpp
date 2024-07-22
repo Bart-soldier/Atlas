@@ -1,15 +1,11 @@
 #include "atlaspch.h"
 #include "Application.h"
 
-#include "Atlas/Events/ApplicationEvent.h"
-#include "Atlas/Log.h"
-#include "Events/Event.h"
-
 namespace Atlas
 {
 	Application::Application()
 	{
-
+		m_Window = std::unique_ptr<Window>(Window::Create());
 	}
 
 	Application::~Application()
@@ -19,16 +15,9 @@ namespace Atlas
 
 	void Application::Run()
 	{
-		WindowResizeEvent e(1280, 720);
-		if (e.IsInCategory(EventCategoryApplication))
+		while (m_Running)
 		{
-			ATLAS_TRACE(e.ToString());
+			m_Window->OnUpdate();
 		}
-		if (e.IsInCategory(EventCategoryInput))
-		{
-			ATLAS_TRACE(e.ToString());
-		}
-
-		while (true);
 	}
 }

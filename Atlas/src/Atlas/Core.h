@@ -10,4 +10,12 @@
 	#error Atlas only supports Windows
 #endif
 
+#ifdef ATLAS_ENABLE_ASSERTS
+	#define ATLAS_ASSERT(x, ...) { if(!(x)) {ATLAS_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
+	#define ATLAS_CORE_ASSERT(x, ...) { if(!(x)) {ATLAS_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
+#else
+	#define ATLAS_ASSERT(x, ...)
+	#define ATLAS_CORE_ASSERT(x, ...)
+#endif
+
 #define BIT(x) (1 << x)
