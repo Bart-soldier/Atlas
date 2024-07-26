@@ -10,12 +10,12 @@ public:
 
 	void OnUpdate() override
 	{
-		ATLAS_INFO("ExampleLayer::OnUpdate");
+		// ATLAS_INFO("ExampleLayer::OnUpdate");
 	}
 
 	void OnEvent(Atlas::Event& event) override
 	{
-		ATLAS_TRACE("{0}", event.ToString());
+		// ATLAS_TRACE("{0}", event.ToString());
 	}
 };
 
