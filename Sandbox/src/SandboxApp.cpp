@@ -1,5 +1,7 @@
 #include <Atlas.h>
 
+#include "imgui/imgui.h"
+
 class ExampleLayer : public Atlas::Layer
 {
 public:
@@ -11,6 +13,13 @@ public:
 	void OnUpdate() override
 	{
 		// ATLAS_INFO("ExampleLayer::OnUpdate");
+	}
+
+	virtual void OnImGuiRender() override
+	{
+		ImGui::Begin("Test");
+		ImGui::Text("Hello World");
+		ImGui::End();
 	}
 
 	void OnEvent(Atlas::Event& event) override
@@ -25,7 +34,6 @@ public:
 	Sandbox()
 	{
 		PushLayer(new ExampleLayer());
-		PushOverlay(new Atlas::ImGuiLayer());
 	}
 
 	~Sandbox()

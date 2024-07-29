@@ -7,6 +7,8 @@
 #include "Atlas/Events/Event.h"
 #include "Atlas/Events/ApplicationEvent.h"
 
+#include "Atlas/ImGui/ImGuiLayer.h"
+
 namespace Atlas
 {
 	class ATLAS_API Application
@@ -29,6 +31,7 @@ namespace Atlas
 		bool OnWindowClose(WindowCloseEvent& e);
 
 		std::unique_ptr<Window> m_Window;
+		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		LayerStack m_LayerStack;
 
