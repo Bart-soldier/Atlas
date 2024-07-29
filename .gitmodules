@@ -4,8 +4,8 @@
 [submodule "Atlas/vendor/GLFW"]
 	path = Atlas/vendor/GLFW
 	url = https://github.com/Bart-soldier/glfw
-[submodule "Atlas/vendor/ImGui"]
-	path = Atlas/vendor/ImGui
+[submodule "Atlas/vendor/imgui"]
+	path = Atlas/vendor/imgui
 	url = https://github.com/Bart-soldier/imgui
 [submodule "Atlas/vendor/glm"]
 	path = Atlas/vendor/glm
