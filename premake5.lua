@@ -14,11 +14,12 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["GLFW"] = "Atlas/vendor/GLFW/include"
 IncludeDir["Glad"] = "Atlas/vendor/Glad/include"
-IncludeDir["ImGui"] = "Atlas/vendor/ImGui"
+IncludeDir["imgui"] = "Atlas/vendor/imgui"
+IncludeDir["glm"] = "Atlas/vendor/glm"
 
 include "Atlas/vendor/GLFW"
 include "Atlas/vendor/Glad"
-include "Atlas/vendor/ImGui"
+include "Atlas/vendor/imgui"
 
 project "Atlas"
 	location "Atlas"
@@ -36,6 +37,8 @@ project "Atlas"
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/vendor/glm/glm/**.hpp",
+		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
 
 	includedirs
@@ -44,14 +47,15 @@ project "Atlas"
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.imgui}",
+		"%{IncludeDir.glm}"
 	}
 
 	links
 	{
 		"GLFW",
 		"Glad",
-		"ImGui",
+		"imgui",
 		"opengl32.lib"
 	}
 
@@ -104,7 +108,8 @@ project "Sandbox"
 	includedirs
 	{
 		"Atlas/vendor/spdlog/include",
-		"Atlas/src"
+		"Atlas/src",
+		"%{IncludeDir.glm}"
 	}
 
 	links
