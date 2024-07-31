@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas/Window.h"
+#include "Atlas/Renderer/GraphicsContext.h"
 
 #include <GLFW/glfw3.h>
 
@@ -29,6 +30,7 @@ namespace Atlas
 
 	private:
 		GLFWwindow* m_Window;
+		GraphicsContext* m_Context;
 
 		struct WindowData
 		{
