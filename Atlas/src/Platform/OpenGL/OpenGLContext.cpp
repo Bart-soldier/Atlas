@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <gl/GL.h>
 
 namespace Atlas
 {
@@ -18,6 +19,11 @@ namespace Atlas
 
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		ATLAS_CORE_ASSERT(status, "Failed to initialized Glad!");
+
+		ATLAS_CORE_INFO("OpenGL Info:");
+		ATLAS_CORE_INFO("  Vendor: {0}", (const char*)glGetString(GL_VENDOR));
+		ATLAS_CORE_INFO("  Renderer: {0}", (const char*)glGetString(GL_RENDERER));
+		ATLAS_CORE_INFO("  Version: {0}", (const char*)glGetString(GL_VERSION));
 	}
 
 	void OpenGLContext::SwapBuffers()
