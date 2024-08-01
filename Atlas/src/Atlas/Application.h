@@ -9,6 +9,8 @@
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
+#include "Atlas/Renderer/Shader.h"
+
 namespace Atlas
 {
 	class ATLAS_API Application
@@ -36,6 +38,7 @@ namespace Atlas
 		LayerStack m_LayerStack;
 
 		unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;
+		std::unique_ptr<Shader> m_Shader;
 
 		static Application* s_Instance;
 	};
