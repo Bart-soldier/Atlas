@@ -13,6 +13,8 @@
 #include "Atlas/Renderer/Buffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 
+#include "Atlas/Renderer/OrthographicCamera.h"
+
 namespace Atlas
 {
 	class ATLAS_API Application
@@ -44,6 +46,8 @@ namespace Atlas
 
 		std::shared_ptr<Shader> m_BlueShader;
 		std::shared_ptr<VertexArray> m_SquareVA;
+
+		OrthographicCamera m_Camera;
 
 		static Application* s_Instance;
 	};
