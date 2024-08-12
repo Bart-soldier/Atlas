@@ -9,15 +9,9 @@
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
-#include "Atlas/Renderer/Shader.h"
-#include "Atlas/Renderer/Buffer.h"
-#include "Atlas/Renderer/VertexArray.h"
-
-#include "Atlas/Renderer/OrthographicCamera.h"
-
 namespace Atlas
 {
-	class ATLAS_API Application
+	class Application
 	{
 	public:
 		Application();
@@ -40,14 +34,6 @@ namespace Atlas
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		LayerStack m_LayerStack;
-
-		std::shared_ptr<Shader> m_Shader;
-		std::shared_ptr<VertexArray> m_VertexArray;
-
-		std::shared_ptr<Shader> m_BlueShader;
-		std::shared_ptr<VertexArray> m_SquareVA;
-
-		OrthographicCamera m_Camera;
 
 		static Application* s_Instance;
 	};
