@@ -5,6 +5,8 @@
 
 #include "Input.h"
 
+#include <GLFW/glfw3.h>
+
 namespace Atlas
 {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -44,8 +46,12 @@ namespace Atlas
 	{
 		while (m_Running)
 		{
+			float time = (float)glfwGetTime(); // Platform::GetTime
+			Timestep timestep = time - m_LastFrameTime;
+			m_LastFrameTime = time;
+
 			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate();
+				layer->OnUpdate(timestep);
 
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack)

@@ -119,33 +119,33 @@ public:
 
 	}
 
-	void OnUpdate() override
+	void OnUpdate(Atlas::Timestep ts) override
 	{
 		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_LEFT))
 		{
-			m_CameraPosition.x -= m_CameraMoveSpeed;
+			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
 		}
 		else if (Atlas::Input::IsKeyPressed(ATLAS_KEY_RIGHT))
 		{
-			m_CameraPosition.x += m_CameraMoveSpeed;
+			m_CameraPosition.x += m_CameraMoveSpeed * ts;
 		}
 		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_UP))
 		{
-			m_CameraPosition.y += m_CameraMoveSpeed;
+			m_CameraPosition.y += m_CameraMoveSpeed * ts;
 		}
 		else if (Atlas::Input::IsKeyPressed(ATLAS_KEY_DOWN))
 		{
-			m_CameraPosition.y -= m_CameraMoveSpeed;
+			m_CameraPosition.y -= m_CameraMoveSpeed * ts;
 		}
 
 		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_Q))
 		{
-			m_CameraRotation += m_CameraRotationSpeed;
+			m_CameraRotation += m_CameraRotationSpeed * ts;
 		}
 
 		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_E))
 		{
-			m_CameraRotation -= m_CameraRotationSpeed;
+			m_CameraRotation -= m_CameraRotationSpeed * ts;
 		}
 
 		Atlas::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
@@ -169,8 +169,7 @@ public:
 
 	void OnEvent(Atlas::Event& event) override
 	{
-		//Atlas::EventDispatcher dispatcher(event);
-		//dispatcher.Dispatch<Atlas::KeyPressedEvent>(ATLAS_BIND_EVENT_FN(ExampleLayer::OnKeyPressedEvent));
+
 	}
 
 private:
@@ -183,9 +182,9 @@ private:
 
 	Atlas::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
-	float m_CameraMoveSpeed = 0.1f;
+	float m_CameraMoveSpeed = 3.0f;
 	float m_CameraRotation = 0.0f;
-	float m_CameraRotationSpeed = 1.0f;
+	float m_CameraRotationSpeed = 90.0f;
 };
 
 class Sandbox : public Atlas::Application

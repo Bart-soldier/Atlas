@@ -7,6 +7,8 @@
 #include "Atlas/Events/Event.h"
 #include "Atlas/Events/ApplicationEvent.h"
 
+#include "Atlas/Core/Timestep.h"
+
 #include "Atlas/ImGui/ImGuiLayer.h"
 
 namespace Atlas
@@ -34,6 +36,7 @@ namespace Atlas
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		LayerStack m_LayerStack;
+		float m_LastFrameTime = 0.0f;
 
 		static Application* s_Instance;
 	};
