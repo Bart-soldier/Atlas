@@ -36,17 +36,18 @@ public:
 
 		m_SquareVA.reset(Atlas::VertexArray::Create());
 
-		float squareVertices[4 * 3] = {
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.5f,  0.5f, 0.0f,
-			-0.5f,  0.5f, 0.0f
+		float squareVertices[5 * 4] = {
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f
 		};
 
 		Atlas::Ref<Atlas::VertexBuffer> squareVB;
 		squareVB.reset(Atlas::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 		squareVB->SetLayout({
-			{ Atlas::ShaderDataType::Float3, "a_Position" }
+			{ Atlas::ShaderDataType::Float3, "a_Position" },
+			{ Atlas::ShaderDataType::Float2, "a_TexCoord" }
 		});
 		m_SquareVA->AddVertexBuffer(squareVB);
 
@@ -92,7 +93,7 @@ public:
 
 		m_Shader.reset(Atlas::Shader::Create(vertexSrc, fragmentSrc));
 
-		std::string blueVertexSrc = R"(
+		std::string flatColorVertexSrc = R"(
 			#version 330 core
 
 			layout(location = 0) in vec3 a_Position;
@@ -124,9 +125,48 @@ public:
 			}
 		)";
 
-		m_FlatColorShader.reset(Atlas::Shader::Create(blueVertexSrc, flatColorFragmentSrc));
+		m_FlatColorShader.reset(Atlas::Shader::Create(flatColorVertexSrc, flatColorFragmentSrc));
 
-	}
+		std::string textureVertexSrc = R"(
+			#version 330 core
+
+			layout(location = 0) in vec3 a_Position;
+			layout(location = 1) in vec2 a_TexCoord;
+
+			uniform mat4 u_ViewProjection;
+			uniform mat4 u_Transform;
+
+			out vec2 v_TexCoord;
+
+			void main()
+			{
+				v_TexCoord = a_TexCoord;
+				gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+			}
+		)";
+
+		std::string textureFragmentSrc = R"(
+			#version 330 core
+
+			layout(location = 0) out vec4 color;
+
+			in vec2 v_TexCoord;
+
+			uniform sampler2D u_Texture;
+
+			void main()
+			{
+				color = texture(u_Texture, v_TexCoord);
+			}
+		)";
+
+		m_TextureShader.reset(Atlas::Shader::Create(textureVertexSrc, textureFragmentSrc));
+	
+		m_Texture = Atlas::Texture2D::Create("assets/textures/Checkerboard.png");
+
+		std::dynamic_pointer_cast<Atlas::OpenGLShader>(m_TextureShader)->Bind();
+		std::dynamic_pointer_cast<Atlas::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
+}
 
 	void OnUpdate(Atlas::Timestep ts) override
 	{
@@ -180,7 +220,11 @@ public:
 			}
 		}
 
-		Atlas::Renderer::Submit(m_Shader, m_VertexArray);
+		m_Texture->Bind();
+		Atlas::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5)));
+
+		// Triangle
+		// Atlas::Renderer::Submit(m_Shader, m_VertexArray);
 
 		Atlas::Renderer::EndScene();
 	}
@@ -202,8 +246,10 @@ private:
 	Atlas::Ref<Atlas::Shader> m_Shader;
 	Atlas::Ref<Atlas::VertexArray> m_VertexArray;
 
-	Atlas::Ref<Atlas::Shader> m_FlatColorShader;
+	Atlas::Ref<Atlas::Shader> m_FlatColorShader, m_TextureShader;
 	Atlas::Ref<Atlas::VertexArray> m_SquareVA;
+
+	Atlas::Ref<Atlas::Texture2D> m_Texture;
 
 	Atlas::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
