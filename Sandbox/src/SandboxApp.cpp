@@ -163,6 +163,7 @@ public:
 		m_TextureShader.reset(Atlas::Shader::Create(textureVertexSrc, textureFragmentSrc));
 	
 		m_Texture = Atlas::Texture2D::Create("assets/textures/Checkerboard.png");
+		m_LogoTexture = Atlas::Texture2D::Create("assets/textures/ChernoLogo.png");
 
 		std::dynamic_pointer_cast<Atlas::OpenGLShader>(m_TextureShader)->Bind();
 		std::dynamic_pointer_cast<Atlas::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
@@ -222,6 +223,9 @@ public:
 
 		m_Texture->Bind();
 		Atlas::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5)));
+		
+		m_LogoTexture->Bind();
+		Atlas::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5)));
 
 		// Triangle
 		// Atlas::Renderer::Submit(m_Shader, m_VertexArray);
@@ -249,7 +253,7 @@ private:
 	Atlas::Ref<Atlas::Shader> m_FlatColorShader, m_TextureShader;
 	Atlas::Ref<Atlas::VertexArray> m_SquareVA;
 
-	Atlas::Ref<Atlas::Texture2D> m_Texture;
+	Atlas::Ref<Atlas::Texture2D> m_Texture, m_LogoTexture;
 
 	Atlas::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
