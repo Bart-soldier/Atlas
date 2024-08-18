@@ -21,7 +21,7 @@ public:
 			 0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
 		};
 
-		std::shared_ptr<Atlas::VertexBuffer> vertexBuffer;
+		Atlas::Ref<Atlas::VertexBuffer> vertexBuffer;
 		vertexBuffer.reset(Atlas::VertexBuffer::Create(vertices, sizeof(vertices)));
 		vertexBuffer->SetLayout({
 			{ Atlas::ShaderDataType::Float3, "a_Position" },
@@ -30,7 +30,7 @@ public:
 		m_VertexArray->AddVertexBuffer(vertexBuffer);
 
 		uint32_t indices[3] = { 0, 1, 2 };
-		std::shared_ptr<Atlas::IndexBuffer> indexBuffer;
+		Atlas::Ref<Atlas::IndexBuffer> indexBuffer;
 		indexBuffer.reset(Atlas::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 
@@ -43,7 +43,7 @@ public:
 			-0.5f,  0.5f, 0.0f
 		};
 
-		std::shared_ptr<Atlas::VertexBuffer> squareVB;
+		Atlas::Ref<Atlas::VertexBuffer> squareVB;
 		squareVB.reset(Atlas::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 		squareVB->SetLayout({
 			{ Atlas::ShaderDataType::Float3, "a_Position" }
@@ -51,7 +51,7 @@ public:
 		m_SquareVA->AddVertexBuffer(squareVB);
 
 		uint32_t squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-		std::shared_ptr<Atlas::IndexBuffer> squareIB;
+		Atlas::Ref<Atlas::IndexBuffer> squareIB;
 		squareIB.reset(Atlas::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 		m_SquareVA->SetIndexBuffer(squareIB);
 
@@ -199,11 +199,11 @@ public:
 
 private:
 
-	std::shared_ptr<Atlas::Shader> m_Shader;
-	std::shared_ptr<Atlas::VertexArray> m_VertexArray;
+	Atlas::Ref<Atlas::Shader> m_Shader;
+	Atlas::Ref<Atlas::VertexArray> m_VertexArray;
 
-	std::shared_ptr<Atlas::Shader> m_FlatColorShader;
-	std::shared_ptr<Atlas::VertexArray> m_SquareVA;
+	Atlas::Ref<Atlas::Shader> m_FlatColorShader;
+	Atlas::Ref<Atlas::VertexArray> m_SquareVA;
 
 	Atlas::OrthographicCamera m_Camera;
 	glm::vec3 m_CameraPosition;
