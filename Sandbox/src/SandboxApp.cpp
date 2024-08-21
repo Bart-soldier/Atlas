@@ -11,7 +11,7 @@ class ExampleLayer : public Atlas::Layer
 {
 public:
 	ExampleLayer()
-		: Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f)
+		: Layer("Example"), m_CameraController(1280.0f / 720.0f, true)
 	{
 		m_VertexArray.reset(Atlas::VertexArray::Create());
 
@@ -138,40 +138,14 @@ public:
 
 	void OnUpdate(Atlas::Timestep ts) override
 	{
-		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_A))
-		{
-			m_CameraPosition.x -= m_CameraMoveSpeed * ts;
-		}
-		else if (Atlas::Input::IsKeyPressed(ATLAS_KEY_D))
-		{
-			m_CameraPosition.x += m_CameraMoveSpeed * ts;
-		}
-		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_W))
-		{
-			m_CameraPosition.y += m_CameraMoveSpeed * ts;
-		}
-		else if (Atlas::Input::IsKeyPressed(ATLAS_KEY_S))
-		{
-			m_CameraPosition.y -= m_CameraMoveSpeed * ts;
-		}
+		// Update
+		m_CameraController.OnUpdate(ts);
 
-		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_Q))
-		{
-			m_CameraRotation += m_CameraRotationSpeed * ts;
-		}
-
-		if (Atlas::Input::IsKeyPressed(ATLAS_KEY_E))
-		{
-			m_CameraRotation -= m_CameraRotationSpeed * ts;
-		}
-
+		// Render
 		Atlas::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 		Atlas::RenderCommand::Clear();
 
-		m_Camera.SetPosition(m_CameraPosition);
-		m_Camera.SetRotation(m_CameraRotation);
-
-		Atlas::Renderer::BeginScene(m_Camera);
+		Atlas::Renderer::BeginScene(m_CameraController.GetCamera());
 
 		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
@@ -209,9 +183,9 @@ public:
 		ImGui::End();
 	}
 
-	void OnEvent(Atlas::Event& event) override
+	void OnEvent(Atlas::Event& e) override
 	{
-
+		m_CameraController.OnEvent(e);
 	}
 
 private:
@@ -224,11 +198,7 @@ private:
 
 	Atlas::Ref<Atlas::Texture2D> m_Texture, m_LogoTexture;
 
-	Atlas::OrthographicCamera m_Camera;
-	glm::vec3 m_CameraPosition;
-	float m_CameraMoveSpeed = 3.0f;
-	float m_CameraRotation = 0.0f;
-	float m_CameraRotationSpeed = 90.0f;
+	Atlas::OrthographicCameraController m_CameraController;
 
 	glm::vec3 m_SquareColor = { 0.2f, 0.3f, 0.8f };
 };

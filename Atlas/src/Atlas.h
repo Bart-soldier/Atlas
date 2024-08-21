@@ -11,6 +11,7 @@
 #include "Atlas/Input.h"
 #include "Atlas/KeyCodes.h"
 #include "Atlas/MouseButtonCodes.h"
+#include "Atlas/OrthographicCameraController.h"
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
