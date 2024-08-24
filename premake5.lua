@@ -9,6 +9,11 @@ workspace "Atlas"
 		"Dist"
 	}
 
+	flags
+	{
+		"MultiProcessorCompile"
+	}
+
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
@@ -18,9 +23,11 @@ IncludeDir["imgui"] = "Atlas/vendor/imgui"
 IncludeDir["glm"] = "Atlas/vendor/glm"
 IncludeDir["stb_image"] = "Atlas/vendor/stb_image"
 
-include "Atlas/vendor/GLFW"
-include "Atlas/vendor/Glad"
-include "Atlas/vendor/imgui"
+group "Dependencies"
+	include "Atlas/vendor/GLFW"
+	include "Atlas/vendor/Glad"
+	include "Atlas/vendor/imgui"
+group ""
 
 project "Atlas"
 	location "Atlas"
@@ -74,7 +81,6 @@ project "Atlas"
 
 		defines
 		{
-			"ATLAS_PLATFORM_WINDOWS",
 			"ATLAS_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
@@ -125,11 +131,6 @@ project "Sandbox"
 
 	filter "system:windows"
 		systemversion "latest"
-
-		defines
-		{
-			"ATLAS_PLATFORM_WINDOWS"
-		}
 
 	filter "configurations:Debug"
 		defines "ATLAS_DEBUG"

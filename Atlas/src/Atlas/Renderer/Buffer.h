@@ -44,10 +44,10 @@ namespace Atlas
 		std::string Name;
 		ShaderDataType Type;
 		uint32_t Size;
-		uint32_t Offset;
+		size_t Offset;
 		bool Normalized;
 
-		BufferElement() {}
+		BufferElement() = default;
 
 		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
 			: Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
@@ -98,7 +98,7 @@ namespace Atlas
 	private:
 		void CalculateOffsetAndStride()
 		{
-			uint32_t offset = 0;
+			size_t offset = 0;
 			m_Stride = 0;
 
 			for (auto& element : m_Elements)
@@ -116,7 +116,7 @@ namespace Atlas
 	class VertexBuffer
 	{
 	public:
-		virtual ~VertexBuffer() {}
+		virtual ~VertexBuffer() = default;
 
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;
@@ -130,7 +130,7 @@ namespace Atlas
 	class IndexBuffer
 	{
 	public:
-		virtual ~IndexBuffer() {}
+		virtual ~IndexBuffer() = default;
 
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;
