@@ -2,16 +2,16 @@
 
 // For use by Atlas applications
 
-#include "Atlas/Application.h"
-#include "Atlas/Layer.h"
-#include "Atlas/Log.h"
+#include "Atlas/Core/Application.h"
+#include "Atlas/Core/Layer.h"
+#include "Atlas/Core/Log.h"
 
 #include "Atlas/Core/Timestep.h"
 
-#include "Atlas/Input.h"
-#include "Atlas/KeyCodes.h"
-#include "Atlas/MouseButtonCodes.h"
-#include "Atlas/OrthographicCameraController.h"
+#include "Atlas/Core/Input.h"
+#include "Atlas/Core/KeyCodes.h"
+#include "Atlas/Core/MouseButtonCodes.h"
+#include "Atlas/Renderer/OrthographicCameraController.h"
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
@@ -28,5 +28,5 @@
 /* --------------------------- */
 
 /* ------- ENTRY POINT ------- */
-#include "Atlas/EntryPoint.h"
+#include "Atlas/Core/EntryPoint.h"
 /* --------------------------- */

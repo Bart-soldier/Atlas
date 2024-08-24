@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Atlas/Window.h"
+#include "Atlas/Core/Window.h"
 #include "Atlas/Renderer/GraphicsContext.h"
 
 #include <GLFW/glfw3.h>

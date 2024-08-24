@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "Atlas/Log.h"
+#include "Atlas/Core/Log.h"
 
 #ifdef ATLAS_PLATFORM_WINDOWS
 	#include <Windows.h>

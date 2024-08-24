@@ -3,7 +3,7 @@
 #include "Core.h"
 
 #include "Window.h"
-#include "Atlas/LayerStack.h"
+#include "Atlas/Core/LayerStack.h"
 #include "Atlas/Events/Event.h"
 #include "Atlas/Events/ApplicationEvent.h"
 

@@ -1,8 +1,8 @@
 #include "atlaspch.h"
 #include "OrthographicCameraController.h"
 
-#include "Atlas/Input.h"
-#include "Atlas/KeyCodes.h"
+#include "Atlas/Core/Input.h"
+#include "Atlas/Core/KeyCodes.h"
 
 namespace Atlas
 {
