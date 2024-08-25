@@ -17,6 +17,7 @@
 
 /* --------- RENDERER -------- */
 #include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/Renderer2D.h"
 #include "Atlas/Renderer/RenderCommand.h"
 
 #include "Atlas/Renderer/Buffer.h"
