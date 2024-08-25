@@ -26,7 +26,3 @@
 
 #include "Atlas/Renderer/OrthographicCamera.h"
 /* --------------------------- */
-
-/* ------- ENTRY POINT ------- */
-#include "Atlas/Core/EntryPoint.h"
-/* --------------------------- */
