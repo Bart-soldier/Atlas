@@ -7,13 +7,18 @@ extern Atlas::Application* Atlas::CreateApplication();
 int main(int argc, char** argv)
 {
 	Atlas::Log::Init();
-	ATLAS_CORE_WARN("Initialized Log!");
-	int a = 5;
-	ATLAS_INFO("Initialized Log {0}!", a);
 
+	ATLAS_PROFILE_BEGIN_SESSION("Startup", "AtlasProfile-Startup.json");
 	auto app = Atlas::CreateApplication();
+	ATLAS_PROFILE_END_SESSION();
+
+	ATLAS_PROFILE_BEGIN_SESSION("Runtime", "AtlasProfile-Runtime.json");
 	app->Run();
+	ATLAS_PROFILE_END_SESSION();
+
+	ATLAS_PROFILE_BEGIN_SESSION("Shutdown", "AtlasProfile-Shutdown.json");
 	delete app;
+	ATLAS_PROFILE_END_SESSION();
 }
 
 #endif

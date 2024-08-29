@@ -15,6 +15,8 @@
 
 #include "Atlas/Core/Log.h"
 
+#include "Atlas/Debug/Instrumentor.h"
+
 #ifdef ATLAS_PLATFORM_WINDOWS
 	#include <Windows.h>
 #endif
