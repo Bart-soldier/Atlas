@@ -15,6 +15,8 @@ namespace Atlas
 
 	void OpenGLContext::Init()
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		glfwMakeContextCurrent(m_WindowHandle);
 
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -37,6 +39,8 @@ namespace Atlas
 
 	void OpenGLContext::SwapBuffers()
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		glfwSwapBuffers(m_WindowHandle);
 	}
 }

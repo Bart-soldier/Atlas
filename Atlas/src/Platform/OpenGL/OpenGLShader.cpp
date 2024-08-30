@@ -20,6 +20,8 @@ namespace Atlas
 
 	OpenGLShader::OpenGLShader(const std::string& filepath)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		std::string source = ReadFile(filepath);
 		auto shaderSources = PreProcess(source);
 		Compile(shaderSources);
@@ -35,6 +37,8 @@ namespace Atlas
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
 		: m_Name(name)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		std::unordered_map<GLenum, std::string> sources;
 		sources[GL_VERTEX_SHADER] = vertexSrc;
 		sources[GL_FRAGMENT_SHADER] = fragmentSrc;
@@ -43,13 +47,16 @@ namespace Atlas
 
 	OpenGLShader::~OpenGLShader()
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		glDeleteProgram(m_RendererID);
 	}
 
 	std::string OpenGLShader::ReadFile(const std::string& filepath)
 	{
-		std::string result;
+		ATLAS_PROFILE_FUNCTION();
 
+		std::string result;
 		std::ifstream in(filepath, std::ios::in | std::ios::binary);
 		if (in)
 		{
@@ -69,6 +76,8 @@ namespace Atlas
 
 	std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string& source)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		std::unordered_map<GLenum, std::string> shaderSources;
 
 		const char* typeToken = "#type";
@@ -94,6 +103,8 @@ namespace Atlas
 
 	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& shaderSources)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		GLuint program = glCreateProgram();
 
 		ATLAS_CORE_ASSERT(shaderSources.size() <= 2, "Only 2 shaders are supported at the moment!");
@@ -173,31 +184,43 @@ namespace Atlas
 
 	void OpenGLShader::Bind() const
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		glUseProgram(m_RendererID);
 	}
 
 	void OpenGLShader::Unbind() const
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		glUseProgram(0);
 	}
 
 	void OpenGLShader::SetInt(const std::string& name, int value)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		UploadUniformInt(name, value);
 	}
 
 	void OpenGLShader::SetFloat3(const std::string& name, const glm::vec3& value)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		UploadUniformFloat3(name, value);
 	}
 
 	void OpenGLShader::SetFloat4(const std::string& name, const glm::vec4& value)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		UploadUniformFloat4(name, value);
 	}
 
 	void OpenGLShader::SetMat4(const std::string& name, const glm::mat4& value)
 	{
+		ATLAS_PROFILE_FUNCTION();
+
 		UploadUniformMat4(name, value);
 	}
 

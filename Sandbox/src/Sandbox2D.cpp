@@ -13,11 +13,14 @@ Sandbox2D::Sandbox2D()
 
 void Sandbox2D::OnAttach()
 {
+	ATLAS_PROFILE_FUNCTION();
+
 	m_CheckerboardTexture = Atlas::Texture2D::Create("assets/textures/Checkerboard.png");
 }
 
 void Sandbox2D::OnDetach()
 {
+	ATLAS_PROFILE_FUNCTION();
 }
 
 void Sandbox2D::OnUpdate(Atlas::Timestep ts)
@@ -25,10 +28,7 @@ void Sandbox2D::OnUpdate(Atlas::Timestep ts)
 	ATLAS_PROFILE_FUNCTION();
 
 	// Update
-	{
-		ATLAS_PROFILE_SCOPE("CameraController::OnUpdate");
-		m_CameraController.OnUpdate(ts);
-	}
+	m_CameraController.OnUpdate(ts);
 
 	// Render
 	{
