@@ -10,7 +10,7 @@
 
 #include "Atlas/Core/Input.h"
 #include "Atlas/Core/KeyCodes.h"
-#include "Atlas/Core/MouseButtonCodes.h"
+#include "Atlas/Core/MouseCodes.h"
 #include "Atlas/Renderer/OrthographicCameraController.h"
 
 #include "Atlas/ImGui/ImGuiLayer.h"

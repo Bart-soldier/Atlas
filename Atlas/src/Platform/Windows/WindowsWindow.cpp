@@ -1,9 +1,13 @@
 #include "atlaspch.h"
 #include "WindowsWindow.h"
 
+#include "Atlas/Core/Input.h"
+
 #include "Atlas/Events/ApplicationEvent.h"
 #include "Atlas/Events/MouseEvent.h"
 #include "Atlas/Events/KeyEvent.h"
+
+#include "Atlas/Renderer/Renderer.h"
 
 #include "Platform/OpenGL/OpenGLContext.h"
 
@@ -57,6 +61,12 @@ namespace Atlas
 
 		{
 			ATLAS_PROFILE_SCOPE("glfwCreateWindow");
+
+			#if defined(ATLAS_DEBUG)
+				if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
+					glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+			#endif
+
 			m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		}
 
@@ -92,19 +102,19 @@ namespace Atlas
 				{
 					case GLFW_PRESS:
 					{
-						KeyPressedEvent event(key, 0);
+						KeyPressedEvent event(static_cast<KeyCode>(key), 0);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE:
 					{
-						KeyReleasedEvent event(key);
+						KeyReleasedEvent event(static_cast<KeyCode>(key));
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_REPEAT:
 					{
-						KeyPressedEvent event(key, 1);
+						KeyPressedEvent event(static_cast<KeyCode>(key), 1);
 						data.EventCallback(event);
 						break;
 					}
@@ -115,7 +125,7 @@ namespace Atlas
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 				
-				KeyTypedEvent event(keycode);
+				KeyTypedEvent event(static_cast<KeyCode>(keycode));
 				data.EventCallback(event);
 			});
 
@@ -127,13 +137,13 @@ namespace Atlas
 				{
 					case GLFW_PRESS:
 					{
-						MouseButtonPressedEvent event(button);
+						MouseButtonPressedEvent event(static_cast<MouseCode>(button));
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE:
 					{
-						MouseButtonReleasedEvent event(button);
+						MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
 						data.EventCallback(event);
 						break;
 					}

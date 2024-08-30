@@ -5,9 +5,36 @@
 
 namespace Atlas
 {
+	void OpenGLMessageCallback(
+		unsigned source,
+		unsigned type,
+		unsigned id,
+		unsigned severity,
+		int length,
+		const char* message,
+		const void* userParam)
+	{
+		switch (severity)
+		{
+		case GL_DEBUG_SEVERITY_HIGH:         ATLAS_CORE_CRITICAL(message); return;
+		case GL_DEBUG_SEVERITY_MEDIUM:       ATLAS_CORE_ERROR(message); return;
+		case GL_DEBUG_SEVERITY_LOW:          ATLAS_CORE_WARN(message); return;
+		case GL_DEBUG_SEVERITY_NOTIFICATION: ATLAS_CORE_TRACE(message); return;
+		}
+		ATLAS_CORE_ASSERT(false, "Unknown severity level!");
+	}
+
 	void OpenGLRendererAPI::Init()
 	{
 		ATLAS_PROFILE_FUNCTION();
+
+		#ifdef ATLAS_DEBUG
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+		#endif
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
