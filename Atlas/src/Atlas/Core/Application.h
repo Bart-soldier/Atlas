@@ -11,6 +11,8 @@
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
+int main(int argc, char** argv);
+
 namespace Atlas
 {
 	class Application
@@ -18,8 +20,6 @@ namespace Atlas
 	public:
 		Application();
 		virtual ~Application() = default;
-
-		void Run();
 
 		void OnEvent(Event& e);
 
@@ -29,7 +29,10 @@ namespace Atlas
 		inline Window& GetWindow() { return *m_Window; }
 
 		inline static Application& Get() { return *s_Instance; }
+
 	private:
+		void Run();
+
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
@@ -41,6 +44,7 @@ namespace Atlas
 		float m_LastFrameTime = 0.0f;
 
 		static Application* s_Instance;
+		friend int ::main(int argc, char** argv);
 	};
 
 	// To be defined in CLIENT
