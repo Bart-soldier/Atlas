@@ -8,6 +8,8 @@ bin-int/
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
+*.log
+
 Sandbox/AtlasProfile-Runtime.json
 Sandbox/AtlasProfile-Shutdown.json
 Sandbox/AtlasProfile-Startup.json
