@@ -29,6 +29,11 @@ namespace Atlas
 		PushOverlay(m_ImGuiLayer);
 	}
 
+	Application::~Application()
+	{
+		Renderer::Shutdown();
+	}
+
 	void Application::PushLayer(Layer* layer)
 	{
 		ATLAS_PROFILE_FUNCTION();
