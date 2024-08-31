@@ -43,29 +43,23 @@
 	#error "Unknown platform!"
 #endif // End of platform detection
 
-
-// DLL support
-#ifdef ATLAS_PLATFORM_WINDOWS
-	#if ATLAS_DYNAMIC_LINK
-		#ifdef ATLAS_BUILD_DLL
-			#define ATLAS_API __declspec(dllexport)
-		#else
-			#define ATLAS_API __declspec(dllimport)
-		#endif
-	#else
-		#define ATLAS_API
-	#endif
-#else
-	#error Atlas only supports Windows!
-#endif // End of DLL support
-
 #ifdef ATLAS_DEBUG
+	#if defined(ATLAS_PLATFORM_WINDOWS)
+		#define ATLAS_DEBUGBREAK() __debugbreak()
+	#elif defined(ATLAS_PLATFORM_LINUX)
+		#include <signal.h>
+		#define ATLAS_DEBUGBREAK() raise(SIGTRAP)
+	#else
+		#error "Platform doesn't support debugbreak yet!"
+	#endif
 	#define ATLAS_ENABLE_ASSERTS
+#else
+	#define ATLAS_DEBUGBREAK()
 #endif
 
 #ifdef ATLAS_ENABLE_ASSERTS
-	#define ATLAS_ASSERT(x, ...) { if(!(x)) {ATLAS_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
-	#define ATLAS_CORE_ASSERT(x, ...) { if(!(x)) {ATLAS_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
+	#define ATLAS_ASSERT(x, ...) { if(!(x)) {ATLAS_ERROR("Assertion Failed: {0}", __VA_ARGS__); ATLAS_DEBUGBREAK(); } }
+	#define ATLAS_CORE_ASSERT(x, ...) { if(!(x)) {ATLAS_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); ATLAS_DEBUGBREAK(); } }
 #else
 	#define ATLAS_ASSERT(x, ...)
 	#define ATLAS_CORE_ASSERT(x, ...)

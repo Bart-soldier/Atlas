@@ -5,7 +5,7 @@
 
 namespace Atlas
 {
-	class ATLAS_API LayerStack
+	class LayerStack
 	{
 	public:
 		LayerStack();

@@ -6,7 +6,7 @@
 
 namespace Atlas
 {
-	class ATLAS_API Log
+	class Log
 	{
 	public:
 		static void Init();

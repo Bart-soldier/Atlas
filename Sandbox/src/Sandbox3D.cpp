@@ -18,7 +18,7 @@ Sandbox3D::Sandbox3D()
 	};
 
 	Atlas::Ref<Atlas::VertexBuffer> vertexBuffer;
-	vertexBuffer.reset(Atlas::VertexBuffer::Create(vertices, sizeof(vertices)));
+	vertexBuffer = Atlas::VertexBuffer::Create(vertices, sizeof(vertices));
 	vertexBuffer->SetLayout({
 		{ Atlas::ShaderDataType::Float3, "a_Position" },
 		{ Atlas::ShaderDataType::Float4, "a_Color" }
@@ -27,7 +27,7 @@ Sandbox3D::Sandbox3D()
 
 	uint32_t indices[3] = { 0, 1, 2 };
 	Atlas::Ref<Atlas::IndexBuffer> indexBuffer;
-	indexBuffer.reset(Atlas::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+	indexBuffer = Atlas::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
 	m_VertexArray->SetIndexBuffer(indexBuffer);
 
 	m_SquareVA = Atlas::VertexArray::Create();
@@ -40,7 +40,7 @@ Sandbox3D::Sandbox3D()
 	};
 
 	Atlas::Ref<Atlas::VertexBuffer> squareVB;
-	squareVB.reset(Atlas::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
+	squareVB = Atlas::VertexBuffer::Create(squareVertices, sizeof(squareVertices));
 	squareVB->SetLayout({
 		{ Atlas::ShaderDataType::Float3, "a_Position" },
 		{ Atlas::ShaderDataType::Float2, "a_TexCoord" }
@@ -49,7 +49,7 @@ Sandbox3D::Sandbox3D()
 
 	uint32_t squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
 	Atlas::Ref<Atlas::IndexBuffer> squareIB;
-	squareIB.reset(Atlas::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
+	squareIB = Atlas::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t));
 	m_SquareVA->SetIndexBuffer(squareIB);
 
 	std::string vertexSrc = R"(

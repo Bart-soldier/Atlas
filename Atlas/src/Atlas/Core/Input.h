@@ -6,7 +6,7 @@
 
 namespace Atlas
 {
-	class ATLAS_API Input
+	class Input
 	{
 	protected:
 		Input() = default;

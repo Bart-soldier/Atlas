@@ -5,7 +5,7 @@
 
 namespace Atlas
 {
-	class ATLAS_API KeyEvent : public Event
+	class KeyEvent : public Event
 	{
 	public:
 		inline KeyCode GetKeyCode() const { return m_KeyCode; }
@@ -19,7 +19,7 @@ namespace Atlas
 		KeyCode m_KeyCode;
 	};
 
-	class ATLAS_API KeyPressedEvent : public KeyEvent
+	class KeyPressedEvent : public KeyEvent
 	{
 	public:
 		KeyPressedEvent(KeyCode keycode, int repeatCount)
@@ -38,7 +38,7 @@ namespace Atlas
 		int m_RepeatCount;
 	};
 
-	class ATLAS_API KeyReleasedEvent : public KeyEvent
+	class KeyReleasedEvent : public KeyEvent
 	{
 	public:
 		KeyReleasedEvent(KeyCode keycode)
@@ -54,7 +54,7 @@ namespace Atlas
 		EVENT_CLASS_TYPE(KeyReleased)
 	};
 
-	class ATLAS_API KeyTypedEvent : public KeyEvent
+	class KeyTypedEvent : public KeyEvent
 	{
 	public:
 		KeyTypedEvent(KeyCode keycode)
