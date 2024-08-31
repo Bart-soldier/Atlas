@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Atlas/Core/Core.h"
+#include "Atlas/Core/Base.h"
 #include "Atlas/Core/KeyCodes.h"
 #include "Atlas/Core/MouseCodes.h"
 

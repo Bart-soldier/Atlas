@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Atlas/Core/Core.h"
+#include "Atlas/Core/Base.h"
 #include "Layer.h"
 
 namespace Atlas

@@ -2,7 +2,7 @@
 
 #include "atlaspch.h"
 
-#include "Atlas/Core/Core.h"
+#include "Atlas/Core/Base.h"
 #include "Atlas/Events/Event.h"
 
 namespace Atlas
