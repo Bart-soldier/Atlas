@@ -83,6 +83,11 @@ namespace Atlas
 		}
 	}
 
+	void Application::Close()
+	{
+		m_Running = false;
+	}
+
 	void Application::OnEvent(Event& e)
 	{
 		ATLAS_PROFILE_FUNCTION();
