@@ -1,16 +1,16 @@
 [submodule "Atlas/vendor/spdlog"]
 	path = Atlas/vendor/spdlog
-	url = https://github.com/gabime/spdlog
+	url = ../../gabime/spdlog.git
 	branch = v1.x
 [submodule "Atlas/vendor/GLFW"]
 	path = Atlas/vendor/GLFW
-	url = https://github.com/Bart-soldier/glfw
+	url = ../../Bart-soldier/glfw.git
 	branch = master
 [submodule "Atlas/vendor/imgui"]
 	path = Atlas/vendor/imgui
-	url = https://github.com/Bart-soldier/imgui
+	url = ../../Bart-soldier/imgui.git
 	branch = docking
 [submodule "Atlas/vendor/glm"]
 	path = Atlas/vendor/glm
-	url = https://github.com/g-truc/glm
+	url = ../../g-truc/glm.git
 	branch = master
