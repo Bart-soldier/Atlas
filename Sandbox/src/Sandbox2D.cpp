@@ -19,6 +19,11 @@ void Sandbox2D::OnAttach()
 	m_TextureBarrel = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 1, 11 }, { 128, 128 });
 	m_TextureTree = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 2, 1 }, { 128, 128 }, {1, 2});
 
+	Atlas::FramebufferSpecification fbSpec;
+	fbSpec.Width = 1280;
+	fbSpec.Height = 720;
+	m_Framebuffer = Atlas::Framebuffer::Create(fbSpec);
+
 	m_CameraController.SetZoomLevel(5.0f);
 }
 
@@ -38,6 +43,7 @@ void Sandbox2D::OnUpdate(Atlas::Timestep ts)
 	Atlas::Renderer2D::ResetStats();
 	{
 		ATLAS_PROFILE_SCOPE("Renderer Prep");
+		m_Framebuffer->Bind();
 		Atlas::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 		Atlas::RenderCommand::Clear();
 	}
@@ -70,6 +76,8 @@ void Sandbox2D::OnUpdate(Atlas::Timestep ts)
 		Atlas::Renderer2D::DrawQuad({ 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, m_TextureBarrel);
 		Atlas::Renderer2D::DrawQuad({-1.0f, 0.0f, 0.0f }, { 1.0f, 2.0f }, m_TextureTree);
 		Atlas::Renderer2D::EndScene();
+
+		m_Framebuffer->Unbind();
 	}
 }
 
@@ -78,7 +86,7 @@ void Sandbox2D::OnImGuiRender()
 	ATLAS_PROFILE_FUNCTION();
 
 	// Note: Switch this to true to enable dockspace
-	static bool dockingEnabled = false;
+	static bool dockingEnabled = true;
 	if (dockingEnabled)
 	{
 		static bool dockspaceOpen = true;
@@ -151,8 +159,8 @@ void Sandbox2D::OnImGuiRender()
 	
 		ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));	
 	
-		uint32_t textureID = m_SpriteSheet->GetRendererID();
-		ImGui::Image((void*)textureID, ImVec2{ 256.0f, 256.0f });
+		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+		ImGui::Image((void*)textureID, ImVec2{ 1280, 720 });
 		ImGui::End();
 
 		ImGui::End();
@@ -170,8 +178,8 @@ void Sandbox2D::OnImGuiRender()
 
 		ImGui::ColorEdit4("Square Color", glm::value_ptr(m_SquareColor));
 
-		uint32_t textureID = m_SpriteSheet->GetRendererID();
-		ImGui::Image((void*)textureID, ImVec2{ 256.0f, 256.0f });
+		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+		ImGui::Image((void*)textureID, ImVec2{ 1280, 720 });
 		ImGui::End();
 	}
 }
