@@ -13,7 +13,11 @@ void Sandbox2D::OnAttach()
 {
 	ATLAS_PROFILE_FUNCTION();
 
-	m_CheckerboardTexture = Atlas::Texture2D::Create("assets/textures/Checkerboard.png");
+	//m_CheckerboardTexture = Atlas::Texture2D::Create("assets/textures/Checkerboard.png");
+	m_SpriteSheet = Atlas::Texture2D::Create("assets/textures/SpriteSheet.png");
+	m_TextureStairs = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 7, 6 }, { 128, 128 });
+	m_TextureBarrel = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 8, 2 }, { 128, 128 });
+	m_TextureTree = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 2, 1 }, { 128, 128 }, {1, 2});
 }
 
 void Sandbox2D::OnDetach()
@@ -42,11 +46,11 @@ void Sandbox2D::OnUpdate(Atlas::Timestep ts)
 
 		ATLAS_PROFILE_SCOPE("Renderer Draw");
 
-		Atlas::Renderer2D::BeginScene(m_CameraController.GetCamera());
+		/*Atlas::Renderer2D::BeginScene(m_CameraController.GetCamera());
 		Atlas::Renderer2D::DrawRotatedQuad({ -2.0f, 0.0f }, { 0.8f, 0.8f }, glm::radians(rotation), { 0.8f, 0.2f, 0.3f, 1.0f });
 		Atlas::Renderer2D::DrawQuad({ 2.0f, 0.0f }, { 0.8f, 0.8f }, { 0.8f, 0.2f, 0.3f, 1.0f });
 		Atlas::Renderer2D::DrawQuad({ 0.0f,-2.0f }, { 0.5f, 0.75f }, m_SquareColor);
-		Atlas::Renderer2D::DrawQuad({ 0.0f, 0.0f, -0.1f }, { 20.0f, 20.0f }, m_CheckerboardTexture, 10.0f);
+		//Atlas::Renderer2D::DrawQuad({ 0.0f, 0.0f, -0.1f }, { 20.0f, 20.0f }, m_CheckerboardTexture, 10.0f);
 
 		for (float y = -5.0f; y < 5.0f; y += 0.5f)
 		{
@@ -57,6 +61,12 @@ void Sandbox2D::OnUpdate(Atlas::Timestep ts)
 			}
 		}
 		
+		Atlas::Renderer2D::EndScene();*/
+
+		Atlas::Renderer2D::BeginScene(m_CameraController.GetCamera());
+		Atlas::Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, m_TextureStairs);
+		Atlas::Renderer2D::DrawQuad({ 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, m_TextureBarrel);
+		Atlas::Renderer2D::DrawQuad({-1.0f, 0.0f, 0.0f }, { 1.0f, 2.0f }, m_TextureTree);
 		Atlas::Renderer2D::EndScene();
 	}
 }
