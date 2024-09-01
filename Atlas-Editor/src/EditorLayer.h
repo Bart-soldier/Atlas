@@ -19,6 +19,8 @@ namespace Atlas
 	private:
 		OrthographicCameraController m_CameraController;
 
+		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
+
 		// Temp
 		Ref<VertexArray> m_SquareVA;
 		Ref<Shader> m_FlatColorShader;
