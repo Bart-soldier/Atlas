@@ -20,11 +20,8 @@ private:
 	// Temp
 	Atlas::Ref<Atlas::VertexArray> m_SquareVA;
 	Atlas::Ref<Atlas::Shader> m_FlatColorShader;
-	Atlas::Ref<Atlas::Framebuffer> m_Framebuffer;
 
-	//Atlas::Ref<Atlas::Texture2D> m_CheckerboardTexture;
-	Atlas::Ref<Atlas::Texture2D> m_SpriteSheet;
-	Atlas::Ref<Atlas::SubTexture2D> m_TextureStairs, m_TextureBarrel, m_TextureTree;
+	Atlas::Ref<Atlas::Texture2D> m_CheckerboardTexture;
 
 	glm::vec4 m_SquareColor;
 };

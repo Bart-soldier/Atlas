@@ -18,7 +18,7 @@ namespace Atlas
 	class Application
 	{
 	public:
-		Application();
+		Application(const std::string& name = "Atlas Application");
 		virtual ~Application();
 
 		void OnEvent(Event& e);
