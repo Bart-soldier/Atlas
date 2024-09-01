@@ -1,7 +1,7 @@
 #include "atlaspch.h"
-#include "Texture.h"
+#include "Atlas/Renderer/Texture.h"
 
-#include "Renderer.h"
+#include "Atlas/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
 
 namespace Atlas

@@ -1,12 +1,8 @@
 #include "atlaspch.h"
-#include "LayerStack.h"
+#include "Atlas/Core/LayerStack.h"
 
 namespace Atlas
 {
-	LayerStack::LayerStack()
-	{
-	}
-
 	LayerStack::~LayerStack()
 	{
 		for (Layer* layer : m_Layers)

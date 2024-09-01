@@ -1,7 +1,7 @@
 #include "atlaspch.h"
-#include "buffer.h"
 
-#include "Renderer.h"
+#include "Atlas/Renderer/Buffer.h"
+#include "Atlas/Renderer/Renderer.h"
 
 #include "Platform/OpenGL/OpenGLBuffer.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderCommand.h"
+#include "Atlas/Renderer/RenderCommand.h"
 
 #include "Atlas/Renderer/OrthographicCamera.h"
 #include "Atlas/Renderer/Shader.h"

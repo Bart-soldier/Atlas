@@ -2,6 +2,8 @@
 
 // For use by Atlas applications
 
+#include "Atlas/Core/Base.h"
+
 #include "Atlas/Core/Application.h"
 #include "Atlas/Core/Layer.h"
 #include "Atlas/Core/Log.h"

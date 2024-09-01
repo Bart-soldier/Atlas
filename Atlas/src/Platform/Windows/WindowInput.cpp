@@ -1,5 +1,5 @@
 #include "atlaspch.h"
-#include "WindowInput.h"
+#include "Platform/Windows/WindowInput.h"
 
 #include "Atlas/Core/Application.h"
 #include <GLFW/glfw3.h>

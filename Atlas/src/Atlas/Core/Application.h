@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Base.h"
+#include "Atlas/Core/Base.h"
 
-#include "Window.h"
+#include "Atlas/Core/Window.h"
 #include "Atlas/Core/LayerStack.h"
 #include "Atlas/Events/Event.h"
 #include "Atlas/Events/ApplicationEvent.h"

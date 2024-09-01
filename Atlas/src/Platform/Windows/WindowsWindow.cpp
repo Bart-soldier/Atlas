@@ -1,5 +1,5 @@
 #include "atlaspch.h"
-#include "WindowsWindow.h"
+#include "Platform/Windows/WindowsWindow.h"
 
 #include "Atlas/Core/Input.h"
 
@@ -47,7 +47,6 @@ namespace Atlas
 		if (s_GLFWWindowCount == 0)
 		{
 			ATLAS_PROFILE_SCOPE("glfwInit");
-			ATLAS_CORE_INFO("Initializing GLFW");
 			int success = glfwInit();
 			ATLAS_CORE_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
@@ -65,7 +64,7 @@ namespace Atlas
 			++s_GLFWWindowCount;
 		}
 
-		m_Context = CreateScope<OpenGLContext>(m_Window);
+		m_Context = GraphicsContext::Create(m_Window);
 		m_Context->Init();
 		
 		glfwSetWindowUserPointer(m_Window, &m_Data);
@@ -167,10 +166,10 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		glfwDestroyWindow(m_Window);
+		--s_GLFWWindowCount;
 
-		if (--s_GLFWWindowCount == 0)
+		if (s_GLFWWindowCount == 0)
 		{
-			ATLAS_CORE_INFO("Terminating GLFW");
 			glfwTerminate();
 		}
 	}

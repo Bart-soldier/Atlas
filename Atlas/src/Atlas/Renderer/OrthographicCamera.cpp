@@ -1,5 +1,5 @@
 #include "atlaspch.h"
-#include "OrthographicCamera.h"
+#include "Atlas/Renderer/OrthographicCamera.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

@@ -1,6 +1,6 @@
 #pragma once
-
 #include "atlaspch.h"
+
 #include "Atlas/Core/Base.h"
 
 namespace Atlas

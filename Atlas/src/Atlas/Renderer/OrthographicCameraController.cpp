@@ -1,5 +1,5 @@
 #include "atlaspch.h"
-#include "OrthographicCameraController.h"
+#include "Atlas/Renderer/OrthographicCameraController.h"
 
 #include "Atlas/Core/Input.h"
 #include "Atlas/Core/KeyCodes.h"
