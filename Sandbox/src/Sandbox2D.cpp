@@ -16,8 +16,10 @@ void Sandbox2D::OnAttach()
 	//m_CheckerboardTexture = Atlas::Texture2D::Create("assets/textures/Checkerboard.png");
 	m_SpriteSheet = Atlas::Texture2D::Create("assets/textures/SpriteSheet.png");
 	m_TextureStairs = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 7, 6 }, { 128, 128 });
-	m_TextureBarrel = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 8, 2 }, { 128, 128 });
+	m_TextureBarrel = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 1, 11 }, { 128, 128 });
 	m_TextureTree = Atlas::SubTexture2D::CreateFromCoords(m_SpriteSheet, { 2, 1 }, { 128, 128 }, {1, 2});
+
+	m_CameraController.SetZoomLevel(5.0f);
 }
 
 void Sandbox2D::OnDetach()
