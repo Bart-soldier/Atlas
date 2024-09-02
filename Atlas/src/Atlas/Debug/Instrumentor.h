@@ -27,15 +27,9 @@ namespace Atlas
 
 	class Instrumentor
 	{
-	private:
-		std::mutex m_Mutex;
-		InstrumentationSession* m_CurrentSession;
-		std::ofstream m_OutputStream;
 	public:
-		Instrumentor()
-			: m_CurrentSession(nullptr)
-		{
-		}
+		Instrumentor(const Instrumentor&) = delete;
+		Instrumentor(Instrumentor&&) = delete;
 
 		void BeginSession(const std::string& name, const std::string& filepath = "results.json")
 		{
@@ -96,6 +90,23 @@ namespace Atlas
 			}
 		}
 
+		static Instrumentor& Get()
+		{
+			static Instrumentor instance;
+			return instance;
+		}
+
+	private:
+		Instrumentor()
+			: m_CurrentSession(nullptr)
+		{
+		}
+
+		~Instrumentor()
+		{
+			EndSession();
+		}
+
 		void WriteHeader()
 		{
 			m_OutputStream << "{\"otherData\": {},\"traceEvents\":[{}";
@@ -110,8 +121,10 @@ namespace Atlas
 
 		// Note: you must already own lock on m_Mutex before
 		// calling InternalEndSession()
-		void InternalEndSession() {
-			if (m_CurrentSession) {
+		void InternalEndSession()
+		{
+			if (m_CurrentSession)
+			{
 				WriteFooter();
 				m_OutputStream.close();
 				delete m_CurrentSession;
@@ -119,11 +132,9 @@ namespace Atlas
 			}
 		}
 
-		static Instrumentor& Get()
-		{
-			static Instrumentor instance;
-			return instance;
-		}
+		std::mutex m_Mutex;
+		InstrumentationSession* m_CurrentSession;
+		std::ofstream m_OutputStream;
 	};
 
 	class InstrumentationTimer
