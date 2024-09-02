@@ -13,8 +13,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "Atlas/Core/Log.h"
+#include "Atlas/Core/Base.h"
 
+#include "Atlas/Core/Log.h"
 #include "Atlas/Debug/Instrumentor.h"
 
 #ifdef ATLAS_PLATFORM_WINDOWS
