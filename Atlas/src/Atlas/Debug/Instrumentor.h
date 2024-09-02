@@ -212,8 +212,10 @@ namespace Atlas
 
 	#define ATLAS_PROFILE_BEGIN_SESSION(name, filepath) ::Atlas::Instrumentor::Get().BeginSession(name, filepath)
 	#define ATLAS_PROFILE_END_SESSION() ::Atlas::Instrumentor::Get().EndSession()
-	#define ATLAS_PROFILE_SCOPE(name) constexpr auto fixedName = ::Atlas::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");\
-									::Atlas::InstrumentationTimer timer##__LINE__(fixedName.Data)
+	#define ATLAS_PROFILE_SCOPE_LINE2(name, line) constexpr auto fixedName##line = ::Atlas::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");\
+											   ::Atlas::InstrumentationTimer timer##line(fixedName##line.Data)
+	#define ATLAS_PROFILE_SCOPE_LINE(name, line) ATLAS_PROFILE_SCOPE_LINE2(name, line)
+	#define ATLAS_PROFILE_SCOPE(name) ATLAS_PROFILE_SCOPE_LINE(name, __LINE__)
 	#define ATLAS_PROFILE_FUNCTION() ATLAS_PROFILE_SCOPE(ATLAS_FUNC_SIG)
 #else
 	#define ATLAS_PROFILE_BEGIN_SESSION(name, filepath)
