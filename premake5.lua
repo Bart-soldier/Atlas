@@ -22,6 +22,7 @@ IncludeDir["Glad"] = "Atlas/vendor/Glad/include"
 IncludeDir["imgui"] = "Atlas/vendor/imgui"
 IncludeDir["glm"] = "Atlas/vendor/glm"
 IncludeDir["stb_image"] = "Atlas/vendor/stb_image"
+IncludeDir["entt"] = "Atlas/vendor/entt/include"
 
 group "Dependencies"
 	include "Atlas/vendor/GLFW"
@@ -66,7 +67,8 @@ project "Atlas"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.stb_image}"
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.entt}"
 	}
 
 	links
@@ -163,7 +165,8 @@ project "Atlas-Editor"
 		"Atlas/vendor/spdlog/include",
 		"Atlas/src",
 		"Atlas/vendor",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}"
 	}
 
 	links

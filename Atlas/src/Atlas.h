@@ -17,6 +17,9 @@
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
+#include "Atlas/Scene/Scene.h"
+#include "Atlas/Scene/Components.h"
+
 /* --------- RENDERER -------- */
 #include "Atlas/Renderer/Renderer.h"
 #include "Atlas/Renderer/Renderer2D.h"

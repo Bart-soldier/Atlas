@@ -27,6 +27,9 @@ namespace Atlas
 		Ref<Shader> m_FlatColorShader;
 		Ref<Framebuffer> m_Framebuffer;
 
+		Ref<Scene> m_ActiveScene;
+		entt::entity m_SquareEntity;
+
 		Ref<Texture2D> m_SpriteSheet;
 		Ref<SubTexture2D> m_TextureStairs, m_TextureBarrel, m_TextureTree;
 
