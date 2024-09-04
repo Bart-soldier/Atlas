@@ -8,7 +8,7 @@ bin-int/
 **/AtlasProfile-Runtime.json
 **/AtlasProfile-Shutdown.json
 **/AtlasProfile-Startup.json
-**/imgui.ini
+#**/imgui.ini
 
 # Visual Studio files and folder
 .vs/

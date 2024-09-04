@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas.h"
+#include "Panels/SceneHierarchyPanel.h"
 
 namespace Atlas
 {
@@ -36,6 +37,9 @@ namespace Atlas
 
 		Ref<Texture2D> m_SpriteSheet;
 		Ref<SubTexture2D> m_TextureStairs, m_TextureBarrel, m_TextureTree;
+	
+		// Panels
+		SceneHierarchyPanel m_SceneHierarchyPanel;
 	};
 }
 
