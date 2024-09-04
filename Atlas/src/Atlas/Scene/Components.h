@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Atlas/Scene/SceneCamera.h"
+
 namespace Atlas
 {
 	struct TagComponent
@@ -35,5 +37,15 @@ namespace Atlas
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
+	};
+
+	struct CameraComponent
+	{
+		SceneCamera Camera;
+		bool Primary = true; // TODO: think about moving to Scene
+		bool FixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
 	};
 }

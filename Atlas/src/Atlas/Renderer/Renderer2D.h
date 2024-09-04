@@ -5,6 +5,8 @@
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
 
+#include "Atlas/Renderer/Camera.h"
+
 namespace Atlas
 {
 	class Renderer2D
@@ -13,7 +15,8 @@ namespace Atlas
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const OrthographicCamera& camera);
+		static void BeginScene(const Camera& camera, const glm::mat4& transform);
+		static void BeginScene(const OrthographicCamera& camera); //TODO: Remove
 		static void EndScene();
 		static void Flush();
 
