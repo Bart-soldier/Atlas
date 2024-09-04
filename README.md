@@ -1,6 +1,6 @@
 # Atlas
 
-![Atlas](/Resources/Branding/AtlasLogo.png?raw=true "Atlas")
+![Atlas](/Resources/Branding/AtlasLogoName.png?raw=true "Atlas")
 
 The Atlas Engine is an experimental project.
 
