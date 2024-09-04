@@ -1,6 +1,6 @@
 #pragma once
 
-#include "atlaspch.h"
+#include <sstream>
 
 #include "Atlas/Core/Base.h"
 #include "Atlas/Events/Event.h"

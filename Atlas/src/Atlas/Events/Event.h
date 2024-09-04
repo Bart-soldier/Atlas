@@ -1,6 +1,7 @@
 #pragma once
-#include "atlaspch.h"
+#include <functional>
 
+#include "Atlas/Debug/Instrumentor.h"
 #include "Atlas/Core/Base.h"
 
 namespace Atlas
