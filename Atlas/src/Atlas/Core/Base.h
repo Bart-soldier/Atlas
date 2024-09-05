@@ -18,13 +18,8 @@
 	#define ATLAS_DEBUGBREAK()
 #endif
 
-#ifdef ATLAS_ENABLE_ASSERTS
-	#define ATLAS_ASSERT(x, ...) { if(!(x)) {ATLAS_ERROR("Assertion Failed: {0}", __VA_ARGS__); ATLAS_DEBUGBREAK(); } }
-	#define ATLAS_CORE_ASSERT(x, ...) { if(!(x)) {ATLAS_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); ATLAS_DEBUGBREAK(); } }
-#else
-	#define ATLAS_ASSERT(x, ...)
-	#define ATLAS_CORE_ASSERT(x, ...)
-#endif
+#define ATLAS_EXPAND_MACRO(x) x
+#define ATLAS_STRINGIFY_MACRO(x) #x
 
 #define BIT(x) (1 << x)
 
@@ -48,3 +43,6 @@ namespace Atlas
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 }
+
+#include "Atlas/Core/Log.h"
+#include "Atlas/Core/Assert.h"

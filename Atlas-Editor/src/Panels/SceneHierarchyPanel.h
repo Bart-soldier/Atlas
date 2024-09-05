@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Atlas/Core/Base.h"
-#include "Atlas/Core/Log.h"
 #include "Atlas/Scene/Scene.h"
 #include "Atlas/Scene/Entity.h"
 

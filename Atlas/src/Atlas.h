@@ -7,6 +7,7 @@
 #include "Atlas/Core/Application.h"
 #include "Atlas/Core/Layer.h"
 #include "Atlas/Core/Log.h"
+#include "Atlas/Core/Assert.h"
 
 #include "Atlas/Core/Timestep.h"
 
