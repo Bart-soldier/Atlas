@@ -52,6 +52,7 @@ namespace Atlas
 		static Statistics GetStats();
 
 	private:
-		static void FlushAndReset();
+		static void StartBatch();
+		static void NextBatch();
 	};
 }

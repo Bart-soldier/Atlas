@@ -122,10 +122,7 @@ namespace Atlas
 		s_Data.TextureShader->Bind();
 		s_Data.TextureShader->SetMat4("u_ViewProjection", viewProj);
 
-		s_Data.QuadIndexCount = 0;
-		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-		s_Data.TextureSlotIndex = 1;
+		StartBatch();
 	}
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
@@ -135,18 +132,12 @@ namespace Atlas
 		s_Data.TextureShader->Bind();
 		s_Data.TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
 	
-		s_Data.QuadIndexCount = 0;
-		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-		s_Data.TextureSlotIndex = 1;
+		StartBatch();
 	}
 
 	void Renderer2D::EndScene()
 	{
 		ATLAS_PROFILE_FUNCTION();
-
-		uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
-		s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
 
 		Flush();
 	}
@@ -158,6 +149,9 @@ namespace Atlas
 			return;
 		}
 
+		uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
+		s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
+
 		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
 		{
 			s_Data.TextureSlots[i]->Bind(i);
@@ -168,14 +162,18 @@ namespace Atlas
 		s_Data.Stats.DrawCalls++;
 	}
 
-	void Renderer2D::FlushAndReset()
+	void Renderer2D::StartBatch()
 	{
-		EndScene();
-
 		s_Data.QuadIndexCount = 0;
 		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
 
 		s_Data.TextureSlotIndex = 1;
+	}
+
+	void Renderer2D::NextBatch()
+	{
+		Flush();
+		StartBatch();
 	}
 
 	/* --------------- COLOR VERSION --------------- */
@@ -221,7 +219,7 @@ namespace Atlas
 
 		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
 		{
-			FlushAndReset();
+			NextBatch();
 		}
 
 		for (size_t i = 0; i < quadVertexCount; i++)
@@ -285,7 +283,7 @@ namespace Atlas
 
 		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
 		{
-			FlushAndReset();
+			NextBatch();
 		}
 
 		float textureIndex = 0.0f;
@@ -302,7 +300,7 @@ namespace Atlas
 		{
 			if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
 			{
-				FlushAndReset();
+				NextBatch();
 			}
 
 			textureIndex = (float)s_Data.TextureSlotIndex;
@@ -367,7 +365,7 @@ namespace Atlas
 
 		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
 		{
-			FlushAndReset();
+			NextBatch();
 		}
 
 		float textureIndex = 0.0f;
@@ -384,7 +382,7 @@ namespace Atlas
 		{
 			if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
 			{
-				FlushAndReset();
+				NextBatch();
 			}
 
 			textureIndex = (float)s_Data.TextureSlotIndex;
