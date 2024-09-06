@@ -177,6 +177,7 @@ namespace Atlas
 	}
 
 	/* --------------- COLOR VERSION --------------- */
+
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
 	{
 		DrawQuad({ position.x, position.y, 0.0f }, size, color);
@@ -238,6 +239,7 @@ namespace Atlas
 	}
 
 	/* --------------- TEXTURE VERSION --------------- */
+
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{
 		DrawQuad({ position.x, position.y, 0.0f }, size, texture, tilingFactor, tintColor);
@@ -324,6 +326,7 @@ namespace Atlas
 	}
 
 	/* --------------- SUBTEXTURE VERSION --------------- */
+
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture2D>& subTexture, float tilingFactor, const glm::vec4& tintColor)
 	{
 		DrawQuad({ position.x, position.y, 0.0f }, size, subTexture, tilingFactor, tintColor);
