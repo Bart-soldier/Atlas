@@ -78,7 +78,7 @@ namespace Atlas
 		{
 			ATLAS_PROFILE_SCOPE("Renderer Prep");
 			m_Framebuffer->Bind();
-			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
 			RenderCommand::Clear();
 		}
 

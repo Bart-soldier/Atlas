@@ -110,42 +110,25 @@ namespace Atlas
 	void ImGuiLayer::SetDarkThemeColors()
 	{
 		auto& colors = ImGui::GetStyle().Colors;
-		colors[ImGuiCol_WindowBg] = ImVec4{ 0.274f, 0.298f, 0.318f, 1.0f }; //BG40
-
-		// Headers
-		colors[ImGuiCol_Header] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; // BG60
-		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.090f, 0.114f, 0.133f, 1.0f }; // BG80
-		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-
-		// Buttons
-		colors[ImGuiCol_Button] = ImVec4{ 0.455f, 0.318f, 0.176f, 1.0f }; // Atlas Mid
-		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.330f, 0.200f, 0.063f, 1.0f }; // Atlas Dark
-		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.687f, 0.561f, 0.435f, 1.0f }; // Atlas Light
-
-		// Frame BG
-		colors[ImGuiCol_FrameBg] = ImVec4{ 0.204f, 0.227f, 0.247f, 1.0f }; // BG50
-		colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-		colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; // BG60
-
-		// Tabs
-		colors[ImGuiCol_Tab] = ImVec4{ 0, 255, 255, 1.0f }; // BG70
-		colors[ImGuiCol_TabHovered] = ImVec4{ 0.043f, 0.055f, 0.063f, 1.0f }; // BG90
-		colors[ImGuiCol_TabActive] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-		colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-		colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-
-		// Title
-		colors[ImGuiCol_TitleBg] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.043f, 0.055f, 0.063f, 1.0f }; // BG90
-		colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.090f, 0.114f, 0.133f, 1.0f }; //BG80
-
-
-
-
-
 
 		// Background
 		colors[ImGuiCol_WindowBg] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; //BG60
+		colors[ImGuiCol_PopupBg] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
+		colors[ImGuiCol_Text] = ImVec4{ 1.0f, 1.0f, 1.0f, 1.0f }; // White
+		colors[ImGuiCol_TextDisabled] = ImVec4{ 0.522f, 0.600f, 0.679f, 1.0f }; // White
+		colors[ImGuiCol_Border] = ImVec4{ 0.416f, 0.440f, 0.459f, 1.0f }; //BG30
+
+		// Scroolbar
+		colors[ImGuiCol_ScrollbarBg] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; //BG60
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4{ 0.416f, 0.440f, 0.459f, 1.0f }; //BG30
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4{ 0.682f, 0.706f, 0.725f, 1.0f }; //BG20
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4{ 0.416f, 0.440f, 0.459f, 1.0f }; //BG30
+
+		// Menu Bar
+		colors[ImGuiCol_MenuBarBg] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
+
+		// Checkmark
+		colors[ImGuiCol_CheckMark] = ImVec4{ 0.271f, 0.590f, 0.900f, 1.0f }; // Helper Blue
 
 		// Window Headers Background
 		colors[ImGuiCol_TitleBg] = ImVec4{ 0.274f, 0.298f, 0.318f, 1.0f }; // BG40
@@ -160,20 +143,23 @@ namespace Atlas
 		colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.274f, 0.298f, 0.318f, 1.0f }; // BG40
 
 		// Primary Buttons
-		colors[ImGuiCol_Button] = ImVec4{ 0.455f, 0.318f, 0.176f, 1.0f }; // Atlas Mid
-		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.330f, 0.200f, 0.063f, 1.0f }; // Atlas Dark
-		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.687f, 0.561f, 0.435f, 1.0f }; // Atlas Light
+		colors[ImGuiCol_Button] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
+		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.090f, 0.114f, 0.133f, 1.0f }; // BG80
+		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
 
 		// Component Headers
-		colors[ImGuiCol_Header] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; // BG60
+		colors[ImGuiCol_Header] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
 		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.090f, 0.114f, 0.133f, 1.0f }; // BG80
 		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
+
+		// Separators
+		colors[ImGuiCol_Separator] = ImVec4{ 0.274f, 0.298f, 0.318f, 1.0f }; // BG40
+		colors[ImGuiCol_SeparatorActive] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; // BG60
+		colors[ImGuiCol_SeparatorHovered] = ImVec4{ 0.204f, 0.227f, 0.247f, 1.0f }; // BG50
 
 		// Component Content
 		colors[ImGuiCol_FrameBg] = ImVec4{ 0.204f, 0.227f, 0.247f, 1.0f }; // BG50
 		colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
-		colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; // BG60
-
-
+		colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.204f, 0.227f, 0.247f, 1.0f }; // BG50
 	}
 }
