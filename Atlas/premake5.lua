@@ -2,7 +2,7 @@ project "Atlas"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -23,6 +23,7 @@ project "Atlas"
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
+		"YAML_CPP_STATIC_DEFINE",
 		"GLFW_INCLUDE_NONE"
 	}
 
@@ -35,7 +36,8 @@ project "Atlas"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.yaml_cpp}"
 	}
 
 	links
@@ -43,6 +45,7 @@ project "Atlas"
 		"GLFW",
 		"Glad",
 		"imgui",
+		"yaml-cpp",
 		"opengl32.lib"
 	}
 

@@ -29,7 +29,8 @@ This project uses the following external dependencies:
 - **UI:** [imgui](https://github.com/Bart-soldier/imgui) (forked from 'Docking'),
 - **Texture Loading:** [stb_image](https://github.com/nothings/stb/tree/master),
 - **Math:** [glm](https://github.com/g-truc/glm),
-- **ECS:** [entt](https://github.com/skypjack/entt/tree/master).
+- **ECS:** [entt](https://github.com/skypjack/entt/tree/master),
+- **Seriaization:** [yaml](https://github.com/Bart-soldier/yaml-cpp).
 
 ## Resources used
 This project used the following resources:
