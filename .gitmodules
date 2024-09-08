@@ -16,4 +16,7 @@
 	branch = master
 [submodule "Atlas/vendor/yaml-cpp"]
 	path = Atlas/vendor/yaml-cpp
-	url = https://github.com/Bart-soldier/yaml-cpp
+	url = ../../Bart-soldier/yaml-cpp.git
+[submodule "Atlas/vendor/ImGuizmo"]
+	path = Atlas/vendor/ImGuizmo
+	url = ../../Bart-soldier/ImGuizmo.git

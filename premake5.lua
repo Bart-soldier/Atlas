@@ -27,6 +27,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "%{wks.location}/Atlas/vendor/GLFW/include"
 IncludeDir["Glad"] = "%{wks.location}/Atlas/vendor/Glad/include"
 IncludeDir["imgui"] = "%{wks.location}/Atlas/vendor/imgui"
+IncludeDir["ImGuizmo"] = "%{wks.location}/Atlas/vendor/ImGuizmo"
 IncludeDir["glm"] = "%{wks.location}/Atlas/vendor/glm"
 IncludeDir["stb_image"] = "%{wks.location}/Atlas/vendor/stb_image"
 IncludeDir["entt"] = "%{wks.location}/Atlas/vendor/entt/include"

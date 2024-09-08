@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include <ImGuizmo.h>
 
 #include "Atlas/Core/Application.h"
 
@@ -84,6 +85,7 @@ namespace Atlas
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 	}
 
 	void ImGuiLayer::End()
@@ -161,5 +163,23 @@ namespace Atlas
 		colors[ImGuiCol_FrameBg] = ImVec4{ 0.204f, 0.227f, 0.247f, 1.0f }; // BG50
 		colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.130f, 0.153f, 0.173f, 1.0f }; // BG70
 		colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.204f, 0.227f, 0.247f, 1.0f }; // BG50
+	
+		auto& gizmoColors = ImGuizmo::GetStyle().Colors;
+
+		gizmoColors[ImGuizmo::TEXT] = ImVec4{ 1.0f, 1.0f, 1.0f, 1.0f }; // White
+
+		gizmoColors[ImGuizmo::DIRECTION_X] = ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f }; // Red
+		gizmoColors[ImGuizmo::DIRECTION_Y] = ImVec4{ 0.212f, 0.655f, 0.330f, 1.0f }; // Green
+		gizmoColors[ImGuizmo::DIRECTION_Z] = ImVec4{ 0.271f, 0.590f, 0.900f, 1.0f }; // Blue
+
+		gizmoColors[ImGuizmo::PLANE_X] = ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f }; // Red
+		gizmoColors[ImGuizmo::PLANE_Y] = ImVec4{ 0.212f, 0.655f, 0.330f, 1.0f }; // Green
+		gizmoColors[ImGuizmo::PLANE_Z] = ImVec4{ 0.271f, 0.590f, 0.900f, 1.0f }; // Blue
+
+		gizmoColors[ImGuizmo::SELECTION] = ImVec4{ 0.698f, 0.122f, 0.848f, 1.0f }; // Purple
+
+		ImGuizmo::GetStyle().HatchedAxisLineThickness = 0.0f;
+
+		// TODO : Add Color Palette and link RGB In Panel and Viewport Background color
 	}
 }

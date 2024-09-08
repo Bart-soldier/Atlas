@@ -27,10 +27,11 @@ This project uses the following external dependencies:
 - **OpenGL:** [Glad](https://glad.dav1d.de/),
 - **Logging:** [spdlog](https://github.com/gabime/spdlog),
 - **UI:** [imgui](https://github.com/Bart-soldier/imgui) (forked from 'Docking'),
+- **UI Gizmo:** [ImGuizmo](https://github.com/Bart-soldier/ImGuizmo) (forked),
 - **Texture Loading:** [stb_image](https://github.com/nothings/stb/tree/master),
 - **Math:** [glm](https://github.com/g-truc/glm),
 - **ECS:** [entt](https://github.com/skypjack/entt/tree/master),
-- **Seriaization:** [yaml](https://github.com/Bart-soldier/yaml-cpp).
+- **Seriaization:** [yaml](https://github.com/Bart-soldier/yaml-cpp) (forked).
 
 ## Resources used
 This project used the following resources:

@@ -19,7 +19,8 @@ project "Atlas-Editor"
 		"%{wks.location}/Atlas/src",
 		"%{wks.location}/Atlas/vendor",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links
