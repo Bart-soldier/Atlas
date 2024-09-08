@@ -18,6 +18,12 @@ namespace Atlas
 		virtual void OnImGuiRender() override;
 		void OnEvent(Event& e) override;
 	private:
+		bool OnKeyPressed(KeyPressedEvent& e);
+
+		void NewScene();
+		void OpenScene();
+		void SaveSceneAs();
+
 		OrthographicCameraController m_CameraController;
 
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
