@@ -42,5 +42,4 @@ group "Dependencies"
 group ""
 
 include "Atlas"
-include "Sandbox"
 include "Atlas-Editor"
