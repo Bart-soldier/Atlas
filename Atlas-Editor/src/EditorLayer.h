@@ -33,6 +33,7 @@ namespace Atlas
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
 		EditorCamera m_EditorCamera;
 		int m_GizmoType = -1;
+		Entity m_HoveredEntity;
 
 		// Temp
 		Ref<Framebuffer> m_Framebuffer;
