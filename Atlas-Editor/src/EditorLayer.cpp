@@ -283,22 +283,18 @@ namespace Atlas
 				}
 				break;
 			// Gizmos
-			if (m_ViewportFocused)
-			{
-				case Key::Q:
-					m_GizmoType = -1;
-					break;
-				case Key::T:
-					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-					break;
-				case Key::R:
-					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-					break;
-				case Key::E:
-					m_GizmoType = ImGuizmo::OPERATION::SCALE;
-					break;
-			}
-
+			case Key::Q:
+				m_GizmoType = -1;
+				break;
+			case Key::T:
+				m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+				break;
+			case Key::R:
+				m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+				break;
+			case Key::E:
+				m_GizmoType = ImGuizmo::OPERATION::SCALE;
+				break;
 		}
 	}
 
