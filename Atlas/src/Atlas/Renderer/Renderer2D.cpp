@@ -125,13 +125,15 @@ namespace Atlas
 		StartBatch();
 	}
 
-	void Renderer2D::BeginScene(const OrthographicCamera& camera)
+	void Renderer2D::BeginScene(const EditorCamera& camera)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		glm::mat4 viewProj = camera.GetViewProjection();
+
 		s_Data.TextureShader->Bind();
-		s_Data.TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
-	
+		s_Data.TextureShader->SetMat4("u_ViewProjection", viewProj);
+
 		StartBatch();
 	}
 

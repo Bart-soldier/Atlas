@@ -3,6 +3,8 @@
 #include "Atlas.h"
 #include "Panels/SceneHierarchyPanel.h"
 
+#include "Atlas/Renderer/EditorCamera.h"
+
 namespace Atlas
 {
 	class EditorLayer : public Layer
@@ -17,6 +19,7 @@ namespace Atlas
 		void OnUpdate(Timestep ts) override;
 		virtual void OnImGuiRender() override;
 		void OnEvent(Event& e) override;
+
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
 
@@ -24,27 +27,16 @@ namespace Atlas
 		void OpenScene();
 		void SaveSceneAs();
 
-		OrthographicCameraController m_CameraController;
-
+		// Viewport related
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
+		EditorCamera m_EditorCamera;
+		int m_GizmoType = -1;
 
 		// Temp
-		Ref<VertexArray> m_SquareVA;
-		Ref<Shader> m_FlatColorShader;
 		Ref<Framebuffer> m_Framebuffer;
 
 		Ref<Scene> m_ActiveScene;
-		Entity m_SquareEntity;
-		Entity m_CameraEntity;
-		Entity m_SecondCamera;
-
-		bool m_PrimaryCamera = true;
-
-		Ref<Texture2D> m_SpriteSheet;
-		Ref<SubTexture2D> m_TextureStairs, m_TextureBarrel, m_TextureTree;
-	
-		int m_GizmoType = -1;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;

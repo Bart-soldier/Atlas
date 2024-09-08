@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Atlas/Renderer/OrthographicCamera.h"
-
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
 
 #include "Atlas/Renderer/Camera.h"
+#include "Atlas/Renderer/EditorCamera.h"
 
 namespace Atlas
 {
@@ -16,7 +15,7 @@ namespace Atlas
 		static void Shutdown();
 
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
-		static void BeginScene(const OrthographicCamera& camera); //TODO: Remove
+		static void BeginScene(const EditorCamera& camera);
 		static void EndScene();
 		static void Flush();
 
