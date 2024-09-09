@@ -30,6 +30,7 @@ namespace Atlas
 
 	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
 	{
+		ATLAS_CORE_ASSERT(width > 0 && height > 0);
 		float aspectRatio = (float)width / (float)height;
 
 		if (m_AspectRatio != aspectRatio)

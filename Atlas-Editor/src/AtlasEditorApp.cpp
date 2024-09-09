@@ -8,8 +8,8 @@ namespace Atlas
 	class AtlasEditor : public Application
 	{
 	public:
-		AtlasEditor()
-			: Application("Atlas Editor")
+		AtlasEditor(ApplicationCommandLineArgs args)
+			: Application("Atlas Editor", args)
 		{
 			PushLayer(new EditorLayer());
 		}
@@ -20,8 +20,8 @@ namespace Atlas
 		}
 	};
 
-	Application* CreateApplication()
+	Application* CreateApplication(ApplicationCommandLineArgs args)
 	{
-		return new AtlasEditor();
+		return new AtlasEditor(args);
 	}
 }

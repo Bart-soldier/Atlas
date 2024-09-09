@@ -1,6 +1,5 @@
 # Binaries
 **/bin/
-!vendor/premake/bin/
 bin-int/
 
 # Atlas files
@@ -17,3 +16,8 @@ bin-int/
 **.vcxproj.filters
 **.vcxproj.user
 **.csproj
+
+# Directories
+Atlas/vendor/VulkanSDK
+Atlas-Editor/assets/cache
+scripts/__pycache__

@@ -10,7 +10,7 @@
 
 namespace Atlas {
 
-	std::optional<std::string> FileDialogs::OpenFile(const char* filter)
+	std::string FileDialogs::OpenFile(const char* filter)
 	{
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
@@ -31,10 +31,10 @@ namespace Atlas {
 		{
 			return ofn.lpstrFile;
 		}
-		return std::nullopt;
+		return std::string();
 	}
 
-	std::optional<std::string> FileDialogs::SaveFile(const char* filter)
+	std::string FileDialogs::SaveFile(const char* filter)
 	{
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = { 0 };
@@ -57,7 +57,7 @@ namespace Atlas {
 		{
 			return ofn.lpstrFile;
 		}
-		return std::nullopt;
+		return std::string();
 	}
 
 }

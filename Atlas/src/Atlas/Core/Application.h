@@ -15,10 +15,22 @@ int main(int argc, char** argv);
 
 namespace Atlas
 {
+	struct ApplicationCommandLineArgs
+	{
+		int Count = 0;
+		char** Args = nullptr;
+
+		const char* operator[](int index) const
+		{
+			ATLAS_CORE_ASSERT(index < Count);
+			return Args[index];
+		}
+	};
+
 	class Application
 	{
 	public:
-		Application(const std::string& name = "Atlas Application");
+		Application(const std::string& name = "Atlas Application", ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
 		virtual ~Application();
 
 		void OnEvent(Event& e);
@@ -34,12 +46,15 @@ namespace Atlas
 
 		static Application& Get() { return *s_Instance; }
 
+		ApplicationCommandLineArgs GetCommandLineArgs() const { return m_CommandLineArgs; }
+
 	private:
 		void Run();
 
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
+		ApplicationCommandLineArgs m_CommandLineArgs;
 		Scope<Window> m_Window;
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
@@ -53,5 +68,6 @@ namespace Atlas
 
 	// To be defined in CLIENT
 	Application* CreateApplication();
+	Application* CreateApplication(ApplicationCommandLineArgs args);
 }
 
