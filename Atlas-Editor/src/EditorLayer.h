@@ -22,6 +22,9 @@ namespace Atlas
 
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+
+		bool IsViewportClickable();
 
 		void NewScene();
 		void OpenScene();
@@ -29,11 +32,12 @@ namespace Atlas
 
 		// Viewport related
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
-		glm::vec2 m_ViewportBounds[2];
+		glm::vec2 m_ViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
 		EditorCamera m_EditorCamera;
 		int m_GizmoType = -1;
 		Entity m_HoveredEntity;
+		bool m_ViewportResized = false;
 
 		// Temp
 		Ref<Framebuffer> m_Framebuffer;

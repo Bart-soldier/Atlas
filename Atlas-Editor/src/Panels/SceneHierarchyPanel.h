@@ -16,9 +16,10 @@ namespace Atlas
 
 		void SetContext(const Ref<Scene>& context);
 
-		void OnImGuiRender();
-
 		Entity GetSelectedEntity() const { return m_SelectionContext; }
+		void SetSelectedEntity(Entity entity);
+
+		void OnImGuiRender();
 
 	private:
 		void DrawEntityNode(Entity entity);
