@@ -1,16 +1,14 @@
 import os
-import sys
-import subprocess
+import shutil
 from pathlib import Path
 
 import Utils
 
-from io import BytesIO
 from urllib.request import urlopen
 
 class VulkanConfiguration:
     requiredVulkanVersion = "1.3."
-    installVulkanVersion = "1.3.216.0"
+    installVulkanVersion = "1.3.290.0"
     vulkanDirectory = "./Atlas/vendor/VulkanSDK"
 
     @classmethod
@@ -18,11 +16,8 @@ class VulkanConfiguration:
         if (not cls.CheckVulkanSDK()):
             print("Vulkan SDK not installed correctly.")
             return
-            
-        if (not cls.CheckVulkanSDKDebugLibs()):
-            print("\nNo Vulkan SDK debug libs found. Install Vulkan SDK with debug libs.")
-            print("(see docs.hazelengine.com/GettingStarted for more info).")
-            print("Debug configuration disabled.")
+        else:
+            cls.CheckVulkanSDKLibs()
 
     @classmethod
     def CheckVulkanSDK(cls):
@@ -59,13 +54,33 @@ class VulkanConfiguration:
         os.startfile(os.path.abspath(vulkanPath))
         print("Re-run this script after installation!")
         quit()
-
+    
     @classmethod
-    def CheckVulkanSDKDebugLibs(cls):
+    def CheckVulkanSDKLibs(cls):
+        success = False
         vulkanSDK = os.environ.get("VULKAN_SDK")
         shadercdLib = Path(f"{vulkanSDK}/Lib/shaderc_sharedd.lib")
-        
-        return shadercdLib.exists()
+        success = shadercdLib.exists()
+
+        print("\n")
+        cls.CopyVulkanFolders(vulkanSDK, cls.vulkanDirectory)
+
+        return success
+    
+    @classmethod
+    def CopyVulkanFolders(cls, installDir, destDir):
+        folders_to_copy = ["Bin", "Bin32", "Lib", "Lib32"]
+        for folder in folders_to_copy:
+            src_path = os.path.join(installDir, folder)
+            dest_path = os.path.join(destDir, folder)
+            if os.path.exists(dest_path):
+                print(f'The Debug lib folder "{folder}" already exists in "{destDir}"!')
+            else:
+                if os.path.exists(src_path):
+                    shutil.copytree(src_path, dest_path)
+                    print(f'The Debug lib folder "{folder}" has been copied to "{destDir}"!')
+                else:
+                    print(f'The "{src_path}" does not exist!')
 
 if __name__ == "__main__":
     VulkanConfiguration.Validate()
