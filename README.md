@@ -23,7 +23,7 @@ If changes are made, or if you want to regenerate project files, rerun the [Win-
 
 ## External dependencies
 This project uses the following external dependencies:
-- **Premake:** [Premake](https://premake.github.io/) (.exe),
+- **Project setup:** [Premake](https://premake.github.io/) (.exe),
 - **Windows:** [glfw](https://github.com/Bart-soldier/glfw) (forked),
 - **OpenGL:** [Glad](https://glad.dav1d.de/),
 - **Vulkan:** [SDK](https://vulkan.lunarg.com/sdk/home),
@@ -34,8 +34,7 @@ This project uses the following external dependencies:
 - **Math:** [glm](https://github.com/g-truc/glm),
 - **ECS:** [entt](https://github.com/skypjack/entt/tree/master),
 - **Serialization:** [yaml](https://github.com/Bart-soldier/yaml-cpp) (forked),
-- **SPIR-V:**
-- **shaderc:**
+- **Shader compiling:** [shaderc](https://github.com/google/shaderc) and [SPIR-V](https://www.khronos.org/spir/).
 
 ## Resources used
 This project used the following resources:
