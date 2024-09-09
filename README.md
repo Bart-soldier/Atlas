@@ -23,15 +23,19 @@ If changes are made, or if you want to regenerate project files, rerun the [Win-
 
 ## External dependencies
 This project uses the following external dependencies:
+- **Premake:** [Premake](https://premake.github.io/) (.exe),
 - **Windows:** [glfw](https://github.com/Bart-soldier/glfw) (forked),
 - **OpenGL:** [Glad](https://glad.dav1d.de/),
+- **Vulkan:** [SDK](https://vulkan.lunarg.com/sdk/home),
 - **Logging:** [spdlog](https://github.com/gabime/spdlog),
 - **UI:** [imgui](https://github.com/Bart-soldier/imgui) (forked from 'Docking'),
 - **UI Gizmo:** [ImGuizmo](https://github.com/Bart-soldier/ImGuizmo) (forked),
 - **Texture Loading:** [stb_image](https://github.com/nothings/stb/tree/master),
 - **Math:** [glm](https://github.com/g-truc/glm),
 - **ECS:** [entt](https://github.com/skypjack/entt/tree/master),
-- **Seriaization:** [yaml](https://github.com/Bart-soldier/yaml-cpp) (forked).
+- **Serialization:** [yaml](https://github.com/Bart-soldier/yaml-cpp) (forked),
+- **SPIR-V:**
+- **shaderc:**
 
 ## Resources used
 This project used the following resources:

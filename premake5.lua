@@ -1,4 +1,5 @@
 include "./vendor/premake/premake_customization/solution_items.lua"
+include "Dependencies.lua"
 
 workspace "Atlas"
 	architecture "x86_64"
@@ -22,16 +23,6 @@ workspace "Atlas"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
-IncludeDir = {}
-IncludeDir["GLFW"] = "%{wks.location}/Atlas/vendor/GLFW/include"
-IncludeDir["Glad"] = "%{wks.location}/Atlas/vendor/Glad/include"
-IncludeDir["imgui"] = "%{wks.location}/Atlas/vendor/imgui"
-IncludeDir["ImGuizmo"] = "%{wks.location}/Atlas/vendor/ImGuizmo"
-IncludeDir["glm"] = "%{wks.location}/Atlas/vendor/glm"
-IncludeDir["stb_image"] = "%{wks.location}/Atlas/vendor/stb_image"
-IncludeDir["entt"] = "%{wks.location}/Atlas/vendor/entt/include"
-IncludeDir["yaml_cpp"] = "%{wks.location}/Atlas/vendor/yaml-cpp/include"
 
 group "Dependencies"
 	include "vendor/premake"
