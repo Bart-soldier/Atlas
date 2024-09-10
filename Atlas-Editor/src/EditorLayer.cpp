@@ -235,7 +235,18 @@ namespace Atlas
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
 				const wchar_t* path = (const wchar_t*)payload->Data;
-				OpenScene(std::filesystem::path(g_AssetPath) / path);
+				std::filesystem::path payloadPath = std::filesystem::path(g_AssetPath) / path;
+				
+				//TODO: Accepted files list?
+				std::string extension = payloadPath.extension().string();
+				if (extension == ".atlas")
+				{
+					OpenScene(payloadPath);
+				}
+				else
+				{
+					ATLAS_WARN("Unsupported extension for scenes {0}", extension);
+				}
 			}
 			ImGui::EndDragDropTarget();
 		}
