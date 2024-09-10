@@ -120,7 +120,7 @@ namespace Atlas
 		colors[ImGuiCol_TextDisabled] = ImVec4{ 0.522f, 0.600f, 0.679f, 1.0f }; // White
 		colors[ImGuiCol_Border] = ImVec4{ 0.416f, 0.440f, 0.459f, 1.0f }; //BG30
 
-		// Scroolbar
+		// Scrollbar
 		colors[ImGuiCol_ScrollbarBg] = ImVec4{ 0.165f, 0.188f, 0.208f, 1.0f }; //BG60
 		colors[ImGuiCol_ScrollbarGrab] = ImVec4{ 0.416f, 0.440f, 0.459f, 1.0f }; //BG30
 		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4{ 0.682f, 0.706f, 0.725f, 1.0f }; //BG20
