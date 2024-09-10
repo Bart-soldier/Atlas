@@ -2,6 +2,7 @@
 
 #include "Atlas.h"
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 
 #include "Atlas/Renderer/EditorCamera.h"
 
@@ -46,6 +47,7 @@ namespace Atlas
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
+		ContentBrowserPanel m_ContentBrowserPanel;
 	};
 }
 
