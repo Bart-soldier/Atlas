@@ -14,6 +14,7 @@ namespace Atlas
 		m_AtlasIcon = Texture2D::Create("Resources/Icons/ContentBrowser/AtlasIcon.png");
 		m_DirectoryIcon = Texture2D::Create("Resources/Icons/ContentBrowser/DirectoryIcon.png");
 		m_FileIcon = Texture2D::Create("Resources/Icons/ContentBrowser/FileIcon.png");
+		m_ImageIcon = Texture2D::Create("Resources/Icons/ContentBrowser/ImageIcon.png");
 	}
 
 	void ContentBrowserPanel::OnImGuiRender()
@@ -83,9 +84,16 @@ namespace Atlas
 		{
 			return m_DirectoryIcon;
 		}
-		if (directoryEntry.path().extension() == ".atlas")
+
+		std::string extension = directoryEntry.path().extension().string();
+
+		if (extension == ".atlas")
 		{
 			return m_AtlasIcon;
+		}
+		if (extension == ".png" || extension == ".jpeg")
+		{
+			return m_ImageIcon;
 		}
 		else
 		{

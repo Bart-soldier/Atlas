@@ -21,5 +21,6 @@ namespace Atlas
 		Ref<Texture2D> m_AtlasIcon;
 		Ref<Texture2D> m_DirectoryIcon;
 		Ref<Texture2D> m_FileIcon;
+		Ref<Texture2D> m_ImageIcon;
 	};
 }
