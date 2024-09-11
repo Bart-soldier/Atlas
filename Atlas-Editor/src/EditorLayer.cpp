@@ -251,16 +251,7 @@ namespace Atlas
 				const wchar_t* path = (const wchar_t*)payload->Data;
 				std::filesystem::path payloadPath = std::filesystem::path(g_AssetPath) / path;
 				
-				//TODO: Accepted files list?
-				std::string extension = payloadPath.extension().string();
-				if (extension == ".atlas")
-				{
-					OpenScene(payloadPath);
-				}
-				else
-				{
-					ATLAS_WARN("Unsupported extension for scenes {0}", extension);
-				}
+				OpenScene(payloadPath);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -428,13 +419,20 @@ namespace Atlas
 
 	void EditorLayer::OpenScene(const std::filesystem::path& path)
 	{
+		if (path.extension().string() != ".atlas")
+		{
+			ATLAS_WARN("Could not load {0} - not a scene file", path.filename().string());
+			return;
+		}
 
-		m_ActiveScene = CreateRef<Scene>();
-		m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-		SceneSerializer serializer(m_ActiveScene);
-		serializer.Deserialize(path.string());
+		Ref<Scene> newScene = CreateRef<Scene>();
+		SceneSerializer serializer(newScene);
+		if (serializer.Deserialize(path.string()))
+		{
+			m_ActiveScene = newScene;
+			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+			m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		}
 	}
 
 	void EditorLayer::SaveSceneAs()

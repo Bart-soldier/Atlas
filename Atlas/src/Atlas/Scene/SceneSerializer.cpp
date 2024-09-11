@@ -183,7 +183,17 @@ namespace Atlas {
 
 	bool SceneSerializer::Deserialize(const std::string& filepath)
 	{
-		YAML::Node data = YAML::LoadFile(filepath);
+		YAML::Node data;
+		try
+		{
+			data = YAML::LoadFile(filepath);
+		}
+		catch (YAML::ParserException e)
+		{
+			ATLAS_CORE_ERROR("Failed to deserialize: {0}", e.msg);
+			return false;
+		}
+
 		if (!data["Scene"])
 			return false;
 

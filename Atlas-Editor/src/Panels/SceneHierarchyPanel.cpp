@@ -259,16 +259,11 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath = std::filesystem::path(g_AssetPath) / path;
 
-					//TODO: Accepted files list?
-					std::string extension = payloadPath.extension().string();
-					if (extension == ".png" || extension == ".jpeg")
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
 					{
-						component.Texture = Texture2D::Create(payloadPath.string());
+						component.Texture = texture;
 						component.Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-					}
-					else
-					{
-						ATLAS_WARN("Unsupported extension for textures {0}", extension);
 					}
 				}
 				ImGui::EndDragDropTarget();
