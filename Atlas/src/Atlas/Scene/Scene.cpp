@@ -40,6 +40,14 @@ namespace Atlas
 		m_Registry.destroy(entity);
 	}
 
+	void Scene::OnRuntimeStart()
+	{
+	}
+
+	void Scene::OnRuntimeStop()
+	{
+	}
+
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
 		// Render 2D
