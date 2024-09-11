@@ -29,26 +29,38 @@ namespace Atlas
 	{
 		ImGui::Begin("Scene Hierarchy");
 
-		for (auto entityID : m_Context->m_Registry.view<entt::entity>())
+		if (m_Context)
 		{
-			Entity entity{ entityID, m_Context.get() };
-			DrawEntityNode(entity);
-		}
-
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-		{
-			m_SelectionContext = {};
-		}
-
-		// Right-click on blank space
-		if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
-		{
-			if (ImGui::MenuItem("Create Empty Entity"))
+			auto& name = m_Context->m_Name;
+			char buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			strcpy_s(buffer, sizeof(buffer), name.c_str());
+			if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
 			{
-				m_Context->CreateEntity("Empty Entity");
+				name = std::string(buffer);
 			}
 
-			ImGui::EndPopup();
+			for (auto entityID : m_Context->m_Registry.view<entt::entity>())
+			{
+				Entity entity{ entityID, m_Context.get() };
+				DrawEntityNode(entity);
+			}
+
+			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+			{
+				m_SelectionContext = {};
+			}
+
+			// Right-click on blank space
+			if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
+			{
+				if (ImGui::MenuItem("Create Entity"))
+				{
+					m_Context->CreateEntity("Untitled Entity");
+				}
+
+				ImGui::EndPopup();
+			}
 		}
 
 		ImGui::End();

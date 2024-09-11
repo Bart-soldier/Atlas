@@ -158,7 +158,7 @@ namespace Atlas {
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
+		out << YAML::Key << "Scene" << YAML::Value << m_Scene->m_Name;
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		
 		for (auto entityID : m_Scene->m_Registry.view<entt::entity>())
@@ -201,6 +201,7 @@ namespace Atlas {
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		ATLAS_CORE_TRACE("Deserializing scene '{0}'", sceneName);
+		m_Scene->m_Name = sceneName;
 
 		auto entities = data["Entities"];
 		if (entities)

@@ -33,15 +33,13 @@ namespace Atlas
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		m_ActiveScene = CreateRef<Scene>();
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		Ref<Scene> defaultScene = CreateRef<Scene>();
+		SetEditorScene(defaultScene);
 
 		auto commandLineArgs = Application::Get().GetCommandLineArgs();
 		if (commandLineArgs.Count > 1)
 		{
-			auto sceneFilePath = commandLineArgs[1];
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Deserialize(sceneFilePath);
+			OpenScene(commandLineArgs[1]);
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -236,7 +234,7 @@ namespace Atlas
 
 		m_ViewportFocused = ImGui::IsWindowFocused();
 		// TODO : Check blocked shortcut events
-		Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+		//Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
@@ -264,12 +262,6 @@ namespace Atlas
 			ImGuizmo::SetDrawlist();
 
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
-			
-			// Runtime camera from entity
-			// auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-			// const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
-			// const glm::mat4& cameraProjection = camera.GetProjection();
-			// glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
 
 			// Editor camera
 			const glm::mat4& cameraProjection = m_EditorCamera.GetProjection();
@@ -346,9 +338,23 @@ namespace Atlas
 				}
 				break;
 			case Key::S:
-				if (control && shift)
+				if (control)
 				{
-					SaveSceneAs();
+					if (shift)
+					{
+						SaveSceneAs();
+					}
+					else
+					{
+						SaveScene();
+					}
+				}
+				break;
+			// Scene Commands
+			case Key::D:
+				if (control)
+				{
+					OnDuplicateEntity();
 				}
 				break;
 			// Gizmos
@@ -403,13 +409,17 @@ namespace Atlas
 
 	void EditorLayer::NewScene()
 	{
-		m_ActiveScene = CreateRef<Scene>();
-		m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		Ref<Scene> newScene = CreateRef<Scene>();
+		SetEditorScene(newScene);
 	}
 
 	void EditorLayer::OpenScene()
 	{
+		if (m_SceneState != SceneState::Edit)
+		{
+			OnSceneStop();
+		}
+
 		std::string filepath = FileDialogs::OpenFile("Atlas Scene (*.atlas)\0*.atlas\0");
 		if (!filepath.empty())
 		{
@@ -429,9 +439,34 @@ namespace Atlas
 		SceneSerializer serializer(newScene);
 		if (serializer.Deserialize(path.string()))
 		{
-			m_ActiveScene = newScene;
-			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-			m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+			SetEditorScene(newScene, path);
+		}
+	}
+
+	void EditorLayer::SetEditorScene(Ref<Scene> scene)
+	{
+		SetEditorScene(scene, std::filesystem::path());
+	}
+
+	void EditorLayer::SetEditorScene(Ref<Scene> scene, const std::filesystem::path& path)
+	{
+		m_EditorScene = scene;
+		m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
+
+		m_ActiveScene = m_EditorScene;
+		m_EditorScenePath = path;
+	}
+
+	void EditorLayer::SaveScene()
+	{
+		if (!m_EditorScenePath.empty())
+		{
+			SerializeScene(m_ActiveScene, m_EditorScenePath);
+		}
+		else
+		{
+			SaveSceneAs();
 		}
 	}
 
@@ -440,21 +475,49 @@ namespace Atlas
 		std::string filepath = FileDialogs::SaveFile("Atlas Scene (*.atlas)\0*.atlas\0");
 		if (!filepath.empty())
 		{
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Serialize(filepath);
+			SerializeScene(m_ActiveScene, filepath);
+			m_EditorScenePath = filepath;
 		}
+	}
+
+	void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)
+	{
+		SceneSerializer serializer(scene);
+		serializer.Serialize(path.string());
 	}
 
 	void EditorLayer::OnScenePlay()
 	{
 		m_SceneState = SceneState::Play;
+
+		m_ActiveScene = Scene::Copy(m_EditorScene);
 		m_ActiveScene->OnRuntimeStart();
+
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OnSceneStop()
 	{
 		m_SceneState = SceneState::Edit;
+
 		m_ActiveScene->OnRuntimeStop();
+		m_ActiveScene = m_EditorScene;
+
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+	}
+
+	void EditorLayer::OnDuplicateEntity()
+	{
+		if (m_SceneState != SceneState::Edit)
+		{
+			return;
+		}
+
+		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		if (selectedEntity)
+		{
+			m_EditorScene->DuplicateEntity(selectedEntity);
+		}
 	}
 
 	void EditorLayer::UI_Toolbar()

@@ -14,7 +14,10 @@ namespace Atlas
 	{
 	public:
 		Scene();
+		Scene(std::string name);
 		~Scene();
+
+		static Ref<Scene> Copy(Ref<Scene> other);
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntity(UUID uuid, const std::string& name = std::string());
@@ -27,11 +30,15 @@ namespace Atlas
 		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
+		void DuplicateEntity(Entity entity);
+
 		Entity GetPrimaryCameraEntity();
 
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
+
+		std::string m_Name;
 
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0;

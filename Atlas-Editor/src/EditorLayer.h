@@ -30,11 +30,19 @@ namespace Atlas
 		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
+		void SetEditorScene(Ref<Scene> scene);
+		void SetEditorScene(Ref<Scene> scene, const std::filesystem::path& path);
+
+		void SaveScene();
 		void SaveSceneAs();
+
+		void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
 
 		// Toolbar Buttons
 		void OnScenePlay();
 		void OnSceneStop();
+
+		void OnDuplicateEntity();
 
 		// UI Panels
 		void UI_Toolbar();
@@ -58,6 +66,8 @@ namespace Atlas
 		Ref<Framebuffer> m_Framebuffer;
 
 		Ref<Scene> m_ActiveScene;
+		Ref<Scene> m_EditorScene;
+		std::filesystem::path m_EditorScenePath;
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
