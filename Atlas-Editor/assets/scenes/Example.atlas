@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 12837192831273
+  - Entity: 3989002423194025362
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -18,7 +18,7 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 12837192831273
+  - Entity: 12924154037351973491
     TagComponent:
       Tag: Square 1
     TransformComponent:
@@ -27,7 +27,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0.308880329, 0.137147635, 0.137147635, 1]
-  - Entity: 12837192831273
+  - Entity: 658758466123130306
     TagComponent:
       Tag: Square 2
     TransformComponent:

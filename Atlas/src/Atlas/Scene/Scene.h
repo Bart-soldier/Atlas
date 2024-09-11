@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas/Core/Timestep.h"
+#include "Atlas/Core/UUID.h"
 #include "Atlas/Renderer/EditorCamera.h"
 
 #include "entt.hpp"
@@ -16,6 +17,7 @@ namespace Atlas
 		~Scene();
 
 		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateEntity(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
 
 		void OnRuntimeStart();

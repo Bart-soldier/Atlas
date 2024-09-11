@@ -1,16 +1,25 @@
 #pragma once
 
+#include "Atlas/Core/UUID.h"
+#include "Atlas/Scene/SceneCamera.h"
+#include "Atlas/Renderer/Texture.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "Atlas/Scene/SceneCamera.h"
-#include "Atlas/Renderer/Texture.h"
-
 namespace Atlas
 {
+	struct IDComponent
+	{
+		UUID ID;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+	};
+
 	struct TagComponent
 	{
 		std::string Tag;
