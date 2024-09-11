@@ -23,6 +23,10 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		// Editor resources
+		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
+
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 		fbSpec.Width = 1280;
@@ -69,12 +73,6 @@ namespace Atlas
 		int mouseY = (int)(m_ViewportSize.y - (my - m_ViewportBounds[0].y));
 		m_ViewportHovered = mouseX >= 0 && mouseY >= 0 && mouseX < (int)m_ViewportSize.x && mouseY < (int)m_ViewportSize.y;
 
-		// Camera Control
-		if (m_ViewportHovered)
-		{
-			m_EditorCamera.OnUpdate(ts);
-		}
-
 		// Render
 		Renderer2D::ResetStats();
 		{
@@ -88,8 +86,24 @@ namespace Atlas
 			m_Framebuffer->ClearAttachment(1, -1);
 		}
 
-		// Update scene
-		m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+		switch (m_SceneState)
+		{
+			case SceneState::Edit:
+			{
+				if (m_ViewportHovered)
+				{
+					m_EditorCamera.OnUpdate(ts);
+				}
+
+				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+				break;
+			}
+			case SceneState::Play:
+			{
+				m_ActiveScene->OnUpdateRuntime(ts);
+				break;
+			}
+		}
 
 		// Check viewport boundaries
 		if (m_ViewportHovered)
@@ -304,6 +318,8 @@ namespace Atlas
 		ImGui::End();
 		ImGui::PopStyleVar();
 
+		UI_Toolbar();
+
 		ImGui::End();
 	}
 
@@ -429,5 +445,87 @@ namespace Atlas
 			SceneSerializer serializer(m_ActiveScene);
 			serializer.Serialize(filepath);
 		}
+	}
+
+	void EditorLayer::OnScenePlay()
+	{
+		m_SceneState = SceneState::Play;
+	}
+
+	void EditorLayer::OnSceneStop()
+	{
+		m_SceneState = SceneState::Edit;
+	}
+
+	void EditorLayer::UI_Toolbar()
+	{
+		float padding = 2.0f;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, padding));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		auto& colors = ImGui::GetStyle().Colors;
+		const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+		const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		bool toolbarEnabled = (bool)m_ActiveScene;
+
+		ImVec4 tintColor = ImVec4(1, 1, 1, 1);
+		if (!toolbarEnabled)
+		{
+			tintColor.w = 0.5f;
+		}
+
+		float size = ImGui::GetWindowHeight() - 2 * padding;
+		Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
+		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+		if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+		{
+			if (m_SceneState == SceneState::Edit)
+			{
+				OnScenePlay();
+			}
+			else if (m_SceneState == SceneState::Play)
+			{
+				OnSceneStop();
+			}
+		}
+
+		if (!toolbarEnabled)
+		{
+			ImGui::BeginDisabled();
+		}
+
+		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x) - 3 * (size + 2 * padding));
+		if (ImGui::Button("2D", ImVec2(size, size)))
+		{
+			
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("2.5D", ImVec2(size, size)))
+		{
+			m_EditorCamera.LockRotation();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("3D", ImVec2(size, size)))
+		{
+			m_EditorCamera.UnlockRotation();
+		}
+
+		if (!toolbarEnabled)
+		{
+			ImGui::EndDisabled();
+		}
+
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
+
+		ImGui::End();
 	}
 }

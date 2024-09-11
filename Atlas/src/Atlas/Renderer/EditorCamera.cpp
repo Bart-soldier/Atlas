@@ -18,6 +18,24 @@ namespace Atlas
 		UpdateView();
 	}
 
+	void EditorCamera::LockRotation()
+	{
+		if (!m_RotationLocked)
+		{
+			m_RotationLocked = true;
+			UpdateView();
+		}
+	}
+
+	void EditorCamera::UnlockRotation()
+	{
+		if (m_RotationLocked)
+		{
+			m_RotationLocked = false;
+			UpdateView();
+		}
+	}
+
 	void EditorCamera::UpdateProjection()
 	{
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
@@ -26,7 +44,11 @@ namespace Atlas
 
 	void EditorCamera::UpdateView()
 	{
-		// m_Yaw = m_Pitch = 0.0f; // Lock the camera's rotation
+		if (m_RotationLocked)
+		{
+			m_Yaw = m_Pitch = 0.0f;
+		}
+
 		m_Position = CalculatePosition();
 
 		glm::quat orientation = GetOrientation();

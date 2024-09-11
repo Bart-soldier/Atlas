@@ -32,6 +32,13 @@ namespace Atlas
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
 
+		// Toolbar Buttons
+		void OnScenePlay();
+		void OnSceneStop();
+
+		// UI Panels
+		void UI_Toolbar();
+
 		// Viewport related
 		glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
 		glm::vec2 m_ViewportBounds[2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f } };
@@ -41,6 +48,12 @@ namespace Atlas
 		Entity m_HoveredEntity;
 		bool m_ViewportResized = false;
 
+		enum class SceneState
+		{
+			Edit = 0, Play = 1
+		};
+		SceneState m_SceneState = SceneState::Edit;
+
 		// Temp
 		Ref<Framebuffer> m_Framebuffer;
 
@@ -49,6 +62,9 @@ namespace Atlas
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
 		ContentBrowserPanel m_ContentBrowserPanel;
+
+		// Editor resources
+		Ref<Texture2D> m_IconPlay, m_IconStop;
 	};
 }
 

@@ -160,12 +160,6 @@ namespace Atlas
 				}
 			}
 
-			/*if (ImGui::MenuItem("Sprite Renderer", NULL, false, !m_SelectionContext.HasComponent<SpriteRendererComponent>()))
-			{
-				m_SelectionContext.AddComponent<SpriteRendererComponent>();
-				ImGui::CloseCurrentPopup();
-			}*/
-
 			ImGui::EndPopup();
 		}
 
@@ -279,8 +273,6 @@ namespace Atlas
 				}
 				ImGui::EndDragDropTarget();
 			}
-
-
 
 			ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.0f);
 		});
