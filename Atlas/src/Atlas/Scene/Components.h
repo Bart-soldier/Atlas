@@ -82,4 +82,13 @@ namespace Atlas
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
 	};
+
+	template<typename... Component>
+	struct ComponentGroup
+	{
+	};
+
+	using AllComponents =
+		ComponentGroup<TransformComponent, SpriteRendererComponent,
+		CircleRendererComponent, CameraComponent>;
 }
