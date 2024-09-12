@@ -22,6 +22,9 @@ namespace Atlas
 		void OnImGuiRender();
 
 	private:
+		template<typename T>
+		void DisplayAddComponentEntry(const std::string& entryName);
+
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
 

@@ -205,7 +205,7 @@ namespace Atlas {
 		}
 		catch (YAML::ParserException e)
 		{
-			ATLAS_CORE_ERROR("Failed to deserialize: {0}", e.msg);
+			ATLAS_CORE_ERROR("Failed to load .atlas file '{0}'\n     {1}", filepath, e.what());			return false;
 			return false;
 		}
 
