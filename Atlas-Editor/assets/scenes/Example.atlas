@@ -1,14 +1,5 @@
 Scene: 2D Example
 Entities:
-  - Entity: 658758466123130306
-    TagComponent:
-      Tag: Square 2
-    TransformComponent:
-      Translation: [-2.20000005, -1, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.240844995, 0.104917936, 0.266409278, 1]
   - Entity: 12924154037351973491
     TagComponent:
       Tag: Square 1
@@ -18,6 +9,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0.308880329, 0.137147635, 0.137147635, 1]
+      TilingFactor: 1
   - Entity: 3989002423194025362
     TagComponent:
       Tag: Camera
@@ -36,3 +28,13 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
+  - Entity: 5612173251312119140
+    TagComponent:
+      Tag: Square 2
+    TransformComponent:
+      Translation: [-2.20000005, -1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.240844995, 0.104917936, 0.266409278, 1]
+      TilingFactor: 1
