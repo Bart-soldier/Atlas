@@ -36,7 +36,7 @@ namespace Atlas
 		Ref<Scene> defaultScene = CreateRef<Scene>();
 		SetEditorScene(defaultScene);
 
-		auto commandLineArgs = Application::Get().GetCommandLineArgs();
+		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
 			OpenScene(commandLineArgs[1]);
