@@ -1,7 +1,5 @@
 #pragma once
 
-#include <xhash>
-
 namespace Atlas
 {
 	class UUID
@@ -20,12 +18,14 @@ namespace Atlas
 
 namespace std
 {
+	template <typename T> struct hash;
+
 	template<>
 	struct hash<Atlas::UUID>
 	{
 		std::size_t operator()(const Atlas::UUID& uuid) const
 		{
-			return hash<uint64_t>()((uint64_t)uuid);
+			return (uint64_t)uuid;
 		}
 	};
 }
