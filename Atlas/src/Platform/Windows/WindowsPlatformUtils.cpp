@@ -8,7 +8,12 @@
 
 #include "Atlas/Core/Application.h"
 
-namespace Atlas {
+namespace Atlas
+{
+	float Time::GetTime()
+	{
+		return glfwGetTime();
+	}
 
 	std::string FileDialogs::OpenFile(const char* filter)
 	{

@@ -5,7 +5,7 @@
 
 #include "Atlas/Core/Input.h"
 
-#include <GLFW/glfw3.h>
+#include "Atlas/Utils/PlatformUtils.h"
 
 namespace Atlas
 {
@@ -57,7 +57,7 @@ namespace Atlas
 		{
 			ATLAS_PROFILE_SCOPE("RunLoop");
 
-			float time = (float)glfwGetTime(); // Platform::GetTime
+			float time = Time::GetTime();
 			Timestep timestep = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 
