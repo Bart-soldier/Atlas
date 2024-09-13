@@ -12,12 +12,6 @@ namespace Atlas
 	class EditorCamera : public Camera
 	{
 	public:
-		enum class ProjectionType
-		{
-			Perspective = 0,
-			Orthographic = 1
-		};
-
 		EditorCamera() = default;
 		EditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
 
