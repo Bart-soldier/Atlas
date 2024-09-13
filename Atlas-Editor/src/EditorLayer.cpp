@@ -267,7 +267,7 @@ namespace Atlas
 		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity && m_GizmoType != -1)
 		{
-			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetOrthographic((int)m_EditorCamera.GetProjectionType());
 			ImGuizmo::SetDrawlist();
 
 			ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
@@ -601,29 +601,65 @@ namespace Atlas
 			ImGui::BeginDisabled();
 		}
 
-		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x) - 4 * (size + 2 * padding));
-		if (ImGui::Button("2D", ImVec2(size, size)))
+		ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240);
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5 - ImGui::GetTextLineHeightWithSpacing() * 0.5);
+		bool isLocked = m_EditorCamera.IsRotationLocked();
+		if (ImGui::Checkbox("Lock Rotation", &isLocked))
 		{
-			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Orthographic);
+			m_EditorCamera.SetRotationLock(isLocked);
 		}
 
-		ImGui::SameLine();
-		if (ImGui::Button("2DAx", ImVec2(size, size)))
+		ImGui::PushItemWidth(-1);
+		ImGui::SameLine(0);
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5 - ImGui::GetTextLineHeightWithSpacing() * 0.5);
+		const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
+		const char* currentProjectionTypeString = projectionTypeStrings[(int)m_EditorCamera.GetProjectionType()];
+		if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
 		{
-			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Axonometric);
-		}
+			for (int i = 0; i < 2; i++)
+			{
+				bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+				if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+				{
+					currentProjectionTypeString = projectionTypeStrings[i];
+					m_EditorCamera.SetProjectionType((EditorCamera::ProjectionType)i);
+				}
 
-		ImGui::SameLine();
-		if (ImGui::Button("2.5D", ImVec2(size, size)))
-		{
-			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::LockedPerspective);
-		}
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
 
-		ImGui::SameLine();
-		if (ImGui::Button("3D", ImVec2(size, size)))
-		{
-			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Perspective);
+			ImGui::EndCombo();
 		}
+		ImGui::PopItemWidth();
+
+		//ImGui::SameLine((ImGui::GetWindowContentRegionMax().x) - 4 * (size + 2 * padding));
+		//if (ImGui::Button("2D", ImVec2(size, size)))
+		//{
+		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Orthographic);
+		//}
+
+		//ImGui::SameLine();
+		//if (ImGui::Button("2DAx", ImVec2(size, size)))
+		//{
+		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Axonometric);
+		//}
+
+		//ImGui::SameLine();
+		//if (ImGui::Button("2.5D", ImVec2(size, size)))
+		//{
+		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::LockedPerspective);
+		//}
+
+		//ImGui::SameLine();
+		//if (ImGui::Button("3D", ImVec2(size, size)))
+		//{
+		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Perspective);
+		//}
+
+
 
 		if (!toolbarEnabled)
 		{

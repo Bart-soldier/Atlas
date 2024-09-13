@@ -15,9 +15,7 @@ namespace Atlas
 		enum class ProjectionType
 		{
 			Perspective = 0,
-			LockedPerspective = 1,
-			Axonometric = 2,
-			Orthographic = 3
+			Orthographic = 1
 		};
 
 		EditorCamera() = default;
@@ -45,9 +43,12 @@ namespace Atlas
 
 		ProjectionType GetProjectionType() const { return m_ProjectionType; }
 		void SetProjectionType(ProjectionType type);
+		bool IsRotationLocked() const { return m_RotationLocked; }
+		void SetRotationLock(bool locked) { m_RotationLocked = locked; UpdateView(); }
 
 	private:
 		ProjectionType m_ProjectionType = ProjectionType::Perspective;
+		bool m_RotationLocked = false;
 
 		void UpdateProjection();
 		void UpdateView();

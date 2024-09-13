@@ -22,7 +22,7 @@ namespace Atlas
 	{
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 
-		if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Orthographic)
+		if (m_ProjectionType == ProjectionType::Orthographic)
 		{
 			float orthoLeft = -m_Distance * m_AspectRatio * 0.5f;
 			float orthoRight = m_Distance * m_AspectRatio * 0.5f;
@@ -39,7 +39,7 @@ namespace Atlas
 
 	void EditorCamera::UpdateView()
 	{
-		if (m_ProjectionType == ProjectionType::LockedPerspective || m_ProjectionType == ProjectionType::Orthographic)
+		if (m_RotationLocked)
 		{
 			m_Yaw = m_Pitch = 0.0f;
 		}
@@ -90,7 +90,7 @@ namespace Atlas
 			}
 			else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
 			{
-				if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Perspective)
+				if (!m_RotationLocked)
 				{
 					MouseRotate(delta);
 				}
@@ -99,7 +99,7 @@ namespace Atlas
 			{
 				MouseZoom(delta.y);
 
-				if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Orthographic)
+				if (m_ProjectionType == ProjectionType::Orthographic)
 				{
 					UpdateProjection();
 				}
@@ -120,7 +120,7 @@ namespace Atlas
 		float delta = e.GetYOffset() * 0.1f;
 		MouseZoom(delta);
 
-		if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Orthographic)
+		if (m_ProjectionType == ProjectionType::Orthographic)
 		{
 			UpdateProjection();
 		}
