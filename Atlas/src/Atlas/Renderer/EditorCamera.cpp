@@ -18,33 +18,28 @@ namespace Atlas
 		UpdateView();
 	}
 
-	void EditorCamera::LockRotation()
-	{
-		if (!m_RotationLocked)
-		{
-			m_RotationLocked = true;
-			UpdateView();
-		}
-	}
-
-	void EditorCamera::UnlockRotation()
-	{
-		if (m_RotationLocked)
-		{
-			m_RotationLocked = false;
-			UpdateView();
-		}
-	}
-
 	void EditorCamera::UpdateProjection()
 	{
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
-		m_Projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+
+		if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Orthographic)
+		{
+			float orthoLeft = -m_Distance * m_AspectRatio * 0.5f;
+			float orthoRight = m_Distance * m_AspectRatio * 0.5f;
+			float orthoBottom = -m_Distance * 0.5f;
+			float orthoTop = m_Distance * 0.5f;
+
+			m_Projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_NearClip, m_FarClip);
+		}
+		else
+		{
+			m_Projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		}
 	}
 
 	void EditorCamera::UpdateView()
 	{
-		if (m_RotationLocked)
+		if (m_ProjectionType == ProjectionType::LockedPerspective || m_ProjectionType == ProjectionType::Orthographic)
 		{
 			m_Yaw = m_Pitch = 0.0f;
 		}
@@ -90,11 +85,25 @@ namespace Atlas
 			m_InitialMousePosition = mouse;
 
 			if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+			{
 				MousePan(delta);
+			}
 			else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-				MouseRotate(delta);
+			{
+				if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Perspective)
+				{
+					MouseRotate(delta);
+				}
+			}
 			else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
+			{
 				MouseZoom(delta.y);
+
+				if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Orthographic)
+				{
+					UpdateProjection();
+				}
+			}
 		}
 
 		UpdateView();
@@ -110,7 +119,14 @@ namespace Atlas
 	{
 		float delta = e.GetYOffset() * 0.1f;
 		MouseZoom(delta);
+
+		if (m_ProjectionType == ProjectionType::Axonometric || m_ProjectionType == ProjectionType::Orthographic)
+		{
+			UpdateProjection();
+		}
+
 		UpdateView();
+
 		return false;
 	}
 
@@ -161,5 +177,18 @@ namespace Atlas
 	glm::quat EditorCamera::GetOrientation() const
 	{
 		return glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f));
+	}
+
+	void EditorCamera::SetProjectionType(ProjectionType type)
+	{
+		if (m_ProjectionType == type)
+		{
+			return;
+		}
+
+		m_ProjectionType = type;
+
+		UpdateProjection();
+		UpdateView();
 	}
 }

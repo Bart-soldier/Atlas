@@ -12,6 +12,14 @@ namespace Atlas
 	class EditorCamera : public Camera
 	{
 	public:
+		enum class ProjectionType
+		{
+			Perspective = 0,
+			LockedPerspective = 1,
+			Axonometric = 2,
+			Orthographic = 3
+		};
+
 		EditorCamera() = default;
 		EditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
 
@@ -35,10 +43,12 @@ namespace Atlas
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
 
-		void LockRotation();
-		void UnlockRotation();
+		ProjectionType GetProjectionType() const { return m_ProjectionType; }
+		void SetProjectionType(ProjectionType type);
 
 	private:
+		ProjectionType m_ProjectionType = ProjectionType::Perspective;
+
 		void UpdateProjection();
 		void UpdateView();
 
@@ -66,7 +76,5 @@ namespace Atlas
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;
 
 		float m_ViewportWidth = 1280, m_ViewportHeight = 720;
-
-		bool m_RotationLocked = false;
 	};
 }

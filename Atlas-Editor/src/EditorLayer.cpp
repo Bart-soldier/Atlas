@@ -601,22 +601,28 @@ namespace Atlas
 			ImGui::BeginDisabled();
 		}
 
-		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x) - 3 * (size + 2 * padding));
+		ImGui::SameLine((ImGui::GetWindowContentRegionMax().x) - 4 * (size + 2 * padding));
 		if (ImGui::Button("2D", ImVec2(size, size)))
 		{
-			
+			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Orthographic);
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("2DAx", ImVec2(size, size)))
+		{
+			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Axonometric);
 		}
 
 		ImGui::SameLine();
 		if (ImGui::Button("2.5D", ImVec2(size, size)))
 		{
-			m_EditorCamera.LockRotation();
+			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::LockedPerspective);
 		}
 
 		ImGui::SameLine();
 		if (ImGui::Button("3D", ImVec2(size, size)))
 		{
-			m_EditorCamera.UnlockRotation();
+			m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Perspective);
 		}
 
 		if (!toolbarEnabled)

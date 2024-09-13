@@ -7,7 +7,11 @@ namespace Atlas
 	class SceneCamera : public Camera
 	{
 	public:
-		enum class ProjectionType { Perspective = 0, Orthographic = 1 };
+		enum class ProjectionType
+		{
+			Perspective = 0,
+			Orthographic = 1
+		};
 
 		SceneCamera();
 		virtual ~SceneCamera() = default;
