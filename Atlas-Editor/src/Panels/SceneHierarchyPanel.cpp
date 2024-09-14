@@ -168,7 +168,7 @@ namespace Atlas
 		{
 			auto& camera = component.Camera;
 
-			ImGui::Checkbox("Primary", &component.Primary);
+			ImGuiUtils::Checkbox("Primary", component.Primary);
 
 			const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
 			const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
@@ -233,7 +233,7 @@ namespace Atlas
 					camera.SetOrthographicFarClip(orthoFar);
 				}
 
-				ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
+				ImGuiUtils::Checkbox("Fixed Aspect Ratio", component.FixedAspectRatio);
 			}
 		});
 

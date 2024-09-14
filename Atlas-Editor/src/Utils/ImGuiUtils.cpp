@@ -5,9 +5,29 @@
 
 namespace Atlas
 {
+	bool ImGuiUtils::Checkbox(const std::string& label, bool& value)
+	{
+		bool valueChanged = false;
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2, 0, false);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		valueChanged = ImGui::Checkbox("##X", &value);
+
+		ImGui::Columns(1);
+		ImGui::PopID();
+
+		return valueChanged;
+	}
+
 	bool ImGuiUtils::DragFloat(const std::string& label, float& value, float speed, float min, float max, float resetValue)
 	{
-		bool valueChanged;
+		bool valueChanged = false;
 
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
@@ -35,8 +55,8 @@ namespace Atlas
 			valueChanged = true;
 		}
 		ImGui::PopFont();
-		ImGui::Columns(1);
 
+		ImGui::Columns(1);
 		ImGui::PopID();
 
 		return valueChanged;
