@@ -64,7 +64,7 @@ namespace Atlas
 			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-			m_ViewportResized = true;
+			m_ViewportInvalidated = true;
 		}
 
 		// Get mouse position
@@ -233,14 +233,14 @@ namespace Atlas
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("Viewport");
 
-		if (m_ViewportResized)
+		if (m_ViewportInvalidated)
 		{
 			auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
 			auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
 			auto viewportOffset = ImGui::GetWindowPos();
 			m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 			m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-			m_ViewportResized = false;
+			m_ViewportInvalidated = false;
 		}
 
 		m_ViewportFocused = ImGui::IsWindowFocused();
@@ -351,6 +351,7 @@ namespace Atlas
 		}
 
 		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<WindowMovedEvent>(ATLAS_BIND_EVENT_FN(EditorLayer::OnWindowMoved));
 		dispatcher.Dispatch<KeyPressedEvent>(ATLAS_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
 		dispatcher.Dispatch<MouseButtonPressedEvent>(ATLAS_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
 	}

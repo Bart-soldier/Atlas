@@ -36,6 +36,7 @@ namespace Atlas
 		{
 			std::string Title;
 			unsigned int Width, Height;
+			int posX, posY;
 			bool VSync;
 
 			EventCallbackFn EventCallback;

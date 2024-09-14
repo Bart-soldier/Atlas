@@ -27,6 +27,29 @@ namespace Atlas
 		unsigned int m_Width, m_Height;
 	};
 
+	class WindowMovedEvent : public Event
+	{
+	public:
+		WindowMovedEvent(unsigned int posX, unsigned int posY)
+			: m_posX(posX), m_posY(posY) {}
+
+		unsigned int GetPosX() const { return m_posX; }
+		unsigned int GetPosY() const { return m_posY; }
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "WindowMovedEvent: " << m_posX << ", " << m_posY;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(WindowMoved)
+		EVENT_CLASS_CATEGORY(EventCategoryApplication)
+
+	private:
+		unsigned int m_posX, m_posY;
+	};
+
 	class WindowCloseEvent : public Event
 	{
 	public:

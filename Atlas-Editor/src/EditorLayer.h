@@ -40,6 +40,9 @@ namespace Atlas
 
 		void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
 
+		// Events
+		bool OnWindowMoved(WindowMovedEvent& e) { m_ViewportInvalidated = true; return false; }
+
 		// Toolbar Buttons
 		void OnScenePlay();
 		void OnSceneStop();
@@ -56,7 +59,7 @@ namespace Atlas
 		EditorCamera m_EditorCamera;
 		int m_GizmoType = -1;
 		Entity m_HoveredEntity;
-		bool m_ViewportResized = false;
+		bool m_ViewportInvalidated = false;
 
 		enum class SceneState
 		{
