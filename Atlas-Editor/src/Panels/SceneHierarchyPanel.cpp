@@ -241,7 +241,61 @@ namespace Atlas
 		{
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
-			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+			ImGui::Separator();
+
+			//ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+
+
+			//(ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+
+			float resizedWidth = 150;
+			float resizedHeight = 150;
+			ImVec2 uv_min = ImVec2(0.0f, 1.0f);                 // Top-left
+			ImVec2 uv_max = ImVec2(1.0f, 0.0f);                 // Lower-right
+			//ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
+			//ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+			ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+			if (component.Texture == nullptr)
+			{
+				ImGui::Image(nullptr, ImVec2(resizedWidth, resizedHeight), uv_min, uv_max, tint_col, border_col);
+			}
+			else
+			{
+				ImTextureID textureID = (ImTextureID)component.Texture->GetRendererID();
+				float textureWidth = (float)component.Texture->GetWidth();
+				float textureHeight = (float)component.Texture->GetHeight();
+				float resizeFactorWidth = textureWidth / resizedWidth;
+				float resizeFactorHeight = textureHeight / resizedHeight;
+
+				{
+					ImVec2 pos = ImGui::GetCursorScreenPos();
+
+					ImGui::Image(textureID, ImVec2(resizedWidth, resizedHeight), uv_min, uv_max, tint_col, border_col);
+					if (ImGui::BeginItemTooltip())
+					{
+						float region_sz = 32.0f;
+						float region_x = ImGui::GetIO().MousePos.x - pos.x - region_sz * 0.5f;
+						float region_y = ImGui::GetIO().MousePos.y - pos.y - region_sz * 0.5f;
+						float zoom = 4.0f;
+						if (region_x < 0.0f) { region_x = 0.0f; }
+						else if (region_x > resizedWidth - region_sz) { region_x = resizedWidth - region_sz; }
+						if (region_y < 0.0f) { region_y = 0.0f; }
+						else if (region_y > resizedHeight - region_sz) { region_y = resizedHeight - region_sz; }
+						ImGui::Text("Min: (%d, %d)", (int)(region_x * resizeFactorWidth), (int)(region_y * resizeFactorHeight));
+						ImGui::Text("Max: (%d, %d)", (int)((region_x + region_sz) * resizeFactorWidth), (int)((region_y + region_sz) * resizeFactorHeight));
+						//ImVec2 uv0 = ImVec2((region_x) / resizedWidth, (region_y) / resizedHeight);
+						//ImVec2 uv1 = ImVec2((region_x + region_sz) / resizedWidth, (region_y + region_sz) / resizedHeight);
+						float flippedY = resizedHeight - region_sz - region_y;
+						ImVec2 uv0 = ImVec2((region_x) / resizedWidth, (flippedY + region_sz) / resizedHeight);
+						ImVec2 uv1 = ImVec2((region_x + region_sz) / resizedWidth, (flippedY) / resizedHeight);
+						ImGui::Image(textureID, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+						ImGui::EndTooltip();
+					}
+				}
+			}
+
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -257,6 +311,38 @@ namespace Atlas
 					}
 				}
 				ImGui::EndDragDropTarget();
+			}
+
+			if (component.Texture != nullptr)
+			{
+				float nextY = ImGui::GetCursorPosY();
+				ImGui::SameLine();
+				float posX = ImGui::GetCursorPosX();
+				float posY = ImGui::GetCursorPosY();
+				float buttonSize = 25.0f;
+				float padding = ImGui::GetStyle().FramePadding.y;
+
+				bool deleteTexture = false;
+				ImGui::SetCursorPosX(posX + padding);
+				if (ImGui::Button("X", ImVec2(buttonSize, buttonSize)))
+				{
+					deleteTexture = true;
+				}
+
+				ImGui::SetCursorPosX(posX + padding);
+				ImGui::SetCursorPosY(posY + ImGui::GetTextLineHeightWithSpacing());
+				ImGui::Text(component.Texture->GetPath().c_str());
+
+				ImGui::SetCursorPosX(posX + padding);
+				ImGui::SetCursorPosY(posY + ImGui::GetTextLineHeightWithSpacing());
+				ImGui::Text("\n%dx%d", component.Texture->GetWidth(), component.Texture->GetHeight());
+
+				ImGui::SetCursorPosY(nextY);
+
+				if (deleteTexture)
+				{
+					component.Texture = nullptr;
+				}
 			}
 
 			ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.0f);

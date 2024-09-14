@@ -119,6 +119,8 @@ namespace Atlas
 
 	void EditorLayer::OnImGuiRender()
 	{
+		/*ImGui::ShowDemoWindow();*/
+
 		ATLAS_PROFILE_FUNCTION();
 
 		static bool dockspaceOpen = true;
