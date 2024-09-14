@@ -1,4 +1,4 @@
-#include "SceneHierarchyPanel.h"
+#include "Panels/SceneHierarchyPanel.h"
 
 #include "Atlas/Scene/Components.h"
 
@@ -242,11 +242,6 @@ namespace Atlas
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
 			ImGui::Separator();
-
-			//ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
-
-
-			//(ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 
 			ImGuiUtils::DrawTextureViewerPreDragDropTarget(component.Texture, 150.0, 150.0, true);
 

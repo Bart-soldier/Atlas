@@ -15,6 +15,7 @@ project "Atlas-Editor"
 
 	includedirs
 	{
+		"src",
 		"%{wks.location}/Atlas/vendor/spdlog/include",
 		"%{wks.location}/Atlas/src",
 		"%{wks.location}/Atlas/vendor",

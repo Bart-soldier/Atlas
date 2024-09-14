@@ -12,8 +12,9 @@ namespace Atlas
 
 		ImGui::PushID(label.c_str());
 
-		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, columnWidth);
+		ImGui::Columns(2, 0, false);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
