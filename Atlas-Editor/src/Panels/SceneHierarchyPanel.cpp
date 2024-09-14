@@ -195,19 +195,19 @@ namespace Atlas
 			if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
 			{
 				float perspectiveVerticalFov = glm::degrees(camera.GetPerspectiveVerticalFOV());
-				if (ImGui::DragFloat("Vertical FOV", &perspectiveVerticalFov))
+				if (ImGuiUtils::DragFloat("Vertical FOV", perspectiveVerticalFov, 1.0f, 0.0f, 0.0f, 45.0f))
 				{
 					camera.SetPerspectiveVerticalFOV(glm::radians(perspectiveVerticalFov));
 				}
 
 				float perspectiveNear = camera.GetPerspectiveNearClip();
-				if (ImGui::DragFloat("Near", &perspectiveNear))
+				if (ImGuiUtils::DragFloat("Near", perspectiveNear, 1.0f, 0.0f, 0.0f, 0.01f))
 				{
 					camera.SetPerspectiveNearClip(perspectiveNear);
 				}
 
 				float perspectiveFar = camera.GetPerspectiveFarClip();
-				if (ImGui::DragFloat("Far", &perspectiveFar))
+				if (ImGuiUtils::DragFloat("Far", perspectiveFar, 1.0f, 0.0f, 0.0f, 1000.0f))
 				{
 					camera.SetPerspectiveFarClip(perspectiveFar);
 				}
@@ -216,19 +216,19 @@ namespace Atlas
 			if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
 			{
 				float orthoSize = camera.GetOrthographicSize();
-				if (ImGui::DragFloat("Size", &orthoSize))
+				if (ImGuiUtils::DragFloat("Size", orthoSize, 1.0f, 0.0f, 0.0f, 10.0f))
 				{
 					camera.SetOrthographicSize(orthoSize);
 				}
 
 				float orthoNear = camera.GetOrthographicNearClip();
-				if (ImGui::DragFloat("Near", &orthoNear))
+				if (ImGuiUtils::DragFloat("Near", orthoNear, 1.0f, 0.0f, 0.0f, -1.0f))
 				{
 					camera.SetOrthographicNearClip(orthoNear);
 				}
 
 				float orthoFar = camera.GetOrthographicFarClip();
-				if (ImGui::DragFloat("Far", &orthoFar))
+				if (ImGuiUtils::DragFloat("Far", orthoFar, 1.0f, 0.0f, 0.0f, 1.0f))
 				{
 					camera.SetOrthographicFarClip(orthoFar);
 				}
@@ -267,14 +267,14 @@ namespace Atlas
 				component.Texture = nullptr;
 			}
 
-			ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.0f);
+			ImGuiUtils::DragFloat("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f, 1.0f);
 		});
 
 		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
 		{
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-			ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
-			ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
+			ImGuiUtils::DragFloat("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, 1.0f);
+			ImGuiUtils::DragFloat("Fade", component.Fade, 0.00025f, 0.0f, 1.0f, 0.005f);
 		});
 	}
 

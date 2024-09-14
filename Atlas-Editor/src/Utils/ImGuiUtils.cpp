@@ -5,7 +5,44 @@
 
 namespace Atlas
 {
-	void ImGuiUtils::DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue, float columnWidth)
+	bool ImGuiUtils::DragFloat(const std::string& label, float& value, float speed, float min, float max, float resetValue)
+	{
+		bool valueChanged;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2, 0, false);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 1.4 * buttonSize.x);
+		valueChanged = ImGui::DragFloat("##X", &value, speed, min, max, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("R", buttonSize))
+		{
+			value = resetValue;
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::Columns(1);
+
+		ImGui::PopID();
+
+		return valueChanged;
+	}
+
+	void ImGuiUtils::DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
