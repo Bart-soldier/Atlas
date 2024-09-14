@@ -2,8 +2,8 @@
 
 #include <string>
 
-namespace Atlas {
-
+namespace Atlas
+{
 	class FileDialogs
 	{
 	public:

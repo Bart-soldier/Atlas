@@ -7,8 +7,8 @@ namespace Atlas
 {
 	static const uint32_t s_MaxFrameBufferSize = 8192;
 
-	namespace Utils {
-
+	namespace Utils
+	{
 		static GLenum TextureTarget(bool multisampled)
 		{
 			return multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
