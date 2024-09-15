@@ -77,11 +77,11 @@ namespace Atlas
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushMultiItemsWidths(2, ImGui::GetColumnWidth() - 2 * buttonSize.x);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.569f, 0.220f, 0.231f, 1.0f });
@@ -144,11 +144,11 @@ namespace Atlas
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushMultiItemsWidths(3, ImGui::GetColumnWidth() - 3 * buttonSize.x);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.569f, 0.220f, 0.231f, 1.0f });
