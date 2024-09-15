@@ -97,14 +97,14 @@ namespace Atlas
 		}
 	}
 
-	OpenGLShader::OpenGLShader(const std::string& filepath)
-		: m_FilePath(filepath)
+	OpenGLShader::OpenGLShader(const std::filesystem::path& path)
+		: m_Path(path)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		Utils::CreateCacheDirectoryIfNeeded();
 
-		std::string source = ReadFile(filepath);
+		std::string source = ReadFile(path);
 		auto shaderSources = PreProcess(source);
 
 		{
@@ -115,12 +115,7 @@ namespace Atlas
 			ATLAS_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
 		}
 
-		// Extract name from filepath
-		auto lastSlash = filepath.find_last_of("/\\");
-		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-		auto lastDot = filepath.rfind('.');
-		auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
-		m_Name = filepath.substr(lastSlash, count);
+		m_Name = path.stem().string();
 	}
 
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
@@ -144,12 +139,12 @@ namespace Atlas
 		glDeleteProgram(m_RendererID);
 	}
 
-	std::string OpenGLShader::ReadFile(const std::string& filepath)
+	std::string OpenGLShader::ReadFile(const std::filesystem::path& path)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		std::string result;
-		std::ifstream in(filepath, std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
+		std::ifstream in(path, std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
 		if (in)
 		{
 			in.seekg(0, std::ios::end);
@@ -162,12 +157,12 @@ namespace Atlas
 			}
 			else
 			{
-				ATLAS_CORE_ERROR("Could not read from file '{0}'", filepath);
+				ATLAS_CORE_ERROR("Could not read from file '{0}'", path.string());
 			}
 		}
 		else
 		{
-			ATLAS_CORE_ERROR("Could not open file '{0}'", filepath);
+			ATLAS_CORE_ERROR("Could not open file '{0}'", path.string());
 		}
 
 		return result;
@@ -217,8 +212,7 @@ namespace Atlas
 		shaderData.clear();
 		for (auto&& [stage, source] : shaderSources)
 		{
-			std::filesystem::path shaderFilePath = m_FilePath;
-			std::filesystem::path cachedPath = cacheDirectory / (shaderFilePath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
+			std::filesystem::path cachedPath = cacheDirectory / (m_Path.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
 
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
@@ -233,7 +227,7 @@ namespace Atlas
 			}
 			else
 			{
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_FilePath.c_str(), options);
+				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_Path.string().c_str(), options);
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
@@ -274,8 +268,7 @@ namespace Atlas
 		m_OpenGLSourceCode.clear();
 		for (auto&& [stage, spirv] : m_VulkanSPIRV)
 		{
-			std::filesystem::path shaderFilePath = m_FilePath;
-			std::filesystem::path cachedPath = cacheDirectory / (shaderFilePath.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
+			std::filesystem::path cachedPath = cacheDirectory / (m_Path.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
 
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
@@ -294,7 +287,7 @@ namespace Atlas
 				m_OpenGLSourceCode[stage] = glslCompiler.compile();
 				auto& source = m_OpenGLSourceCode[stage];
 
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_FilePath.c_str());
+				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_Path.string().c_str());
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
@@ -339,7 +332,7 @@ namespace Atlas
 
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
-			ATLAS_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_FilePath, infoLog.data());
+			ATLAS_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_Path.string(), infoLog.data());
 
 			glDeleteProgram(program);
 
@@ -363,7 +356,7 @@ namespace Atlas
 		spirv_cross::Compiler compiler(shaderData);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-		ATLAS_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_FilePath);
+		ATLAS_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Path.string());
 		ATLAS_CORE_TRACE("    {0} uniform buffers", resources.uniform_buffers.size());
 		ATLAS_CORE_TRACE("    {0} resources", resources.sampled_images.size());
 

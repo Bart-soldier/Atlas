@@ -6,7 +6,7 @@
 
 namespace Atlas
 {
-	Ref<Shader> Shader::Create(const std::string& filepath)
+	Ref<Shader> Shader::Create(const std::filesystem::path& path)
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -14,7 +14,7 @@ namespace Atlas
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 			return nullptr;
 		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLShader>(filepath);
+			return CreateRef<OpenGLShader>(path);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -48,16 +48,16 @@ namespace Atlas
 		Add(name, shader);
 	}
 
-	Ref<Shader> ShaderLibrary::Load(const std::string& filepath)
+	Ref<Shader> ShaderLibrary::Load(const std::filesystem::path& path)
 	{
-		auto shader = Shader::Create(filepath);
+		auto shader = Shader::Create(path);
 		Add(shader);
 		return shader;
 	}
 
-	Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& filepath)
+	Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::filesystem::path& path)
 	{
-		auto shader = Shader::Create(filepath);
+		auto shader = Shader::Create(path);
 		Add(name, shader);
 		return shader;
 	}

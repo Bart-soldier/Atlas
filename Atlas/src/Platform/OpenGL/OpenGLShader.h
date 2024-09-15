@@ -12,7 +12,7 @@ namespace Atlas
 	class OpenGLShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& filepath);
+		OpenGLShader(const std::filesystem::path& path);
 		OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		virtual ~OpenGLShader();
 
@@ -41,7 +41,7 @@ namespace Atlas
 		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
 
 	private:
-		std::string ReadFile(const std::string& filepath);
+		std::string ReadFile(const std::filesystem::path& path);
 		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
 		
 		void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
@@ -50,7 +50,7 @@ namespace Atlas
 		void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
 
 		uint32_t m_RendererID;
-		std::string m_FilePath;
+		std::filesystem::path m_Path;
 		std::string m_Name;
 
 		std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV;
