@@ -1,14 +1,14 @@
 #include "EditorLayer.h"
+#include "Atlas/Scene/SceneSerializer.h"
+
+#include "Atlas/Utils/PlatformUtils.h"
+
 #include <imgui/imgui.h>
 #include <ImGuizmo.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Atlas/Math/Math.h"
-
-#include "Atlas/Scene/SceneSerializer.h"
-
-#include "Atlas/Utils/PlatformUtils.h"
 
 namespace Atlas
 {
@@ -461,10 +461,10 @@ namespace Atlas
 			OnSceneStop();
 		}
 
-		std::string filepath = FileDialogs::OpenFile("Atlas Scene (*.atlas)\0*.atlas\0");
-		if (!filepath.empty())
+		std::filesystem::path path = FileDialogs::OpenFile("Atlas Scene (*.atlas)\0*.atlas\0");
+		if (!path.empty())
 		{
-			OpenScene(filepath);
+			OpenScene(path);
 		}
 	}
 
