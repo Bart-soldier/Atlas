@@ -520,17 +520,26 @@ namespace Atlas
 
 	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
 	{
-		if (src.Texture)
+		switch (src.Type)
 		{
-			DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
+			case SpriteRendererComponent::RenderType::Square:
+				if (src.Texture)
+				{
+					DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
+				}
+				else
+				{
+					DrawQuad(transform, src.Color, entityID);
+				}
+				break;
+			case SpriteRendererComponent::RenderType::Circle:
+				DrawCircle(transform, src.Color, src.Thickness, src.Fade, entityID);
+				break;
 		}
-		else
-		{
-			DrawQuad(transform, src.Color, entityID);
-		}
+
 	}
 
-	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness /*= 1.0f*/, float fade /*= 0.005f*/, int entityID /*= -1*/)
+	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness, float fade, int entityID)
 	{
 		ATLAS_PROFILE_FUNCTION();
 

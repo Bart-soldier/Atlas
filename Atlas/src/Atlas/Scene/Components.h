@@ -53,24 +53,28 @@ namespace Atlas
 
 	struct SpriteRendererComponent
 	{
+		enum RenderType
+		{
+			Square,
+			Circle
+		};
+
+		// Common
+		RenderType Type = Square;
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+		// Square-specific
 		Ref<Texture2D> Texture;
 		float TilingFactor = 1.0f;
+
+		// Circle specific
+		float Thickness = 1.0f;
+		float Fade = 0.005f;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4& color)
 			: Color(color) {}
-	};
-
-	struct CircleRendererComponent
-	{
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		float Thickness = 1.0f;
-		float Fade = 0.005f;
-
-		CircleRendererComponent() = default;
-		CircleRendererComponent(const CircleRendererComponent&) = default;
 	};
 
 	struct CameraComponent
@@ -90,5 +94,5 @@ namespace Atlas
 
 	using AllComponents =
 		ComponentGroup<TransformComponent, SpriteRendererComponent,
-		CircleRendererComponent, CameraComponent>;
+		CameraComponent>;
 }

@@ -148,7 +148,6 @@ namespace Atlas
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
-			DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
 
 			ImGui::EndPopup();
 		}
@@ -243,41 +242,75 @@ namespace Atlas
 		{
 			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Color));
 
-			ImGui::Separator();
-
-			ImGuiUtils::DrawTextureViewerPreDragDropTarget(component.Texture, 150.0, 150.0, true);
-
-			if (ImGui::BeginDragDropTarget())
+			const char* renderTypeStrings[] = { "Square", "Circle" };
+			const char* currentRenderTypeString = renderTypeStrings[(int)component.Type];
+			if (ImGuiUtils::BeginCombo("Render Type", *currentRenderTypeString))
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				for (int i = 0; i < 2; i++)
 				{
-					const wchar_t* path = (const wchar_t*)payload->Data;
-					std::filesystem::path payloadPath = std::filesystem::path(g_AssetPath) / path;
-
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
-					if (texture->IsLoaded())
+					bool isSelected = currentRenderTypeString == renderTypeStrings[i];
+					if (ImGui::Selectable(renderTypeStrings[i], isSelected))
 					{
-						component.Texture = texture;
-						component.Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+						currentRenderTypeString = renderTypeStrings[i];
+						component.Type = ((SpriteRendererComponent::RenderType)i);
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
 					}
 				}
-				ImGui::EndDragDropTarget();
+
+				ImGuiUtils::EndCombo();
 			}
 
-			if (ImGuiUtils::DrawTextureViewerPostDragDropTarget(component.Texture))
+			ImGui::Separator();
+
+			if (component.Type == SpriteRendererComponent::RenderType::Square)
 			{
-				component.Texture = nullptr;
+				ImGuiUtils::DrawTextureViewerPreDragDropTarget(component.Texture, 150.0, 150.0, true);
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						std::filesystem::path payloadPath = std::filesystem::path(g_AssetPath) / path;
+
+						Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+						if (texture->IsLoaded())
+						{
+							component.Texture = texture;
+							component.Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				if (ImGuiUtils::DrawTextureViewerPostDragDropTarget(component.Texture))
+				{
+					component.Texture = nullptr;
+				}
+
+				if (component.Texture)
+				{
+					ImGuiUtils::DragFloat("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f, 1.0f);
+				}
 			}
 
-			ImGuiUtils::DragFloat("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f, 1.0f);
+			if (component.Type == SpriteRendererComponent::RenderType::Circle)
+			{
+				ImGuiUtils::DragFloat("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, 1.0f);
+				ImGuiUtils::DragFloat("Fade", component.Fade, 0.00025f, 0.0f, 1.0f, 0.005f);
+			}
 		});
 
-		DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
-		{
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-			ImGuiUtils::DragFloat("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, 1.0f);
-			ImGuiUtils::DragFloat("Fade", component.Fade, 0.00025f, 0.0f, 1.0f, 0.005f);
-		});
+		//DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
+		//{
+		//	ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+		//	ImGuiUtils::DragFloat("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, 1.0f);
+		//	ImGuiUtils::DragFloat("Fade", component.Fade, 0.00025f, 0.0f, 1.0f, 0.005f);
+		//});
 	}
 
 	template<typename T, typename UIFunction>
