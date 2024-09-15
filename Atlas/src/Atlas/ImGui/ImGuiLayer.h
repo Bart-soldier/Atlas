@@ -25,6 +25,8 @@ namespace Atlas
 
 		void SetDarkThemeColors();
 
+		uint32_t GetActiveWidgetID() const;
+
 	private:
 		bool m_BlockEvents = false;
 	};

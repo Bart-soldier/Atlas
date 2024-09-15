@@ -12,8 +12,6 @@
 
 namespace Atlas
 {
-	extern const std::filesystem::path g_AssetPath;
-
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer")
 	{
@@ -33,13 +31,14 @@ namespace Atlas
 		fbSpec.Height = 720;
 		m_Framebuffer = Framebuffer::Create(fbSpec);
 
-		Ref<Scene> defaultScene = CreateRef<Scene>();
-		SetEditorScene(defaultScene);
-
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
-			OpenScene(commandLineArgs[1]);
+			OpenProject(commandLineArgs[1]);
+		}
+		else
+		{
+			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
 		}
 
 		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
@@ -55,6 +54,11 @@ namespace Atlas
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		ATLAS_PROFILE_FUNCTION();
+
+		if (m_ActiveScene == nullptr)
+		{
+			return;
+		}
 
 		// Resize
 		FramebufferSpecification spec = m_Framebuffer->GetSpecification();
@@ -95,12 +99,18 @@ namespace Atlas
 					m_EditorCamera.OnUpdate(ts);
 				}
 
-				m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+				if (m_ActiveScene)
+				{
+					m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+				}
 				break;
 			}
 			case SceneState::Play:
 			{
-				m_ActiveScene->OnUpdateRuntime(ts);
+				if (m_ActiveScene)
+				{
+					m_ActiveScene->OnUpdateRuntime(ts);
+				}
 				break;
 			}
 		}
@@ -176,29 +186,39 @@ namespace Atlas
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				// Disabling fullscreen would allow the window to be moved to the front of other windows, 
-				// which we can't undo at the moment without finer window depth/z control.
-				//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+				if (ImGui::MenuItem("New Project"))
+				{
+					NewProject();
+				}
 
-				if (ImGui::MenuItem("New", "Ctrl+N"))
+				if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+				{
+					OpenProject();
+				}
+
+				if (ImGui::MenuItem("Save Project"))
+				{
+					SaveProject();
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
 				{
 					NewScene();
 				}
 
-				if (ImGui::MenuItem("Open...", "Ctrl+O"))
-				{
-					OpenScene();
-				}
-
-				if (ImGui::MenuItem("Save", "Ctrl+S"))
+				if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
 				{
 					SaveScene();
 				}
 
-				if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+				if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
 				{
 					SaveSceneAs();
 				}
+
+				ImGui::Separator();
 
 				if (ImGui::MenuItem("Exit"))
 				{
@@ -212,7 +232,7 @@ namespace Atlas
 		}
 
 		m_SceneHierarchyPanel.OnImGuiRender();
-		m_ContentBrowserPanel.OnImGuiRender();
+		m_ContentBrowserPanel->OnImGuiRender();
 
 		ImGui::Begin("Stats");
 
@@ -258,9 +278,7 @@ namespace Atlas
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
 				const wchar_t* path = (const wchar_t*)payload->Data;
-				std::filesystem::path payloadPath = std::filesystem::path(g_AssetPath) / path;
-				
-				OpenScene(payloadPath);
+				OpenScene(path);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -375,7 +393,7 @@ namespace Atlas
 			case Key::O:
 				if (control)
 				{
-					OpenScene();
+					OpenProject();
 				}
 				break;
 			case Key::S:
@@ -423,6 +441,19 @@ namespace Atlas
 					m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				}
 				break;
+			case Key::Delete:
+			{
+				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				{
+					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					if (selectedEntity)
+					{
+						m_SceneHierarchyPanel.SetSelectedEntity({});
+						m_ActiveScene->DestroyEntity(selectedEntity);
+					}
+				}
+				break;
+			}
 		}
 
 		return false;
@@ -448,10 +479,71 @@ namespace Atlas
 		return m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt);
 	}
 
-	void EditorLayer::NewScene()
+	void EditorLayer::NewProject()
+	{
+		std::filesystem::path path = FileDialogs::SaveFile("Atlas Project\0");
+		if (!path.empty())
+		{
+			std::filesystem::path projectDirectory = path.replace_extension();
+			FileHelpers::CreateDirectoryIfNeeded(projectDirectory);
+			std::filesystem::path projectSolution = (path / path.stem()).replace_extension(".atlasproj");
+
+			Ref<Project> newProject = Project::New(projectSolution);
+			Ref<Scene> newScene = NewScene("Main Scene");
+
+			std::filesystem::path scenePath = newProject->GetAssetDirectory() / "Scenes";
+			FileHelpers::CreateDirectoryIfNeeded(scenePath);
+			m_EditorScenePath = scenePath / "MainScene.atlas";
+			SaveScene();
+
+			newProject->GetConfig().Name = path.stem().string();
+			newProject->GetConfig().StartScene = m_EditorScenePath;
+			SaveProject();
+
+			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+		}
+	}
+
+	bool EditorLayer::OpenProject()
+	{
+		std::string filepath = FileDialogs::OpenFile("Atlas Project (*.atlasproj)\0*.atlasproj\0");
+		if (filepath.empty())
+		{
+			return false;
+		}
+
+		OpenProject(filepath);
+		return true;
+	}
+
+	void EditorLayer::OpenProject(const std::filesystem::path& path)
+	{
+		if (Project::Load(path))
+		{
+			auto startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().StartScene);
+			OpenScene(startScenePath);
+			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+		}
+	}
+
+	void EditorLayer::SaveProject()
+	{
+		SaveScene();
+		Project::SaveActive();
+	}
+
+	Ref<Scene> EditorLayer::NewScene()
 	{
 		Ref<Scene> newScene = CreateRef<Scene>();
 		SetEditorScene(newScene);
+		return newScene;
+	}
+
+	Ref<Scene> EditorLayer::NewScene(std::string name)
+	{
+		Ref<Scene> newScene = CreateRef<Scene>(name);
+		SetEditorScene(newScene);
+		return newScene;
 	}
 
 	void EditorLayer::OpenScene()
@@ -557,7 +649,8 @@ namespace Atlas
 		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity)
 		{
-			m_EditorScene->DuplicateEntity(selectedEntity);
+			Entity newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
+			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}
 	}
 

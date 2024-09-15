@@ -16,6 +16,7 @@ namespace Atlas
 	private:
 		Ref<Texture2D> GetDirectoryEntryIcon(const std::filesystem::directory_entry directoryEntry);
 
+		std::filesystem::path m_BaseDirectory;
 		std::filesystem::path m_CurrentDirectory;
 
 		Ref<Texture2D> m_AtlasIcon;

@@ -4,6 +4,8 @@
 #include "Atlas/Scene/Entity.h"
 #include "Atlas/Scene/Components.h"
 
+#include "Atlas/Project/Project.h"
+
 #include <fstream>
 
 #include <yaml-cpp/yaml.h>
@@ -350,7 +352,9 @@ namespace Atlas
 					src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					if (spriteRendererComponent["TexturePath"])
 					{
-						src.Texture = Texture2D::Create(spriteRendererComponent["TexturePath"].as<std::string>());
+						std::string texturePath = spriteRendererComponent["TexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Texture = Texture2D::Create(path.string());
 					}
 
 					if (spriteRendererComponent["TilingFactor"])

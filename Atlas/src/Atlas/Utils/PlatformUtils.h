@@ -4,6 +4,18 @@
 
 namespace Atlas
 {
+	class FileHelpers
+	{
+	public:
+		static void CreateDirectoryIfNeeded(const std::filesystem::path directoryName)
+		{
+			if (!std::filesystem::exists(directoryName))
+			{
+				std::filesystem::create_directories(directoryName);
+			}
+		}
+	};
+
 	class FileDialogs
 	{
 	public:
