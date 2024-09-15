@@ -211,6 +211,12 @@ namespace Atlas
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
 		ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
 
+		ImGui::Columns(2, 0, false);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+
+		ImGui::Text("Texture");
+		ImGui::NextColumn();
+
 		if (texture == nullptr)
 		{
 			ImGui::Image(nullptr, ImVec2(desiredWidth, desiredHeight), uv_min, uv_max, tint_col, border_col);
@@ -306,6 +312,8 @@ namespace Atlas
 
 			ImGui::SetCursorPosY(nextY);
 		}
+
+		ImGui::Columns(1);
 
 		return deleteTexture;
 	}
