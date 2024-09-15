@@ -241,7 +241,7 @@ namespace Atlas
 
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
 		{
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Color));
 
 			ImGui::Separator();
 
