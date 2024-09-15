@@ -23,7 +23,7 @@ namespace Atlas
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
+	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path)
 		: m_Path(path)
 	{
 		ATLAS_PROFILE_FUNCTION();
@@ -32,9 +32,9 @@ namespace Atlas
 		stbi_set_flip_vertically_on_load(1);
 		stbi_uc* data = nullptr;
 		{
-			ATLAS_PROFILE_SCOPE("stbi_load - OpenGLTexture2D::OpenGLTexture2D(const std::string&) ");
+			ATLAS_PROFILE_SCOPE("stbi_load - OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path&) ");
 
-			data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+			data = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
 		}
 
 		if (data)
@@ -76,7 +76,7 @@ namespace Atlas
 		}
 		else
 		{
-			ATLAS_CORE_WARN("Could not load texture {0}", path);
+			ATLAS_CORE_WARN("Could not load texture {0}", path.string());
 		}
 	}
 
