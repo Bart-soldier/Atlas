@@ -268,7 +268,7 @@ namespace Atlas
 
 			if (component.Type == SpriteRendererComponent::RenderType::Square)
 			{
-				ImGuiUtils::DrawTextureViewerPreDragDropTarget(component.Texture, 150.0, 150.0, true);
+				ImGuiUtils::BeginTextureViewer(component.Texture, 150.0, 150.0, true);
 
 				if (ImGui::BeginDragDropTarget())
 				{
@@ -289,7 +289,7 @@ namespace Atlas
 					ImGui::EndDragDropTarget();
 				}
 
-				if (ImGuiUtils::DrawTextureViewerPostDragDropTarget(component.Texture))
+				if (ImGuiUtils::EndTextureViewer(component.Texture))
 				{
 					component.ResetTextureValues();
 				}

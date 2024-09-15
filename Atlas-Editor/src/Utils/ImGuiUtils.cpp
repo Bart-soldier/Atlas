@@ -273,7 +273,7 @@ namespace Atlas
 
 	}
 
-	void ImGuiUtils::DrawTextureViewerPreDragDropTarget(const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped)
+	void ImGuiUtils::BeginTextureViewer(const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped)
 	{
 		// Texture UV
 		ImVec2 uv_min;                                   // Top-left
@@ -340,15 +340,23 @@ namespace Atlas
 						regionY = desiredHeight - regionSize;
 					}
 
-					ImGui::Text("Min: (%d, %d)", (int)(regionX * resizeFactorWidth), (int)(regionY * resizeFactorHeight));
-					ImGui::Text("Max: (%d, %d)", (int)((regionX + regionSize) * resizeFactorWidth), (int)((regionY + regionSize) * resizeFactorHeight));
+					float flippedY = desiredHeight - regionSize - regionY;
 
+					if (flipped)
+					{
+						ImGui::Text("Max: (%d, %d)", (int)((regionX + regionSize) * resizeFactorWidth), (int)((flippedY + regionSize) * resizeFactorHeight));
+						ImGui::Text("Min: (%d, %d)", (int)(regionX * resizeFactorWidth), (int)(flippedY * resizeFactorHeight));
+					}
+					else
+					{
+						ImGui::Text("Max: (%d, %d)", (int)((regionX + regionSize) * resizeFactorWidth), (int)((flippedY + regionSize) * resizeFactorHeight));
+						ImGui::Text("Min: (%d, %d)", (int)(regionX * resizeFactorWidth), (int)(flippedY * resizeFactorHeight));
+					}
 
 					ImVec2 uv0;
 					ImVec2 uv1;
 					if (flipped)
 					{
-						float flippedY = desiredHeight - regionSize - regionY;
 						uv0 = ImVec2((regionX) / desiredWidth, (flippedY + regionSize) / desiredHeight);
 						uv1 = ImVec2((regionX + regionSize) / desiredWidth, (flippedY) / desiredHeight);
 					}
@@ -365,7 +373,7 @@ namespace Atlas
 		}
 	}
 
-	bool ImGuiUtils::DrawTextureViewerPostDragDropTarget(const Ref<Texture2D> texture)
+	bool ImGuiUtils::EndTextureViewer(const Ref<Texture2D> texture)
 	{
 		bool deleteTexture = false;
 
