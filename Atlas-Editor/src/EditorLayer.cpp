@@ -478,7 +478,7 @@ namespace Atlas
 
 		Ref<Scene> newScene = CreateRef<Scene>();
 		SceneSerializer serializer(newScene);
-		if (serializer.Deserialize(path.string()))
+		if (serializer.Deserialize(path))
 		{
 			SetEditorScene(newScene, path);
 		}
@@ -513,18 +513,18 @@ namespace Atlas
 
 	void EditorLayer::SaveSceneAs()
 	{
-		std::string filepath = FileDialogs::SaveFile("Atlas Scene (*.atlas)\0*.atlas\0");
-		if (!filepath.empty())
+		std::filesystem::path path = FileDialogs::SaveFile("Atlas Scene (*.atlas)\0*.atlas\0");
+		if (!path.empty())
 		{
-			SerializeScene(m_ActiveScene, filepath);
-			m_EditorScenePath = filepath;
+			SerializeScene(m_ActiveScene, path);
+			m_EditorScenePath = path;
 		}
 	}
 
 	void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)
 	{
 		SceneSerializer serializer(scene);
-		serializer.Serialize(path.string());
+		serializer.Serialize(path);
 	}
 
 	void EditorLayer::OnScenePlay()

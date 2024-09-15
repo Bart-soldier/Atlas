@@ -200,7 +200,7 @@ namespace Atlas
 		out << YAML::EndMap; // Entity
 	}
 
-	void SceneSerializer::Serialize(const std::string& filepath)
+	void SceneSerializer::Serialize(const std::filesystem::path& path)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
@@ -219,31 +219,33 @@ namespace Atlas
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 
-		std::ofstream fout(filepath);
+		std::ofstream fout(path);
 		fout << out.c_str();
 	}
 
-	void SceneSerializer::SerializeRuntime(const std::string& filepath)
+	void SceneSerializer::SerializeRuntime(const std::filesystem::path& path)
 	{
 		// Not implemented
 		ATLAS_CORE_ASSERT(false);
 	}
 
-	bool SceneSerializer::Deserialize(const std::string& filepath)
+	bool SceneSerializer::Deserialize(const std::filesystem::path& path)
 	{
 		YAML::Node data;
 		try
 		{
-			data = YAML::LoadFile(filepath);
+			data = YAML::LoadFile(path.string());
 		}
 		catch (YAML::ParserException e)
 		{
-			ATLAS_CORE_ERROR("Failed to load .atlas file '{0}'\n     {1}", filepath, e.what());			return false;
+			ATLAS_CORE_ERROR("Failed to load .atlas file '{0}'\n     {1}", path.string(), e.what());
 			return false;
 		}
 
 		if (!data["Scene"])
+		{
 			return false;
+		}
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		ATLAS_CORE_TRACE("Deserializing scene '{0}'", sceneName);
@@ -397,7 +399,7 @@ namespace Atlas
 		return true;
 	}
 
-	bool SceneSerializer::DeserializeRuntime(const std::string& filepath)
+	bool SceneSerializer::DeserializeRuntime(const std::filesystem::path& path)
 	{
 		// Not implemented
 		ATLAS_CORE_ASSERT(false);
