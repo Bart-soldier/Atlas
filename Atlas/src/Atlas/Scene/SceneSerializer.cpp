@@ -8,7 +8,30 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace YAML {
+namespace YAML
+{
+	template<>
+	struct convert<glm::vec2>
+	{
+		static Node encode(const glm::vec2& rhs)
+		{
+			Node node;
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::vec2& rhs)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+
+			rhs.x = node[0].as<float>();
+			rhs.y = node[1].as<float>();
+			return true;
+		}
+	};
 
 	template<>
 	struct convert<glm::vec3>
@@ -63,7 +86,14 @@ namespace YAML {
 	};
 
 }
-namespace Atlas {
+namespace Atlas
+{
+	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+		return out;
+	}
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
 	{
@@ -146,6 +176,7 @@ namespace Atlas {
 			out << YAML::BeginMap; // SpriteRendererComponent
 
 			auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
+			out << YAML::Key << "Type" << YAML::Value << spriteRendererComponent.Type;
 			out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
 
 			if (spriteRendererComponent.Texture)
@@ -154,22 +185,17 @@ namespace Atlas {
 			}
 
 			out << YAML::Key << "TilingFactor" << YAML::Value << spriteRendererComponent.TilingFactor;
+			out << YAML::Key << "SpriteSheet" << YAML::Value << spriteRendererComponent.SpriteSheet;
+			out << YAML::Key << "SubTextureCoords" << YAML::Value << spriteRendererComponent.SubTextureCoords;
+			out << YAML::Key << "SubTextureCellSize" << YAML::Value << spriteRendererComponent.SubTextureCellSize;
+			out << YAML::Key << "SubTextureSpriteSize" << YAML::Value << spriteRendererComponent.SubTextureSpriteSize;
+			
+			out << YAML::Key << "Thickness" << YAML::Value << spriteRendererComponent.Thickness;
+			out << YAML::Key << "Fade" << YAML::Value << spriteRendererComponent.Fade;
+
 
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
-
-		//if (entity.HasComponent<CircleRendererComponent>())
-		//{
-		//	out << YAML::Key << "CircleRendererComponent";
-		//	out << YAML::BeginMap; // CircleRendererComponent
-
-		//	auto& circleRendererComponent = entity.GetComponent<CircleRendererComponent>();
-		//	out << YAML::Key << "Color" << YAML::Value << circleRendererComponent.Color;
-		//	out << YAML::Key << "Thickness" << YAML::Value << circleRendererComponent.Thickness;
-		//	out << YAML::Key << "Fade" << YAML::Value << circleRendererComponent.Fade;
-
-		//	out << YAML::EndMap; // CircleRendererComponent
-		//}
 
 		out << YAML::EndMap; // Entity
 	}
@@ -273,6 +299,7 @@ namespace Atlas {
 				if (spriteRendererComponent)
 				{
 					auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
+					//src.Type = (SpriteRendererComponent::RenderType)spriteRendererComponent["Type"].as<int>();
 					src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					if (spriteRendererComponent["TexturePath"])
 					{
@@ -283,16 +310,42 @@ namespace Atlas {
 					{
 						src.TilingFactor = spriteRendererComponent["TilingFactor"].as<float>();
 					}
-				}
 
-				//auto circleRendererComponent = entity["CircleRendererComponent"];
-				//if (circleRendererComponent)
-				//{
-				//	auto& crc = deserializedEntity.AddComponent<CircleRendererComponent>();
-				//	crc.Color = circleRendererComponent["Color"].as<glm::vec4>();
-				//	crc.Thickness = circleRendererComponent["Thickness"].as<float>();
-				//	crc.Fade = circleRendererComponent["Fade"].as<float>();
-				//}
+					if (spriteRendererComponent["SpriteSheet"])
+					{
+						src.SpriteSheet = spriteRendererComponent["SpriteSheet"].as<bool>();
+					}
+
+					if (spriteRendererComponent["SubTextureCoords"])
+					{
+						src.SubTextureCoords = spriteRendererComponent["SubTextureCoords"].as<glm::vec2>();
+					}
+
+					if (spriteRendererComponent["SubTextureCellSize"])
+					{
+						src.SubTextureCellSize = spriteRendererComponent["SubTextureCellSize"].as<glm::vec2>();
+					}
+
+					if (spriteRendererComponent["SubTextureSpriteSize"])
+					{
+						src.SubTextureSpriteSize = spriteRendererComponent["SubTextureSpriteSize"].as<glm::vec2>();
+					}
+
+					if (spriteRendererComponent["Thickness"])
+					{
+						src.Thickness = spriteRendererComponent["Thickness"].as<float>();
+					}
+
+					if (spriteRendererComponent["Fade"])
+					{
+						src.Fade = spriteRendererComponent["Fade"].as<float>();
+					}
+
+					if (src.SpriteSheet)
+					{
+						src.SubTexture = SubTexture2D::CreateFromCoords(src.Texture, src.SubTextureCoords, src.SubTextureCellSize, src.SubTextureSpriteSize);
+					}
+				}
 			}
 		}
 

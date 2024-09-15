@@ -280,8 +280,10 @@ namespace Atlas
 						Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 						if (texture->IsLoaded())
 						{
-							component.Texture = texture;
+							component.ResetTextureValues();
 							component.Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+							component.Texture = texture;
 						}
 					}
 					ImGui::EndDragDropTarget();
@@ -289,13 +291,35 @@ namespace Atlas
 
 				if (ImGuiUtils::DrawTextureViewerPostDragDropTarget(component.Texture))
 				{
-					component.Texture = nullptr;
+					component.ResetTextureValues();
 				}
 
 				if (component.Texture)
 				{
 					ImGuiUtils::DragFloat("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f, 1.0f);
+					if (ImGuiUtils::Checkbox("Sprite Sheet", component.SpriteSheet))
+					{
+						component.SubTexture = component.SpriteSheet ? SubTexture2D::CreateFromCoords(component.Texture, component.SubTextureCoords, component.SubTextureCellSize, component.SubTextureSpriteSize)
+																     : nullptr;
+					}
+
+					if (component.SpriteSheet)
+					{
+						if (ImGui::DragFloat2("Sprite Coords", glm::value_ptr(component.SubTextureCoords)) ||
+							ImGui::DragFloat2("Sprite Cell Size", glm::value_ptr(component.SubTextureCellSize)) ||
+							ImGui::DragFloat2("Sprite Size", glm::value_ptr(component.SubTextureSpriteSize)))
+						{
+							Ref<SubTexture2D> subTexture = SubTexture2D::CreateFromCoords(component.Texture, component.SubTextureCoords, component.SubTextureCellSize, component.SubTextureSpriteSize);
+							component.SubTexture = subTexture;
+						}
+					}
 				}
+
+				
+				//bool SpriteSheet = false;
+				//glm::vec2 SubTextureCoords = { 0, 0 };
+				//glm::vec2 SubTextureCellSize = { 32, 32 };
+				//glm::vec2 SubTextureSpriteSize = { 1, 1 };
 			}
 
 			if (component.Type == SpriteRendererComponent::RenderType::Circle)

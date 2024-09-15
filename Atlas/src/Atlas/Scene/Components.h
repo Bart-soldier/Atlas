@@ -3,6 +3,7 @@
 #include "Atlas/Core/UUID.h"
 #include "Atlas/Scene/SceneCamera.h"
 #include "Atlas/Renderer/Texture.h"
+#include "Atlas/Renderer/SubTexture2D.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -66,10 +67,26 @@ namespace Atlas
 		// Square-specific
 		Ref<Texture2D> Texture;
 		float TilingFactor = 1.0f;
+		bool SpriteSheet = false;
+		Ref<SubTexture2D> SubTexture;
+		glm::vec2 SubTextureCoords = { 0, 0 };
+		glm::vec2 SubTextureCellSize = { 32, 32 };
+		glm::vec2 SubTextureSpriteSize = { 1, 1 };
 
 		// Circle specific
 		float Thickness = 1.0f;
 		float Fade = 0.005f;
+
+		void ResetTextureValues()
+		{
+			Texture = nullptr;
+			TilingFactor = 1.0f;
+			SpriteSheet = false;
+			SubTexture = nullptr;
+			SubTextureCoords = { 0, 0 };
+			SubTextureCellSize = { 32, 32 };
+			SubTextureSpriteSize = { 1, 1 };
+		}
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;

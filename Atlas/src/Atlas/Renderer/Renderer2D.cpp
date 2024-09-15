@@ -523,13 +523,17 @@ namespace Atlas
 		switch (src.Type)
 		{
 			case SpriteRendererComponent::RenderType::Square:
-				if (src.Texture)
+				if (!src.Texture)
 				{
-					DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
+					DrawQuad(transform, src.Color, entityID);
+				}
+				else if (src.SubTexture)
+				{
+					DrawQuad(transform, src.SubTexture, src.TilingFactor, src.Color, entityID);
 				}
 				else
 				{
-					DrawQuad(transform, src.Color, entityID);
+					DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
 				}
 				break;
 			case SpriteRendererComponent::RenderType::Circle:

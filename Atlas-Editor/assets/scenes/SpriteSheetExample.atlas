@@ -1,0 +1,686 @@
+Scene: 2DScene
+Entities:
+  - Entity: 8417692190446024225
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-4, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 5320334259839453171
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-3, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 17573624272144232782
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-2, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 3267561048072373108
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-1, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 13547564795710835546
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [0, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 5266816027325333044
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [1, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 15220224807069308889
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [2, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 7020658075534528459
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [3, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 18418672645771674572
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [4, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 13084729827099847827
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [5, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 4042623026180131401
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [6, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 881284109675394424
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [7, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 3478096768216145840
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [7, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 1383863935530345102
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [6, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 17325223179950051780
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [5, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 12109087568411955785
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [4, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 15908656177695193573
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [3, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 1348424116695262859
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [2, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 2951497989526894810
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [1, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 11253594831486040912
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [0, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 13380143922484052612
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-1, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 16548519966849939029
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-2, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 14576735405456172173
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-3, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 11105477805566053423
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-4, -1, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 15687661101656898216
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [7, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 11156351905406138484
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [-4, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 12756064133490729519
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [-3, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 4996597149830363470
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [-2, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 9041593490031548947
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [-1, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 11278214851375738561
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [6, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 5978201974274661718
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 4946788540711006068
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [4, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 12428705986900846785
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [3, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 4457919561029431152
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [2, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 14585782915870954129
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [1, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 8698403157132564899
+    TagComponent:
+      Tag: Fence
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [6, 0]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 16671692895365613701
+    TagComponent:
+      Tag: Grass
+    TransformComponent:
+      Translation: [-4, 0, -1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      TexturePath: assets\textures\SpriteSheet.png
+      TilingFactor: 1
+      SpriteSheet: true
+      SubTextureCoords: [1, 11]
+      SubTextureCellSize: [128, 128]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 15691694283879491649
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [1, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.785398185
+        PerspectiveNear: 0.00999999978
+        PerspectiveFar: 1000
+        OrthographicSize: 6
+        OrthographicNear: -1
+        OrthographicFar: 10
+      Primary: true
+      FixedAspectRatio: false
