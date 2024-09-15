@@ -25,7 +25,7 @@ namespace Atlas
 		return valueChanged;
 	}
 
-	bool ImGuiUtils::DragFloat(const std::string& label, float& value, float speed, float min, float max, float resetValue)
+	bool ImGuiUtils::DragFloat(const std::string& label, float& value, float resetValue, float speed, float min, float max)
 	{
 		bool valueChanged = false;
 
@@ -62,8 +62,77 @@ namespace Atlas
 		return valueChanged;
 	}
 
-	void ImGuiUtils::DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue)
+	bool ImGuiUtils::DragFloat2(const std::string& label, glm::vec2& values, float resetValue, float speed, float min, float max)
 	{
+		bool valueChanged = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2, 0, false);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.569f, 0.220f, 0.231f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("X", buttonSize))
+		{
+			values.x = resetValue;
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		if (ImGui::DragFloat("##X", &values.x, speed, min, max, "%.2f"))
+		{
+			valueChanged = true;
+		}
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.212f, 0.655f, 0.330f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.137f, 0.431f, 0.220f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.212f, 0.655f, 0.330f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("Y", buttonSize))
+		{
+			values.y = resetValue;
+			valueChanged = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		if (ImGui::DragFloat("##Y", &values.y, speed, min, max, "%.2f"))
+		{
+			valueChanged = true;
+		}
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+		ImGui::Columns(1);
+		ImGui::PopID();
+
+		return valueChanged;
+	}
+
+	bool ImGuiUtils::DragFloat3(const std::string& label, glm::vec3& values, float resetValue, float speed, float min, float max)
+	{
+		bool valueChanged = false;
+
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
 
@@ -88,12 +157,16 @@ namespace Atlas
 		if (ImGui::Button("X", buttonSize))
 		{
 			values.x = resetValue;
+			valueChanged = true;
 		}
 		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		if (ImGui::DragFloat("##X", &values.x, speed, min, max, "%.2f"))
+		{
+			valueChanged = true;
+		}
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -104,12 +177,16 @@ namespace Atlas
 		if (ImGui::Button("Y", buttonSize))
 		{
 			values.y = resetValue;
+			valueChanged = true;
 		}
 		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		if (ImGui::DragFloat("##Y", &values.y, speed, min, max, "%.2f"))
+		{
+			valueChanged = true;
+		}
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -120,18 +197,23 @@ namespace Atlas
 		if (ImGui::Button("Z", buttonSize))
 		{
 			values.z = resetValue;
+			valueChanged = true;
 		}
 		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		if (ImGui::DragFloat("##Z", &values.z, speed, min, max, "%.2f"))
+		{
+			valueChanged = true;
+		}
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
-
 		ImGui::Columns(1);
 		ImGui::PopID();
+
+		return valueChanged;
 	}
 
 	bool ImGuiUtils::ColorEdit4(const std::string& label, float& value)

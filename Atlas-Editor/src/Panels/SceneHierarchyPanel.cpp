@@ -156,11 +156,11 @@ namespace Atlas
 
 		DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
 		{
-			ImGuiUtils::DrawVec3Control("Translation", component.Translation);
+			ImGuiUtils::DragFloat3("Translation", component.Translation, 0.0f, 0.1f);
 			glm::vec3 rotation = glm::degrees(component.Rotation);
-			ImGuiUtils::DrawVec3Control("Rotation", rotation);
+			ImGuiUtils::DragFloat3("Rotation", rotation, 0.0f, 0.1f);
 			component.Rotation = glm::radians(rotation);
-			ImGuiUtils::DrawVec3Control("Scale", component.Scale, 1.0f);
+			ImGuiUtils::DragFloat3("Scale", component.Scale, 1.0f, 0.1f);
 		});
 
 		DrawComponent<CameraComponent>("Camera", entity, [](auto& component)
@@ -196,19 +196,19 @@ namespace Atlas
 			if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
 			{
 				float perspectiveVerticalFov = glm::degrees(camera.GetPerspectiveVerticalFOV());
-				if (ImGuiUtils::DragFloat("Vertical FOV", perspectiveVerticalFov, 1.0f, 0.0f, 0.0f, 45.0f))
+				if (ImGuiUtils::DragFloat("Vertical FOV", perspectiveVerticalFov, 45.0f))
 				{
 					camera.SetPerspectiveVerticalFOV(glm::radians(perspectiveVerticalFov));
 				}
 
 				float perspectiveNear = camera.GetPerspectiveNearClip();
-				if (ImGuiUtils::DragFloat("Near", perspectiveNear, 1.0f, 0.0f, 0.0f, 0.01f))
+				if (ImGuiUtils::DragFloat("Near", perspectiveNear, 0.01f))
 				{
 					camera.SetPerspectiveNearClip(perspectiveNear);
 				}
 
 				float perspectiveFar = camera.GetPerspectiveFarClip();
-				if (ImGuiUtils::DragFloat("Far", perspectiveFar, 1.0f, 0.0f, 0.0f, 1000.0f))
+				if (ImGuiUtils::DragFloat("Far", perspectiveFar, 1000.0f))
 				{
 					camera.SetPerspectiveFarClip(perspectiveFar);
 				}
@@ -217,19 +217,19 @@ namespace Atlas
 			if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
 			{
 				float orthoSize = camera.GetOrthographicSize();
-				if (ImGuiUtils::DragFloat("Size", orthoSize, 1.0f, 0.0f, 0.0f, 10.0f))
+				if (ImGuiUtils::DragFloat("Size", orthoSize, 10.0f))
 				{
 					camera.SetOrthographicSize(orthoSize);
 				}
 
 				float orthoNear = camera.GetOrthographicNearClip();
-				if (ImGuiUtils::DragFloat("Near", orthoNear, 1.0f, 0.0f, 0.0f, -1.0f))
+				if (ImGuiUtils::DragFloat("Near", orthoNear, -1.0f))
 				{
 					camera.SetOrthographicNearClip(orthoNear);
 				}
 
 				float orthoFar = camera.GetOrthographicFarClip();
-				if (ImGuiUtils::DragFloat("Far", orthoFar, 1.0f, 0.0f, 0.0f, 1.0f))
+				if (ImGuiUtils::DragFloat("Far", orthoFar, 1.0f))
 				{
 					camera.SetOrthographicFarClip(orthoFar);
 				}
@@ -296,7 +296,7 @@ namespace Atlas
 
 				if (component.Texture)
 				{
-					ImGuiUtils::DragFloat("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f, 1.0f);
+					ImGuiUtils::DragFloat("Tiling Factor", component.TilingFactor, 1.0f, 0.1f, 0.0f, 100.0f);
 					if (ImGuiUtils::Checkbox("Sprite Sheet", component.SpriteSheet))
 					{
 						component.SubTexture = component.SpriteSheet ? SubTexture2D::CreateFromCoords(component.Texture, component.SubTextureCoords, component.SubTextureCellSize, component.SubTextureSpriteSize)
@@ -305,9 +305,9 @@ namespace Atlas
 
 					if (component.SpriteSheet)
 					{
-						if (ImGui::DragFloat2("Sprite Coords", glm::value_ptr(component.SubTextureCoords)) ||
-							ImGui::DragFloat2("Sprite Cell Size", glm::value_ptr(component.SubTextureCellSize)) ||
-							ImGui::DragFloat2("Sprite Size", glm::value_ptr(component.SubTextureSpriteSize)))
+						if (ImGuiUtils::DragFloat2("Sprite Coords", component.SubTextureCoords, 0.0f) ||
+							ImGuiUtils::DragFloat2("Sprite Cell Size", component.SubTextureCellSize, 32.0f, 16.0f) ||
+							ImGuiUtils::DragFloat2("Sprite Size", component.SubTextureSpriteSize, 1.0f))
 						{
 							Ref<SubTexture2D> subTexture = SubTexture2D::CreateFromCoords(component.Texture, component.SubTextureCoords, component.SubTextureCellSize, component.SubTextureSpriteSize);
 							component.SubTexture = subTexture;
@@ -324,17 +324,10 @@ namespace Atlas
 
 			if (component.Type == SpriteRendererComponent::RenderType::Circle)
 			{
-				ImGuiUtils::DragFloat("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, 1.0f);
-				ImGuiUtils::DragFloat("Fade", component.Fade, 0.00025f, 0.0f, 1.0f, 0.005f);
+				ImGuiUtils::DragFloat("Thickness", component.Thickness, 1.0f, 0.025f, 0.0f, 1.0f);
+				ImGuiUtils::DragFloat("Fade", component.Fade, 0.005f, 0.00025f, 0.0f, 1.0f);
 			}
 		});
-
-		//DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
-		//{
-		//	ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-		//	ImGuiUtils::DragFloat("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, 1.0f);
-		//	ImGuiUtils::DragFloat("Fade", component.Fade, 0.00025f, 0.0f, 1.0f, 0.005f);
-		//});
 	}
 
 	template<typename T, typename UIFunction>
