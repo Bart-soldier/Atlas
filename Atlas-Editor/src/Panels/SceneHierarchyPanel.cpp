@@ -122,6 +122,12 @@ namespace Atlas
 
 	void SceneHierarchyPanel::DrawComponents(Entity entity)
 	{
+		ImVec2 padding = ImGui::GetStyle().FramePadding;
+		ImVec2 buttonLabelSize = ImGui::CalcTextSize("Add Component", NULL, true);
+		ImVec2 buttonSize = ImGui::CalcItemSize({0, 0}, buttonLabelSize.x + padding.x * 2.0f, buttonLabelSize.y + padding.y * 2.0f);
+
+		ImGui::PushItemWidth(ImGui::GetColumnWidth() - buttonSize.x - padding.x);
+
 		if (entity.HasComponent<TagComponent>())
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
@@ -135,8 +141,9 @@ namespace Atlas
 			}
 		}
 
+		ImGui::PopItemWidth();
+
 		ImGui::SameLine();
-		ImGui::PushItemWidth(-1);
 
 		if (ImGui::Button("Add Component"))
 		{
@@ -151,8 +158,6 @@ namespace Atlas
 
 			ImGui::EndPopup();
 		}
-
-		ImGui::PopItemWidth();
 
 		DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
 		{
