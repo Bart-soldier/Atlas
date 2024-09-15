@@ -270,9 +270,21 @@ namespace Atlas
 				{
 					// Entities always have transforms
 					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
-					tc.Translation = transformComponent["Translation"].as<glm::vec3>();
-					tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
-					tc.Scale = transformComponent["Scale"].as<glm::vec3>();
+
+					if (transformComponent["Translation"])
+					{
+						tc.Translation = transformComponent["Translation"].as<glm::vec3>();
+					}
+
+					if (transformComponent["Rotation"])
+					{
+						tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
+					}
+
+					if (transformComponent["Scale"])
+					{
+						tc.Scale = transformComponent["Scale"].as<glm::vec3>();
+					}
 				}
 
 				auto cameraComponent = entity["CameraComponent"];
@@ -281,18 +293,51 @@ namespace Atlas
 					auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
 					auto& cameraProps = cameraComponent["Camera"];
-					cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
-					cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
-					cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
-					cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
+					if (cameraComponent["ProjectionType"])
+					{
+						cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
+					}
 
-					cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
-					cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
-					cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
+					if (cameraComponent["PerspectiveFOV"])
+					{
+						cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
+					}
 
-					cc.Primary = cameraComponent["Primary"].as<bool>();
-					cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+					if (cameraComponent["PerspectiveNear"])
+					{
+						cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
+					}
+
+					if (cameraComponent["PerspectiveFar"])
+					{
+						cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
+					}
+
+					if (cameraComponent["OrthographicSize"])
+					{
+						cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
+					}
+
+					if (cameraComponent["OrthographicNear"])
+					{
+						cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
+					}
+
+					if (cameraComponent["OrthographicFar"])
+					{
+						cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
+					}
+
+					if (cameraComponent["Primary"])
+					{
+						cc.Primary = cameraComponent["Primary"].as<bool>();
+					}
+
+					if (cameraComponent["FixedAspectRatio"])
+					{
+						cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+					}
 				}
 
 				auto spriteRendererComponent = entity["SpriteRendererComponent"];
