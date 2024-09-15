@@ -305,7 +305,7 @@ namespace Atlas
 		}
 		else
 		{
-			ImTextureID textureID = (ImTextureID)texture->GetRendererID();
+			ImTextureID textureID = (ImTextureID)(uint64_t)texture->GetRendererID();
 			float textureWidth = (float)texture->GetWidth();
 			float textureHeight = (float)texture->GetHeight();
 			float resizeFactorWidth = textureWidth / desiredWidth;
