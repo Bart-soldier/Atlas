@@ -394,7 +394,7 @@ namespace Atlas
 
 			ImGui::SetCursorPosX(posX + padding);
 			ImGui::SetCursorPosY(posY + ImGui::GetTextLineHeightWithSpacing());
-			ImGui::Text(texture->GetPath().stem().string().c_str());
+			ImGui::Text(texture->GetPath().filename().string().c_str());
 
 			ImGui::SetCursorPosX(posX + padding);
 			ImGui::SetCursorPosY(posY + ImGui::GetTextLineHeightWithSpacing());
