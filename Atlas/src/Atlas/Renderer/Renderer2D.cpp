@@ -5,7 +5,6 @@
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
 #include "Atlas/Renderer/UniformBuffer.h"
-#include "Atlas/Renderer/RenderCommand.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -79,6 +78,7 @@ namespace Atlas
 		LineVertex* LineVertexBufferPtr = nullptr;
 
 		float LineWidth = 2.0f;
+		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
 
 		std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
@@ -255,8 +255,10 @@ namespace Atlas
 			s_Data.LineVertexBuffer->SetData(s_Data.LineVertexBufferBase, dataSize);
 
 			s_Data.LineShader->Bind();
-			RenderCommand::SetLineWidth(s_Data.LineWidth);
+
+			SetLineWidth(4.0f);
 			RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
+			SetLineWidth(2.0f);
 			s_Data.Stats.DrawCalls++;
 		}
 	}
@@ -615,6 +617,18 @@ namespace Atlas
 	void Renderer2D::SetLineWidth(float width)
 	{
 		s_Data.LineWidth = width;
+		RenderCommand::SetLineWidth(s_Data.LineWidth);
+	}
+
+	RendererAPI::PolygonMode Renderer2D::GetPolygonMode()
+	{
+		return s_Data.PolygonMode;
+	}
+
+	void Renderer2D::SetPolygonMode(RendererAPI::PolygonMode polygonMode)
+	{
+		s_Data.PolygonMode = polygonMode;
+		RenderCommand::SetPolygonMode(polygonMode);
 	}
 
 	void Renderer2D::ResetStats()

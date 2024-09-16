@@ -5,6 +5,25 @@
 
 namespace Atlas
 {
+	namespace Utils
+	{
+		static GLenum PolygonModeToGLenum(RendererAPI::PolygonMode mode)
+		{
+			switch (mode)
+			{
+			case RendererAPI::PolygonMode::Fill:
+				return GL_FILL;
+			case RendererAPI::PolygonMode::Line:
+				return GL_LINE;
+			case RendererAPI::PolygonMode::Point:
+				return GL_POINT;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Unknown polygon mode!");
+			return 0;
+		}
+	}
+
 	void OpenGLMessageCallback(
 		unsigned source,
 		unsigned type,
@@ -73,5 +92,10 @@ namespace Atlas
 	void OpenGLRendererAPI::SetLineWidth(float width)
 	{
 		glLineWidth(width);
+	}
+
+	void OpenGLRendererAPI::SetPolygonMode(RendererAPI::PolygonMode mode)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, Utils::PolygonModeToGLenum(mode));
 	}
 }

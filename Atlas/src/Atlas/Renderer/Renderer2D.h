@@ -3,6 +3,7 @@
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
 
+#include "Atlas/Renderer/RenderCommand.h"
 #include "Atlas/Renderer/Camera.h"
 #include "Atlas/Renderer/EditorCamera.h"
 
@@ -51,6 +52,9 @@ namespace Atlas
 
 		static float GetLineWidth();
 		static void SetLineWidth(float width);
+
+		static RendererAPI::PolygonMode GetPolygonMode();
+		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
 
 		// Stats
 		struct Statistics

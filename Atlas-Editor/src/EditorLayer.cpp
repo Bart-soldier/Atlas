@@ -4,6 +4,7 @@
 #include "Atlas/Utils/PlatformUtils.h"
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <ImGuizmo.h>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -42,8 +43,6 @@ namespace Atlas
 			New2DStarterScene();
 			m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		}
-
-		Renderer2D::SetLineWidth(4.0f);
 	}
 
 	void EditorLayer::OnDetach()
@@ -239,7 +238,7 @@ namespace Atlas
 		m_SceneHierarchyPanel.OnImGuiRender();
 		m_ContentBrowserPanel->OnImGuiRender();
 
-		ImGui::Begin("Stats");
+		ImGui::Begin("Renderer Stats");
 
 		std::string name = "None";
 		if (m_HoveredEntity)
@@ -692,8 +691,9 @@ namespace Atlas
 
 	void EditorLayer::UI_Toolbar()
 	{
-		float padding = 2.0f;
+		float padding = GImGui->Style.FramePadding.x;
 
+		/* ---------- STYLE ---------- */
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, padding));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -713,9 +713,38 @@ namespace Atlas
 			tintColor.w = 0.5f;
 		}
 
+		/* ---------- POLYGON TYPE ---------- */
+		ImGui::PushItemWidth(120);
+		ImGui::SetCursorPosX(padding);
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5 - ImGui::GetTextLineHeightWithSpacing() * 0.5);
+		const char* polygonTypeStrings[] = { "Fill", "Line", "Point"};
+		const char* currentPolygonTypeString = polygonTypeStrings[(int)Renderer2D::GetPolygonMode()];
+		if (ImGui::BeginCombo("##PolygonType", currentPolygonTypeString))
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				bool isSelected = currentPolygonTypeString == polygonTypeStrings[i];
+				if (ImGui::Selectable(polygonTypeStrings[i], isSelected))
+				{
+					currentPolygonTypeString = polygonTypeStrings[i];
+					Renderer2D::SetPolygonMode((RendererAPI::PolygonMode)i);
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGui::EndCombo();
+		}
+		ImGui::PopItemWidth();
+
+		/* ---------- PLAY / STOP ---------- */
 		float size = ImGui::GetWindowHeight() - 2 * padding;
 		Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
 		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+		ImGui::SetCursorPosY(padding);
 		if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 		{
 			if (m_SceneState == SceneState::Edit)
@@ -733,6 +762,7 @@ namespace Atlas
 			ImGui::BeginDisabled();
 		}
 
+		/* ---------- EDITOR CAMERA ---------- */
 		ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240);
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5 - ImGui::GetTextLineHeightWithSpacing() * 0.5);
 		bool isLocked = m_EditorCamera.IsRotationLocked();
@@ -746,7 +776,7 @@ namespace Atlas
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5 - ImGui::GetTextLineHeightWithSpacing() * 0.5);
 		const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
 		const char* currentProjectionTypeString = projectionTypeStrings[(int)m_EditorCamera.GetProjectionType()];
-		if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
+		if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
 		{
 			for (int i = 0; i < 2; i++)
 			{
@@ -766,32 +796,6 @@ namespace Atlas
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
-
-		//ImGui::SameLine((ImGui::GetWindowContentRegionMax().x) - 4 * (size + 2 * padding));
-		//if (ImGui::Button("2D", ImVec2(size, size)))
-		//{
-		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Orthographic);
-		//}
-
-		//ImGui::SameLine();
-		//if (ImGui::Button("2DAx", ImVec2(size, size)))
-		//{
-		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Axonometric);
-		//}
-
-		//ImGui::SameLine();
-		//if (ImGui::Button("2.5D", ImVec2(size, size)))
-		//{
-		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::LockedPerspective);
-		//}
-
-		//ImGui::SameLine();
-		//if (ImGui::Button("3D", ImVec2(size, size)))
-		//{
-		//	m_EditorCamera.SetProjectionType(EditorCamera::ProjectionType::Perspective);
-		//}
-
-
 
 		if (!toolbarEnabled)
 		{

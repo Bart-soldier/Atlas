@@ -42,6 +42,11 @@ namespace Atlas
 			s_RendererAPI->SetLineWidth(width);
 		}
 
+		static void SetPolygonMode(RendererAPI::PolygonMode mode)
+		{
+			s_RendererAPI->SetPolygonMode(mode);
+		}
+
 	private:
 		static Scope<RendererAPI> s_RendererAPI;
 	};
