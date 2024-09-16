@@ -1,58 +1,5 @@
-Scene: RendererTest
+Scene: 3D Example
 Entities:
-  - Entity: 10616885756070687733
-    TagComponent:
-      Tag: Sprite
-    TransformComponent:
-      Translation: [2.5999999, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Type: 0
-      Color: [1, 1, 1, 1]
-      TexturePath: assets\textures\SpriteSheet.png
-      TilingFactor: 1
-      SpriteSheet: true
-      SubTextureCoords: [6, 0]
-      SubTextureCellSize: [128, 128]
-      SubTextureSpriteSize: [1, 1]
-      Thickness: 1
-      Fade: 0.00499999989
-  - Entity: 14764957687700210245
-    TagComponent:
-      Tag: BigSprite
-    TransformComponent:
-      Translation: [4.05364132, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 2, 1]
-    SpriteRendererComponent:
-      Type: 0
-      Color: [1, 1, 1, 1]
-      TexturePath: assets\textures\SpriteSheet.png
-      TilingFactor: 1
-      SpriteSheet: true
-      SubTextureCoords: [0, 1]
-      SubTextureCellSize: [128, 128]
-      SubTextureSpriteSize: [1, 2]
-      Thickness: 1
-      Fade: 0.00499999989
-  - Entity: 2834906051305720977
-    TagComponent:
-      Tag: Circle
-    TransformComponent:
-      Translation: [-2.29999995, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Type: 1
-      Color: [1, 0.119691133, 0.119691133, 1]
-      TilingFactor: 1
-      SpriteSheet: false
-      SubTextureCoords: [0, 0]
-      SubTextureCellSize: [32, 32]
-      SubTextureSpriteSize: [1, 1]
-      Thickness: 0.0700000003
-      Fade: 0.00499999989
   - Entity: 5186351490917428485
     TagComponent:
       Tag: Left
@@ -62,7 +9,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Type: 0
-      Color: [0, 0.423529387, 1, 1]
+      Color: [1, 0, 0.949019611, 1]
       TilingFactor: 1
       SpriteSheet: false
       SubTextureCoords: [0, 0]
@@ -97,7 +44,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Type: 0
-      Color: [0, 0.37038061, 0.874509811, 1]
+      Color: [0.874509811, 0, 0.835294127, 1]
       TilingFactor: 1
       SpriteSheet: false
       SubTextureCoords: [0, 0]
@@ -114,7 +61,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Type: 0
-      Color: [0, 0.25437203, 0.588235319, 1]
+      Color: [0.549019635, 0, 0.588235319, 1]
       TilingFactor: 1
       SpriteSheet: false
       SubTextureCoords: [0, 0]

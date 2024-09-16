@@ -2,6 +2,8 @@
 #include "Atlas/ImGui/ImGuiLayer.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
+
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <ImGuizmo.h>
@@ -181,5 +183,10 @@ namespace Atlas
 		ImGuizmo::GetStyle().HatchedAxisLineThickness = 0.0f;
 
 		// TODO : Add Color Palette and link RGB In Panel and Viewport Background color
+	}
+
+	uint32_t ImGuiLayer::GetActiveWidgetID() const
+	{
+		return GImGui->ActiveId;
 	}
 }

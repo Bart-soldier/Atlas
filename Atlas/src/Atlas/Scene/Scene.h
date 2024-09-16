@@ -30,8 +30,9 @@ namespace Atlas
 		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
-		void DuplicateEntity(Entity entity);
+		Entity DuplicateEntity(Entity entity);
 
+		std::string const GetName() { return m_Name; }
 		Entity GetPrimaryCameraEntity();
 
 	private:

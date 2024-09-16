@@ -29,7 +29,14 @@ namespace Atlas
 
 		bool IsViewportClickable();
 
-		void NewScene();
+		void NewProject(bool saveCurrentScene = false);
+		bool OpenProject();
+		void OpenProject(const std::filesystem::path& path);
+		void SaveProject();
+
+		Ref<Scene> NewScene();
+		Ref<Scene> NewScene(std::string name);
+		Ref<Scene> New2DStarterScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SetEditorScene(Ref<Scene> scene);
@@ -76,7 +83,7 @@ namespace Atlas
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
-		ContentBrowserPanel m_ContentBrowserPanel;
+		Scope<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		// Editor resources
 		Ref<Texture2D> m_IconPlay, m_IconStop;

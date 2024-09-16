@@ -22,6 +22,8 @@
 #include "Atlas/Scene/Entity.h"
 #include "Atlas/Scene/Components.h"
 
+#include "Atlas/Project/Project.h"
+
 /* --------- RENDERER -------- */
 #include "Atlas/Renderer/Renderer.h"
 #include "Atlas/Renderer/Renderer2D.h"
