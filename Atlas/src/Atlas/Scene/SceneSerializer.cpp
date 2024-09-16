@@ -298,37 +298,37 @@ namespace Atlas
 
 					auto& cameraProps = cameraComponent["Camera"];
 
-					if (cameraComponent["ProjectionType"])
+					if (cameraProps["ProjectionType"])
 					{
 						cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 					}
 
-					if (cameraComponent["PerspectiveFOV"])
+					if (cameraProps["PerspectiveFOV"])
 					{
 						cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
 					}
 
-					if (cameraComponent["PerspectiveNear"])
+					if (cameraProps["PerspectiveNear"])
 					{
 						cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
 					}
 
-					if (cameraComponent["PerspectiveFar"])
+					if (cameraProps["PerspectiveFar"])
 					{
 						cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
 					}
 
-					if (cameraComponent["OrthographicSize"])
+					if (cameraProps["OrthographicSize"])
 					{
 						cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
 					}
 
-					if (cameraComponent["OrthographicNear"])
+					if (cameraProps["OrthographicNear"])
 					{
 						cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
 					}
 
-					if (cameraComponent["OrthographicFar"])
+					if (cameraProps["OrthographicFar"])
 					{
 						cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
 					}

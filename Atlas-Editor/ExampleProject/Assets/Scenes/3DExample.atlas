@@ -1,23 +1,22 @@
 Scene: 3D Example
 Entities:
-  - Entity: 17042037628953043889
+  - Entity: 5186351490917428485
     TagComponent:
-      Tag: Right
+      Tag: Left
     TransformComponent:
-      Translation: [0.349999994, 0, 0.349999994]
-      Rotation: [0, 0.785398185, 0]
+      Translation: [-0.349999994, 0, 0.349999994]
+      Rotation: [0, -0.785398185, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0.549019635, 0, 0.588235319, 1]
-  - Entity: 8072611206461067516
-    TagComponent:
-      Tag: Top
-    TransformComponent:
-      Translation: [0, 0.5, 0]
-      Rotation: [1.57079637, 0.785398185, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.874509811, 0, 0.835294127, 1]
+      Type: 0
+      Color: [1, 0, 0.949019611, 1]
+      TilingFactor: 1
+      SpriteSheet: false
+      SubTextureCoords: [0, 0]
+      SubTextureCellSize: [32, 32]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
   - Entity: 8499682893995048034
     TagComponent:
       Tag: Camera
@@ -27,8 +26,8 @@ Entities:
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
-        ProjectionType: 0
-        PerspectiveFOV: 0.52359879
+        ProjectionType: 1
+        PerspectiveFOV: 0.785398185
         PerspectiveNear: 0.00999999978
         PerspectiveFar: 1000
         OrthographicSize: 10
@@ -36,12 +35,37 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 5186351490917428485
+  - Entity: 8072611206461067516
     TagComponent:
-      Tag: Left
+      Tag: Top
     TransformComponent:
-      Translation: [-0.349999994, 0, 0.349999994]
-      Rotation: [0, -0.785398185, 0]
+      Translation: [0, 0.5, 0]
+      Rotation: [1.57079637, 0.785398185, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [1, 0, 0.949019611, 1]
+      Type: 0
+      Color: [0.874509811, 0, 0.835294127, 1]
+      TilingFactor: 1
+      SpriteSheet: false
+      SubTextureCoords: [0, 0]
+      SubTextureCellSize: [32, 32]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989
+  - Entity: 17042037628953043889
+    TagComponent:
+      Tag: Right
+    TransformComponent:
+      Translation: [0.349999994, 0, 0.349999994]
+      Rotation: [0, 0.785398185, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Type: 0
+      Color: [0.549019635, 0, 0.588235319, 1]
+      TilingFactor: 1
+      SpriteSheet: false
+      SubTextureCoords: [0, 0]
+      SubTextureCellSize: [32, 32]
+      SubTextureSpriteSize: [1, 1]
+      Thickness: 1
+      Fade: 0.00499999989

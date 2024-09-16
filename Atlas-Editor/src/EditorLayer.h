@@ -29,13 +29,14 @@ namespace Atlas
 
 		bool IsViewportClickable();
 
-		void NewProject();
+		void NewProject(bool saveCurrentScene = false);
 		bool OpenProject();
 		void OpenProject(const std::filesystem::path& path);
 		void SaveProject();
 
 		Ref<Scene> NewScene();
 		Ref<Scene> NewScene(std::string name);
+		Ref<Scene> New2DStarterScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SetEditorScene(Ref<Scene> scene);
@@ -75,8 +76,6 @@ namespace Atlas
 
 		// Temp
 		Ref<Framebuffer> m_Framebuffer;
-
-		std::filesystem::path m_EditorProjectPath;
 
 		Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene;

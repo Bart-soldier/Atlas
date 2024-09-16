@@ -283,9 +283,6 @@ namespace Atlas
 						Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 						if (texture->IsLoaded())
 						{
-							component.ResetTextureValues();
-							component.Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
 							component.Texture = texture;
 						}
 					}

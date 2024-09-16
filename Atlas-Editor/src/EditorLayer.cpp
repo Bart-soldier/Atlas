@@ -39,10 +39,10 @@ namespace Atlas
 		else
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+			New2DStarterScene();
+			m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		}
 
-		m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
-	
 		Renderer2D::SetLineWidth(4.0f);
 	}
 
@@ -206,6 +206,11 @@ namespace Atlas
 				if (ImGui::MenuItem("New Scene", "Ctrl+N"))
 				{
 					NewScene();
+				}
+
+				if (ImGui::MenuItem("Open Scene"))
+				{
+					OpenScene();
 				}
 
 				if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
@@ -418,25 +423,25 @@ namespace Atlas
 				break;
 			// Gizmos
 			case Key::Q:
-				if (!ImGuizmo::IsUsing())
+				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
 					m_GizmoType = -1;
 				}
 				break;
 			case Key::T:
-				if (!ImGuizmo::IsUsing())
+				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
 					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 				}
 				break;
 			case Key::R:
-				if (!ImGuizmo::IsUsing())
+				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
 					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
 				}
 				break;
 			case Key::E:
-				if (!ImGuizmo::IsUsing())
+				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
 					m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				}
@@ -479,7 +484,7 @@ namespace Atlas
 		return m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt);
 	}
 
-	void EditorLayer::NewProject()
+	void EditorLayer::NewProject(bool saveCurrentScene)
 	{
 		std::filesystem::path path = FileDialogs::SaveFile("Atlas Project\0");
 		if (!path.empty())
@@ -489,11 +494,15 @@ namespace Atlas
 			std::filesystem::path projectSolution = (path / path.stem()).replace_extension(".atlasproj");
 
 			Ref<Project> newProject = Project::New(projectSolution);
-			Ref<Scene> newScene = NewScene("Main Scene");
+			if (!saveCurrentScene || !m_EditorScene)
+			{
+				New2DStarterScene();
+			}
 
 			std::filesystem::path scenePath = newProject->GetAssetDirectory() / "Scenes";
 			FileHelpers::CreateDirectoryIfNeeded(scenePath);
-			m_EditorScenePath = scenePath / "MainScene.atlas";
+			std::string sceneFileName = m_EditorScene->GetName() + ".atlas";
+			m_EditorScenePath = scenePath / sceneFileName;
 			SaveScene();
 
 			newProject->GetConfig().Name = path.stem().string();
@@ -528,8 +537,14 @@ namespace Atlas
 
 	void EditorLayer::SaveProject()
 	{
-		SaveScene();
-		Project::SaveActive();
+		if (!m_EditorScenePath.empty())
+		{
+			Project::SaveActive();
+		}
+		else
+		{
+			NewProject(true);
+		}
 	}
 
 	Ref<Scene> EditorLayer::NewScene()
@@ -546,13 +561,25 @@ namespace Atlas
 		return newScene;
 	}
 
+	Ref<Scene> EditorLayer::New2DStarterScene()
+	{
+		Ref<Scene> newScene = CreateRef<Scene>("Starter Scene");
+		SetEditorScene(newScene);
+
+		Entity squareEntity = newScene->CreateEntity("White Square");
+		squareEntity.AddComponent<SpriteRendererComponent>();
+
+		Entity cameraEntity = newScene->CreateEntity("Camera");
+		cameraEntity.AddComponent<CameraComponent>();
+		CameraComponent cameraComponent = cameraEntity.GetComponent<CameraComponent>();
+		cameraComponent.Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
+		cameraComponent.Camera.SetOrthographicFarClip(2.0f);
+
+		return newScene;
+	}
+
 	void EditorLayer::OpenScene()
 	{
-		if (m_SceneState != SceneState::Edit)
-		{
-			OnSceneStop();
-		}
-
 		std::filesystem::path path = FileDialogs::OpenFile("Atlas Scene (*.atlas)\0*.atlas\0");
 		if (!path.empty())
 		{
@@ -562,6 +589,11 @@ namespace Atlas
 
 	void EditorLayer::OpenScene(const std::filesystem::path& path)
 	{
+		if (m_SceneState != SceneState::Edit)
+		{
+			OnSceneStop();
+		}
+
 		if (path.extension().string() != ".atlas")
 		{
 			ATLAS_WARN("Could not load {0} - not a scene file", path.filename().string());
