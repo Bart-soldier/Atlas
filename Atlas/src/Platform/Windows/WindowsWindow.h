@@ -19,6 +19,7 @@ namespace Atlas
 		unsigned int GetHeight() const override { return m_Data.Height; }
 
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
+		void SetSecondaryTitle(const std::string title) override;
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
 

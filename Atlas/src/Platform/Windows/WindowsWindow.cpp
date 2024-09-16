@@ -49,6 +49,9 @@ namespace Atlas
 			ATLAS_PROFILE_SCOPE("glfwInit");
 			int success = glfwInit();
 			ATLAS_CORE_ASSERT(success, "Could not initialize GLFW!");
+			//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+			//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
@@ -203,6 +206,12 @@ namespace Atlas
 			glfwSwapInterval(0);
 
 		m_Data.VSync = enabled;
+	}
+
+	void WindowsWindow::SetSecondaryTitle(const std::string name)
+	{
+		std::string windowTitle = m_Data.Title + " - " + name;
+		glfwSetWindowTitle(m_Window,  windowTitle.c_str());
 	}
 
 	bool WindowsWindow::IsVSync() const
