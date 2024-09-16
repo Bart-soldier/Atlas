@@ -1,4 +1,4 @@
 Project:
   Name: ExampleProj
-  StartScene: "Scenes/RendererTest.atlas"
-  AssetDirectory: "Assets"
+  StartScene: Scenes/RendererTest.atlas
+  AssetDirectory: Assets

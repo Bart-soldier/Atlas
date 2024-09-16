@@ -348,7 +348,7 @@ namespace Atlas
 				if (spriteRendererComponent)
 				{
 					auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
-					//src.Type = (SpriteRendererComponent::RenderType)spriteRendererComponent["Type"].as<int>();
+					src.Type = (SpriteRendererComponent::RenderType)spriteRendererComponent["Type"].as<int>();
 					src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					if (spriteRendererComponent["TexturePath"])
 					{
