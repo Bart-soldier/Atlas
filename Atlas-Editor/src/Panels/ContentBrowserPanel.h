@@ -1,8 +1,9 @@
 #pragma once
 
-#include <filesystem>
-
+#include "Atlas/Core/Base.h"
 #include "Atlas/Renderer/Texture.h"
+
+#include <filesystem>
 
 namespace Atlas
 {

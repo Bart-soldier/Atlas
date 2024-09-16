@@ -1,5 +1,3 @@
-#include "atlaspch.h"
-
 #include "Panels/ContentBrowserPanel.h"
 
 #include "Atlas/Project/Project.h"
