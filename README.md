@@ -29,16 +29,17 @@ This project uses the following external dependencies:
 - **Project setup:** [Premake](https://premake.github.io/) (.exe),
 - **Windows:** [glfw](https://github.com/Bart-soldier/glfw) (forked),
 - **OpenGL:** [Glad](https://glad.dav1d.de/),
+- **OpenGL Math:** [glm](https://github.com/g-truc/glm),
 - **Vulkan:** [SDK](https://vulkan.lunarg.com/sdk/home),
 - **Logging:** [spdlog](https://github.com/gabime/spdlog),
 - **UI:** [imgui](https://github.com/Bart-soldier/imgui) (forked from 'Docking'),
 - **UI Gizmo:** [ImGuizmo](https://github.com/Bart-soldier/ImGuizmo) (forked),
 - **Texture Loading:** [stb_image](https://github.com/nothings/stb/tree/master),
-- **Math:** [glm](https://github.com/g-truc/glm),
 - **ECS:** [entt](https://github.com/skypjack/entt/tree/master),
 - **Serialization:** [yaml](https://github.com/Bart-soldier/yaml-cpp) (forked),
 - **Shader compiling:** [shaderc](https://github.com/google/shaderc) and [SPIR-V](https://www.khronos.org/spir/).
 
 ## Resources used
 This project used the following resources:
-- [The Cherno's](https://www.youtube.com/@TheCherno) Game Engine series.
+- [The Cherno's](https://www.youtube.com/@TheCherno) Game Engine series,
+- [LearnOpenGL](https://learnopengl.com/).
