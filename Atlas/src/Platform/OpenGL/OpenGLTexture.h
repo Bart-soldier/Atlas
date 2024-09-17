@@ -32,6 +32,8 @@ namespace Atlas
 		};
 
 	private:
+		void CreateTextureStorage(const TextureSpecification& specification);
+
 		TextureSpecification m_Specification;
 
 		std::filesystem::path m_Path;

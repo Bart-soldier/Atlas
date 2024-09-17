@@ -35,25 +35,7 @@ namespace Atlas
 	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification& specification)
 		: m_Specification(specification)
 	{
-		ATLAS_PROFILE_FUNCTION();
-
-		m_InternalFormat = Utils::AtlasImageFormatToGLInternalFormat(m_Specification.Format);
-		m_DataFormat = Utils::AtlasImageFormatToGLDataFormat(m_Specification.Format);
-
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Specification.Width, m_Specification.Height);
-
-		GLenum minFilter = GL_LINEAR;
-		if (m_Specification.GenerateMips)
-		{
-			minFilter = GL_LINEAR_MIPMAP_LINEAR;
-		}
-
-		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, minFilter);
-		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		CreateTextureStorage(m_Specification);
 	}
 
 	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool generateMips)
@@ -93,25 +75,9 @@ namespace Atlas
 				ATLAS_CORE_ASSERT(false, "Format not supported!");
 			}
 
-			m_InternalFormat = Utils::AtlasImageFormatToGLInternalFormat(m_Specification.Format);
-			m_DataFormat = Utils::AtlasImageFormatToGLDataFormat(m_Specification.Format);
+			CreateTextureStorage(m_Specification);
 
-			glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-			glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Specification.Width, m_Specification.Height);
-
-			GLenum minFilter = GL_LINEAR;
-			if (m_Specification.GenerateMips)
-			{
-				minFilter = GL_LINEAR_MIPMAP_LINEAR;
-			}
-
-			glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, minFilter);
-			glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-			glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Specification.Width, m_Specification.Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+			SetData(data, m_Specification.Width * m_Specification.Height * (m_DataFormat == GL_RGBA ? 4 : 3));
 
 			stbi_image_free(data);
 		}
@@ -148,5 +114,28 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		glBindTextureUnit(slot, m_RendererID);
+	}
+
+	void OpenGLTexture2D::CreateTextureStorage(const TextureSpecification& specification)
+	{
+		ATLAS_PROFILE_FUNCTION();
+
+		m_InternalFormat = Utils::AtlasImageFormatToGLInternalFormat(m_Specification.Format);
+		m_DataFormat = Utils::AtlasImageFormatToGLDataFormat(m_Specification.Format);
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Specification.Width, m_Specification.Height);
+
+		GLenum minFilter = GL_LINEAR;
+		if (m_Specification.GenerateMips)
+		{
+			minFilter = GL_LINEAR_MIPMAP_LINEAR;
+		}
+
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, minFilter);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 }
