@@ -165,7 +165,9 @@ namespace Atlas
 		s_Data.LineVertexArray->AddVertexBuffer(s_Data.LineVertexBuffer);
 		s_Data.LineVertexBufferBase = new LineVertex[s_Data.MaxVertices];
 
-		s_Data.WhiteTexture = Texture2D::Create(TextureSpecification());
+		TextureSpecification whiteTextureSpecification = TextureSpecification();
+		whiteTextureSpecification.GenerateMips = false;
+		s_Data.WhiteTexture = Texture2D::Create(whiteTextureSpecification);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 

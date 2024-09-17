@@ -9,10 +9,10 @@ namespace Atlas
 	ContentBrowserPanel::ContentBrowserPanel()
 		: m_BaseDirectory(Project::GetAssetDirectory()), m_CurrentDirectory(m_BaseDirectory)
 	{
-		m_AtlasIcon = Texture2D::Create("Resources/Icons/ContentBrowser/AtlasIcon.png");
-		m_DirectoryIcon = Texture2D::Create("Resources/Icons/ContentBrowser/DirectoryIcon.png");
-		m_FileIcon = Texture2D::Create("Resources/Icons/ContentBrowser/FileIcon.png");
-		m_ImageIcon = Texture2D::Create("Resources/Icons/ContentBrowser/ImageIcon.png");
+		m_AtlasIcon = Texture2D::Create("Resources/Icons/ContentBrowser/AtlasIcon.png", false);
+		m_DirectoryIcon = Texture2D::Create("Resources/Icons/ContentBrowser/DirectoryIcon.png", false);
+		m_FileIcon = Texture2D::Create("Resources/Icons/ContentBrowser/FileIcon.png", false);
+		m_ImageIcon = Texture2D::Create("Resources/Icons/ContentBrowser/ImageIcon.png", false);
 	}
 
 	void ContentBrowserPanel::OnImGuiRender()

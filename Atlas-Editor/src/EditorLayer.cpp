@@ -23,8 +23,8 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		// Editor resources
-		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
-		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
+		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png", false);
+		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png", false);
 
 		FramebufferSpecification fbSpec;
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };

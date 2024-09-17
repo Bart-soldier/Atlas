@@ -33,7 +33,7 @@ namespace Atlas
 	}
 
 	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification& specification)
-		: m_Specification(specification), m_Width(m_Specification.Width), m_Height(m_Specification.Height)
+		: m_Specification(specification)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
@@ -41,16 +41,22 @@ namespace Atlas
 		m_DataFormat = Utils::AtlasImageFormatToGLDataFormat(m_Specification.Format);
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
+		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Specification.Width, m_Specification.Height);
 
-		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		GLenum minFilter = GL_LINEAR;
+		if (m_Specification.GenerateMips)
+		{
+			minFilter = GL_LINEAR_MIPMAP_LINEAR;
+		}
+
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, minFilter);
 		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path)
+	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool generateMips)
 		: m_Path(path)
 	{
 		ATLAS_PROFILE_FUNCTION();
@@ -68,36 +74,44 @@ namespace Atlas
 		{
 			m_IsLoaded = true;
 
-			m_Width = width;
-			m_Height = height;
+			m_Specification = TextureSpecification();
+			m_Specification.Width = width;
+			m_Specification.Height = height;
+			m_Specification.GenerateMips = generateMips;
 
-			GLenum internalFormat = 0, dataFormat = 0;
 			if (channels == 4)
 			{
-				internalFormat = GL_RGBA8;
-				dataFormat = GL_RGBA;
+				m_Specification.Format = ImageFormat::RGBA8;
 			}
 			else if (channels == 3)
 			{
-				internalFormat = GL_RGB8;
-				dataFormat = GL_RGB;
+				m_Specification.Format = ImageFormat::RGB8;
+			}
+			else
+			{
+				m_Specification.Format = ImageFormat::None;
+				ATLAS_CORE_ASSERT(false, "Format not supported!");
 			}
 
-			m_InternalFormat = internalFormat;
-			m_DataFormat = dataFormat;
-
-			ATLAS_CORE_ASSERT(internalFormat & dataFormat, "Format not supported!");
+			m_InternalFormat = Utils::AtlasImageFormatToGLInternalFormat(m_Specification.Format);
+			m_DataFormat = Utils::AtlasImageFormatToGLDataFormat(m_Specification.Format);
 
 			glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
-			glTextureStorage2D(m_RendererID, 1, internalFormat, m_Width, m_Height);
+			glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Specification.Width, m_Specification.Height);
 
-			glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			GLenum minFilter = GL_LINEAR;
+			if (m_Specification.GenerateMips)
+			{
+				minFilter = GL_LINEAR_MIPMAP_LINEAR;
+			}
+
+			glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, minFilter);
 			glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 			glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-			glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, dataFormat, GL_UNSIGNED_BYTE, data);
+			glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Specification.Width, m_Specification.Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
 
 			stbi_image_free(data);
 		}
@@ -118,8 +132,15 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		ATLAS_CORE_ASSERT(size == m_Width * m_Height * (m_DataFormat == GL_RGBA ? 4 : 3), "Data must be entire texture!");
-		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+		ATLAS_CORE_ASSERT(size == m_Specification.Width * m_Specification.Height * (m_DataFormat == GL_RGBA ? 4 : 3), "Data must be entire texture!");
+
+		m_IsLoaded = true;
+		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Specification.Width, m_Specification.Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+
+		if (m_Specification.GenerateMips)
+		{
+			glGenerateTextureMipmap(m_RendererID);
+		}
 	}
 
 	void OpenGLTexture2D::Bind(uint32_t slot) const

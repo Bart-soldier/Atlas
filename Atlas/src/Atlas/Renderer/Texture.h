@@ -45,6 +45,6 @@ namespace Atlas
 	{
 	public:
 		static Ref<Texture2D> Create(const TextureSpecification& specification);
-		static Ref<Texture2D> Create(const std::filesystem::path& path);
+		static Ref<Texture2D> Create(const std::filesystem::path& path, const bool generateMips = true);
 	};
 }

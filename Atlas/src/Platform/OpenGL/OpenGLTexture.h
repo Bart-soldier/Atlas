@@ -10,13 +10,13 @@ namespace Atlas
 	{
 	public:
 		OpenGLTexture2D(const TextureSpecification& specification);
-		OpenGLTexture2D(const std::filesystem::path& path);
+		OpenGLTexture2D(const std::filesystem::path& path, const bool generateMips = true);
 		virtual ~OpenGLTexture2D();
 
 		virtual const TextureSpecification& GetSpecification() const override { return m_Specification; }
 
-		virtual uint32_t GetWidth() const override { return m_Width; }
-		virtual uint32_t GetHeight() const override { return m_Height; }
+		virtual uint32_t GetWidth() const override { return m_Specification.Width; }
+		virtual uint32_t GetHeight() const override { return m_Specification.Height; }
 		virtual uint32_t GetRendererID() const override { return m_RendererID; }
 		virtual const std::filesystem::path& GetPath() const override { return m_Path; }
 
@@ -36,7 +36,6 @@ namespace Atlas
 
 		std::filesystem::path m_Path;
 		bool m_IsLoaded = false;
-		uint32_t m_Width, m_Height;
 		uint32_t m_RendererID;
 		GLenum m_InternalFormat, m_DataFormat;
 	};
