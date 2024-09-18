@@ -1,7 +1,8 @@
 #include "atlaspch.h"
 #include "Atlas/Core/Application.h"
 
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/RenderCommand.h"
+#include "Atlas/Renderer/Renderer2D.h"
 
 #include "Atlas/Core/Input.h"
 
@@ -28,7 +29,12 @@ namespace Atlas
 		m_Window = Window::Create(WindowProps(m_Specification.Name));
 		m_Window->SetEventCallback(ATLAS_BIND_EVENT_FN(Application::OnEvent));
 
-		Renderer::Init();
+		{
+			ATLAS_PROFILE_FUNCTION();
+
+			RenderCommand::Init();
+			Renderer2D::Init();
+		}
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
@@ -36,7 +42,9 @@ namespace Atlas
 
 	Application::~Application()
 	{
-		Renderer::Shutdown();
+		ATLAS_PROFILE_FUNCTION();
+
+		Renderer2D::Shutdown();
 	}
 
 	void Application::PushLayer(Layer* layer)
