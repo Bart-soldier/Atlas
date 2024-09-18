@@ -14,13 +14,13 @@ namespace Atlas
 		virtual ~Light() = default;
 
 		void SetColor(const glm::vec3& color) { m_Color = color; }
-		const glm::vec3& GetColor() const { return m_Color; }
+		const glm::vec3& GetColor() { return m_Color; }
 
 		void SetStrength(const float& strength) { m_Strength = strength; }
-		const float& GetStrength() const { return m_Strength; }
+		const float& GetStrength() { return m_Strength; }
 
 	protected:
 		glm::vec3 m_Color = glm::vec3(1.0f);
-		float m_Strength = 0.1f;
+		float m_Strength = 1.0f;
 	};
 }

@@ -5,6 +5,8 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
+#include "Utils/ImGuiUtils.h"
+
 namespace Atlas
 {
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
@@ -330,15 +332,18 @@ namespace Atlas
 		});
 
 		DrawComponent<LightSourceComponent>("Light Source", entity, [](auto& component)
-		{/*
-				float perspectiveVerticalFov = glm::degrees(camera.GetPerspectiveVerticalFOV());
-				if (ImGuiUtils::DragFloat("Vertical FOV", perspectiveVerticalFov, 45.0f))
-				{
-					camera.SetPerspectiveVerticalFOV(glm::radians(perspectiveVerticalFov));
-				}
+		{
+			glm::vec3 color = component.Light.GetColor();
+			if (ImGuiUtils::ColorEdit3("Color", *glm::value_ptr(color)))
+			{
+				component.Light.SetColor(color);
+			}
 
-
-			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Light.GetColor));*/
+			float strength = component.Light.GetStrength();
+			if (ImGuiUtils::DragFloat("Strength", strength, 1.0f, 0.001f, 0.0f, 1.0f))
+			{
+				component.Light.SetStrength(strength);
+			}
 		});
 	}
 

@@ -14,6 +14,7 @@ namespace Atlas
 		static bool DragFloat(const std::string& label, float& value, float resetValue = 0.0f, float speed = 1.0f, float min = 0.0f, float max = 0.0f);
 		static bool DragFloat2(const std::string& label, glm::vec2& values, float resetValue = 0.0f, float speed = 1.0f, float min = 0.0f, float max = 0.0f);
 		static bool DragFloat3(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float speed = 1.0f, float min = 0.0f, float max = 0.0f);
+		static bool ColorEdit3(const std::string& label, float& value);
 		static bool ColorEdit4(const std::string& label, float& value);
 
 		static bool BeginCombo(const std::string& label, const char& value);

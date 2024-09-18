@@ -216,6 +216,28 @@ namespace Atlas
 		return valueChanged;
 	}
 
+	bool ImGuiUtils::ColorEdit3(const std::string& label, float& value)
+	{
+		bool valueChanged = false;
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2, 0, false);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushItemWidth(-1);
+		valueChanged = ImGui::ColorEdit3("##Color", &value);
+		ImGui::PopItemWidth();
+
+		ImGui::Columns(1);
+		ImGui::PopID();
+
+		return valueChanged;
+	}
+
 	bool ImGuiUtils::ColorEdit4(const std::string& label, float& value)
 	{
 		bool valueChanged = false;

@@ -40,7 +40,7 @@ namespace Atlas
 		else
 		{
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
-			New2DStarterScene();
+			New3DStarterScene();
 			m_EditorCamera = EditorCamera(30.0f, 1.778f, 0.1f, 1000.0f);
 		}
 	}
@@ -236,6 +236,7 @@ namespace Atlas
 		}
 
 		m_SceneHierarchyPanel.OnImGuiRender();
+		m_SceneSettingsPanel.OnImGuiRender();
 		m_ContentBrowserPanel->OnImGuiRender();
 
 		ImGui::Begin("Renderer Stats");
@@ -496,7 +497,7 @@ namespace Atlas
 			Ref<Project> newProject = Project::New(projectSolution);
 			if (!saveCurrentScene || !m_EditorScene)
 			{
-				New2DStarterScene();
+				New3DStarterScene();
 			}
 
 			std::filesystem::path scenePath = newProject->GetAssetDirectory() / "Scenes";
@@ -582,6 +583,23 @@ namespace Atlas
 		return newScene;
 	}
 
+	Ref<Scene> EditorLayer::New3DStarterScene()
+	{
+		Ref<Scene> newScene = CreateRef<Scene>("Starter Scene");
+		SetEditorScene(newScene);
+
+		Entity squareEntity = newScene->CreateEntity("White Cube");
+		squareEntity.AddComponent<MeshComponent>();
+
+		Entity cameraEntity = newScene->CreateEntity("Camera");
+		cameraEntity.AddComponent<CameraComponent>();
+		CameraComponent cameraComponent = cameraEntity.GetComponent<CameraComponent>();
+		cameraComponent.Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
+		cameraComponent.Camera.SetOrthographicFarClip(2.0f);
+
+		return newScene;
+	}
+
 	void EditorLayer::OpenScene()
 	{
 		std::filesystem::path path = FileDialogs::OpenFile("Atlas Scene (*.atlas)\0*.atlas\0");
@@ -622,6 +640,7 @@ namespace Atlas
 		m_EditorScene = scene;
 		m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
+		m_SceneSettingsPanel.SetContext(m_EditorScene);
 
 		m_ActiveScene = m_EditorScene;
 		m_EditorScenePath = path;
@@ -663,6 +682,7 @@ namespace Atlas
 		m_ActiveScene->OnRuntimeStart();
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneSettingsPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OnSceneStop()
@@ -673,6 +693,7 @@ namespace Atlas
 		m_ActiveScene = m_EditorScene;
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneSettingsPanel.SetContext(m_ActiveScene);
 	}
 
 	void EditorLayer::OnDuplicateEntity()

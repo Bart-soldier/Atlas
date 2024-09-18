@@ -4,8 +4,6 @@
 #include "Atlas/Scene/Scene.h"
 #include "Atlas/Scene/Entity.h"
 
-#include "Utils/ImGuiUtils.h"
-
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Atlas

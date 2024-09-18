@@ -37,9 +37,9 @@ namespace Atlas
 		Entity GetPrimaryCameraEntity();
 
 		void SetAmbientLightColor(const glm::vec3 ambientLightColor) { m_AmbientLight.SetColor(ambientLightColor); }
-		glm::vec3 const GetAmbientLightColor() { return m_AmbientLight.GetColor(); }
+		const glm::vec3& GetAmbientLightColor() { return m_AmbientLight.GetColor(); }
 		void SetAmbientLightStrength(const float ambientLightStrength) { m_AmbientLight.SetStrength(ambientLightStrength); }
-		float const GetAmbientLightStrength() { return m_AmbientLight.GetStrength(); }
+		const float& GetAmbientLightStrength() { return m_AmbientLight.GetStrength(); }
 
 	private:
 		template<typename T>

@@ -2,6 +2,7 @@
 
 #include "Atlas.h"
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/SceneSettingsPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 
 #include "Atlas/Renderer/EditorCamera.h"
@@ -37,6 +38,7 @@ namespace Atlas
 		Ref<Scene> NewScene();
 		Ref<Scene> NewScene(std::string name);
 		Ref<Scene> New2DStarterScene();
+		Ref<Scene> New3DStarterScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SetEditorScene(Ref<Scene> scene);
@@ -83,6 +85,7 @@ namespace Atlas
 
 		// Panels
 		SceneHierarchyPanel m_SceneHierarchyPanel;
+		SceneSettingsPanel m_SceneSettingsPanel;
 		Scope<ContentBrowserPanel> m_ContentBrowserPanel;
 
 		// Editor resources
