@@ -1,14 +1,14 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/Shader.h"
 
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/RenderCommand.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 
 namespace Atlas
 {
 	Ref<Shader> Shader::Create(const std::filesystem::path& path)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
@@ -23,7 +23,7 @@ namespace Atlas
 
 	Ref<Shader> Shader::Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");

@@ -1,7 +1,7 @@
 #include "atlaspch.h"
 
 #include "Atlas/Renderer/Buffer.h"
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/RenderCommand.h"
 
 #include "Platform/OpenGL/OpenGLBuffer.h"
 
@@ -9,7 +9,7 @@ namespace Atlas
 {
 	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
@@ -24,7 +24,7 @@ namespace Atlas
 
 	Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 			case RendererAPI::API::None:
 				ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
@@ -39,7 +39,7 @@ namespace Atlas
 
 	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 			case RendererAPI::API::None:
 				ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");

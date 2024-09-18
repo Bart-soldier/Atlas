@@ -7,7 +7,7 @@
 #include "Atlas/Events/MouseEvent.h"
 #include "Atlas/Events/KeyEvent.h"
 
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/RenderCommand.h"
 
 #include "Platform/OpenGL/OpenGLContext.h"
 
@@ -59,7 +59,7 @@ namespace Atlas
 			ATLAS_PROFILE_SCOPE("glfwCreateWindow");
 
 			#if defined(ATLAS_DEBUG)
-				if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
+				if (RenderCommand::GetAPI() == RendererAPI::API::OpenGL)
 					glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 			#endif
 

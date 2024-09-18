@@ -1,14 +1,15 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/GraphicsContext.h"
 
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/RenderCommand.h"
+
 #include "Platform/OpenGL/OpenGLContext.h"
 
 namespace Atlas {
 
 	Scope<GraphicsContext> GraphicsContext::Create(void* window)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");

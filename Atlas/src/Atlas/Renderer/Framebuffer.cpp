@@ -1,7 +1,7 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/Framebuffer.h"
 
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/RenderCommand.h"
 
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
 
@@ -9,7 +9,7 @@ namespace Atlas
 {
 	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec)
 	{
-		switch (Renderer::GetAPI())
+		switch (RenderCommand::GetAPI())
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");

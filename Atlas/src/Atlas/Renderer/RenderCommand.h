@@ -47,6 +47,12 @@ namespace Atlas
 			s_RendererAPI->SetPolygonMode(mode);
 		}
 
+		static RendererAPI::API GetAPI()
+		{ 
+			return RendererAPI::GetAPI();
+		}
+
+
 	private:
 		static Scope<RendererAPI> s_RendererAPI;
 	};

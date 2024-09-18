@@ -14,7 +14,6 @@
 #include "Atlas/Core/Input.h"
 #include "Atlas/Core/KeyCodes.h"
 #include "Atlas/Core/MouseCodes.h"
-#include "Atlas/Renderer/OrthographicCameraController.h"
 
 #include "Atlas/ImGui/ImGuiLayer.h"
 
@@ -25,7 +24,7 @@
 #include "Atlas/Project/Project.h"
 
 /* --------- RENDERER -------- */
-#include "Atlas/Renderer/Renderer.h"
+#include "Atlas/Renderer/Renderer3D.h"
 #include "Atlas/Renderer/Renderer2D.h"
 #include "Atlas/Renderer/RenderCommand.h"
 
@@ -36,5 +35,4 @@
 #include "Atlas/Renderer/SubTexture2D.h"
 #include "Atlas/Renderer/VertexArray.h"
 
-#include "Atlas/Renderer/OrthographicCamera.h"
 /* --------------------------- */
