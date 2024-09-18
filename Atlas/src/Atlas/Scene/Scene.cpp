@@ -138,7 +138,7 @@ namespace Atlas
 
 		if (mainCamera)
 		{
-			Renderer::BeginScene(*mainCamera, cameraTransform);
+			Renderer::BeginScene(*mainCamera, cameraTransform, m_AmbientLight.GetColor(), m_AmbientLight.GetStrength());
 
 			{
 				auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
@@ -166,7 +166,7 @@ namespace Atlas
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
 	{
-		Renderer::BeginScene(camera);
+		Renderer::BeginScene(camera, m_AmbientLight.GetColor(), m_AmbientLight.GetStrength());
 
 		{
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);

@@ -27,6 +27,9 @@ namespace Atlas
 		template<typename T>
 		void DisplayAddComponentEntry(const std::string& entryName);
 
+		template<typename T, typename T2>
+		void DisplayExclusiveAddComponentEntry(const std::string& firstEntryName, const std::string& secondEntryName);
+
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
 

@@ -152,8 +152,7 @@ namespace Atlas
 		{
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
-			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
-			DisplayAddComponentEntry<MeshComponent>("Mesh");
+			DisplayExclusiveAddComponentEntry<MeshComponent, SpriteRendererComponent>("Mesh", "Sprite Renderer");
 			DisplayAddComponentEntry<LightSourceComponent>("Light Source");
 
 			ImGui::EndPopup();
@@ -331,8 +330,15 @@ namespace Atlas
 		});
 
 		DrawComponent<LightSourceComponent>("Light Source", entity, [](auto& component)
-		{
-			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Color));
+		{/*
+				float perspectiveVerticalFov = glm::degrees(camera.GetPerspectiveVerticalFOV());
+				if (ImGuiUtils::DragFloat("Vertical FOV", perspectiveVerticalFov, 45.0f))
+				{
+					camera.SetPerspectiveVerticalFOV(glm::radians(perspectiveVerticalFov));
+				}
+
+
+			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Light.GetColor));*/
 		});
 	}
 
@@ -381,12 +387,32 @@ namespace Atlas
 	}
 
 	template<typename T>
-	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName) {
+	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
+	{
 		if (!m_SelectionContext.HasComponent<T>())
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
 				m_SelectionContext.AddComponent<T>();
+				ImGui::CloseCurrentPopup();
+			}
+		}
+	}
+
+	template<typename T, typename T2>
+	void SceneHierarchyPanel::DisplayExclusiveAddComponentEntry(const std::string& firstEntryName, const std::string& secondEntryName)
+	{
+		if (!m_SelectionContext.HasComponent<T>() && !m_SelectionContext.HasComponent<T2>())
+		{
+			if (ImGui::MenuItem(firstEntryName.c_str()))
+			{
+				m_SelectionContext.AddComponent<T>();
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (ImGui::MenuItem(secondEntryName.c_str()))
+			{
+				m_SelectionContext.AddComponent<T2>();
 				ImGui::CloseCurrentPopup();
 			}
 		}

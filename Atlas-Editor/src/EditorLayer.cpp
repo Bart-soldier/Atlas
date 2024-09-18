@@ -349,11 +349,12 @@ namespace Atlas
 				return;
 			}
 
-			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform(),
+								 m_ActiveScene->GetAmbientLightColor(), m_ActiveScene->GetAmbientLightStrength());
 		}
 		else
 		{
-			Renderer::BeginScene(m_EditorCamera);
+			Renderer::BeginScene(m_EditorCamera, m_ActiveScene->GetAmbientLightColor(), m_ActiveScene->GetAmbientLightStrength());
 		}
 
 		// Draw selected entity outline 

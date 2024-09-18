@@ -5,6 +5,7 @@
 #include "Atlas/Scene/SceneCamera.h"
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
+#include "Atlas/Renderer/Light.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -163,12 +164,10 @@ namespace Atlas
 
 	struct LightSourceComponent
 	{
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		Light Light;
 
 		LightSourceComponent() = default;
 		LightSourceComponent(const LightSourceComponent&) = default;
-		LightSourceComponent(const glm::vec4& color)
-			: Color(color) {}
 	};
 
 	template<typename... Component>

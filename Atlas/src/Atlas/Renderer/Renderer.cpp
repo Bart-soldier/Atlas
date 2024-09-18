@@ -122,6 +122,15 @@ namespace Atlas
 		CameraData CameraBuffer;
 		Ref<UniformBuffer> CameraUniformBuffer;
 
+		// Ambient light
+		struct AmbientLightData
+		{
+			glm::vec3 Color;
+			float Strength;
+		};
+		AmbientLightData AmbientLightBuffer;
+		Ref<UniformBuffer> AmbientLightUniformBuffer;
+
 		// Misc.
 		Renderer::Statistics Stats;
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
@@ -238,10 +247,11 @@ namespace Atlas
 		s_Data.QuadShader = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
 		s_Data.CircleShader = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
 		s_Data.LineShader = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
-		s_Data.MeshShader = Shader::Create("assets/shaders/Renderer3D_FlatColor.glsl");
+		s_Data.MeshShader = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
 	
 		// Camera
 		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData), 0);
+		s_Data.AmbientLightUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::AmbientLightData), 1);
 	}
 
 	void Renderer::Shutdown()
@@ -258,22 +268,30 @@ namespace Atlas
 		delete[] s_Data.MeshIndexBufferBase;
 	}
 
-	void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform)
+	void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform, const glm::vec3& ambientLightColor, const float& ambientLightStrength)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+
+		s_Data.AmbientLightBuffer.Color = ambientLightColor;
+		s_Data.AmbientLightBuffer.Strength = ambientLightStrength;
+		s_Data.AmbientLightUniformBuffer->SetData(&s_Data.AmbientLightBuffer, sizeof(Renderer2DData::AmbientLightData));
 		
 		StartBatch();
 	}
 
-	void Renderer::BeginScene(const EditorCamera& camera)
+	void Renderer::BeginScene(const EditorCamera& camera, const glm::vec3& ambientLightColor, const float& ambientLightStrength)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+
+		s_Data.AmbientLightBuffer.Color = ambientLightColor;
+		s_Data.AmbientLightBuffer.Strength = ambientLightStrength;
+		s_Data.AmbientLightUniformBuffer->SetData(&s_Data.AmbientLightBuffer, sizeof(Renderer2DData::AmbientLightData));
 
 		StartBatch();
 	}

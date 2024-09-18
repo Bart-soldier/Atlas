@@ -16,8 +16,8 @@ namespace Atlas
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const Camera& camera, const glm::mat4& transform);
-		static void BeginScene(const EditorCamera& camera);
+		static void BeginScene(const Camera& camera, const glm::mat4& transform, const glm::vec3& ambientLightColor, const float& ambientLightStrength);
+		static void BeginScene(const EditorCamera& camera, const glm::vec3& ambientLightColor, const float& ambientLightStrength);
 		static void EndScene();
 		static void Flush();
 
