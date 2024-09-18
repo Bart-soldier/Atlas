@@ -150,6 +150,16 @@ namespace Atlas
 				}
 			}
 
+			{
+				auto view = m_Registry.view<TransformComponent, MeshComponent>();
+				for (auto entity : view)
+				{
+					auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+
+					Renderer::DrawMesh(transform.GetTransform(), mesh, (int)entity);
+				}
+			}
+
 			Renderer::EndScene();
 		}
 	}
