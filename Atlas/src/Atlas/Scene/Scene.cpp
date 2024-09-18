@@ -2,7 +2,7 @@
 #include "Atlas/Scene/Scene.h"
 
 #include "Atlas/Scene/Components.h"
-#include "Atlas/Renderer/Renderer2D.h"
+#include "Atlas/Renderer/Renderer.h"
 
 #include "Atlas/Scene/Entity.h"
 
@@ -83,7 +83,6 @@ namespace Atlas
 			enttMap[uuid] = (entt::entity)newEntity;
 		}
 
-		// TODO: Automate
 		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
 
 		return newScene;
@@ -139,7 +138,7 @@ namespace Atlas
 
 		if (mainCamera)
 		{
-			Renderer2D::BeginScene(*mainCamera, cameraTransform);
+			Renderer::BeginScene(*mainCamera, cameraTransform);
 
 			{
 				auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
@@ -147,17 +146,17 @@ namespace Atlas
 				{
 					auto& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
-					Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+					Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 				}
 			}
 
-			Renderer2D::EndScene();
+			Renderer::EndScene();
 		}
 	}
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
 	{
-		Renderer2D::BeginScene(camera);
+		Renderer::BeginScene(camera);
 
 		{
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
@@ -165,11 +164,21 @@ namespace Atlas
 			{
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
-				Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+				Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 			}
 		}
 
-		Renderer2D::EndScene();
+		{
+			auto view = m_Registry.view<TransformComponent, MeshComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+
+				Renderer::DrawMesh(transform.GetTransform(), mesh, (int)entity);
+			}
+		}
+
+		Renderer::EndScene();
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)

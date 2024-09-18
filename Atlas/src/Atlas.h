@@ -24,8 +24,7 @@
 #include "Atlas/Project/Project.h"
 
 /* --------- RENDERER -------- */
-#include "Atlas/Renderer/Renderer3D.h"
-#include "Atlas/Renderer/Renderer2D.h"
+#include "Atlas/Renderer/Renderer.h"
 #include "Atlas/Renderer/RenderCommand.h"
 
 #include "Atlas/Renderer/Buffer.h"

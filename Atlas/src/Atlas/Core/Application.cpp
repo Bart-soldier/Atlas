@@ -2,7 +2,7 @@
 #include "Atlas/Core/Application.h"
 
 #include "Atlas/Renderer/RenderCommand.h"
-#include "Atlas/Renderer/Renderer2D.h"
+#include "Atlas/Renderer/Renderer.h"
 
 #include "Atlas/Core/Input.h"
 
@@ -33,7 +33,7 @@ namespace Atlas
 			ATLAS_PROFILE_FUNCTION();
 
 			RenderCommand::Init();
-			Renderer2D::Init();
+			Renderer::Init();
 		}
 
 		m_ImGuiLayer = new ImGuiLayer();
@@ -44,7 +44,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		Renderer2D::Shutdown();
+		Renderer::Shutdown();
 	}
 
 	void Application::PushLayer(Layer* layer)

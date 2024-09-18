@@ -58,6 +58,16 @@ namespace Atlas
 	// IndexBuffer /////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////
 
+	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t count)
+		: m_Count(count)
+	{
+		ATLAS_PROFILE_FUNCTION();
+
+		glCreateBuffers(1, &m_RendererID);
+		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+		glBufferData(GL_ARRAY_BUFFER, count * sizeof(uint32_t), nullptr, GL_DYNAMIC_DRAW);
+	}
+
 	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count)
 		: m_Count(count)
 	{
@@ -87,5 +97,11 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
+	void OpenGLIndexBuffer::SetData(const void* data, uint32_t count)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(uint32_t), data);
 	}
 }

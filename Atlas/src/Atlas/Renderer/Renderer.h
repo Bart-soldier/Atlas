@@ -1,9 +1,8 @@
 #pragma once
 
+#include "Atlas/Renderer/RenderCommand.h"
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
-
-#include "Atlas/Renderer/RenderCommand.h"
 #include "Atlas/Renderer/Camera.h"
 #include "Atlas/Renderer/EditorCamera.h"
 
@@ -11,7 +10,7 @@
 
 namespace Atlas
 {
-	class Renderer2D
+	class Renderer
 	{
 	public:
 		static void Init();
@@ -21,6 +20,9 @@ namespace Atlas
 		static void BeginScene(const EditorCamera& camera);
 		static void EndScene();
 		static void Flush();
+
+		static RendererAPI::PolygonMode GetPolygonMode();
+		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
 
 		// Primitives
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
@@ -50,14 +52,14 @@ namespace Atlas
 		static void DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int entityID = -1);
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
-		static RendererAPI::PolygonMode GetPolygonMode();
-		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
+		static void DrawMesh(const glm::mat4& transform, MeshComponent& src, int entityID);
 
 		// Stats
 		struct Statistics
 		{
 			uint32_t DrawCalls = 0;
 			uint32_t QuadCount = 0;
+			uint32_t MeshCount = 0;
 
 			uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
 			uint32_t GetTotalIndexCount() const { return QuadCount * 6; }

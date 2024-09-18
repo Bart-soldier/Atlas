@@ -77,7 +77,7 @@ namespace Atlas
 		m_ViewportHovered = mouseX >= 0 && mouseY >= 0 && mouseX < (int)m_ViewportSize.x && mouseY < (int)m_ViewportSize.y;
 
 		// Render
-		Renderer2D::ResetStats();
+		Renderer::ResetStats();
 		{
 			ATLAS_PROFILE_SCOPE("Renderer Prep");
 			m_Framebuffer->Bind();
@@ -245,7 +245,7 @@ namespace Atlas
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 
-		auto stats = Renderer2D::GetStats();
+		auto stats = Renderer::GetStats();
 		ImGui::Text("Renderer2D Stats:");
 		ImGui::Text("Draw Calls: %d", stats.DrawCalls);
 		ImGui::Text("Quad Count: %d", stats.QuadCount);
@@ -349,20 +349,20 @@ namespace Atlas
 				return;
 			}
 
-			Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
 		}
 		else
 		{
-			Renderer2D::BeginScene(m_EditorCamera);
+			Renderer::BeginScene(m_EditorCamera);
 		}
 
 		// Draw selected entity outline 
 		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
 			const TransformComponent& transform = selectedEntity.GetComponent<TransformComponent>();
-			Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f)); // TODO: Link to palette (selection green)
+			Renderer::DrawRect(transform.GetTransform(), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f)); // TODO: Link to palette (selection green)
 		}
 
-		Renderer2D::EndScene();
+		Renderer::EndScene();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -718,7 +718,7 @@ namespace Atlas
 		ImGui::SetCursorPosX(padding);
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() * 0.5 - ImGui::GetTextLineHeightWithSpacing() * 0.5);
 		const char* polygonTypeStrings[] = { "Fill", "Line", "Point"};
-		const char* currentPolygonTypeString = polygonTypeStrings[(int)Renderer2D::GetPolygonMode()];
+		const char* currentPolygonTypeString = polygonTypeStrings[(int)Renderer::GetPolygonMode()];
 		if (ImGui::BeginCombo("##PolygonType", currentPolygonTypeString))
 		{
 			for (int i = 0; i < 3; i++)
@@ -727,7 +727,7 @@ namespace Atlas
 				if (ImGui::Selectable(polygonTypeStrings[i], isSelected))
 				{
 					currentPolygonTypeString = polygonTypeStrings[i];
-					Renderer2D::SetPolygonMode((RendererAPI::PolygonMode)i);
+					Renderer::SetPolygonMode((RendererAPI::PolygonMode)i);
 				}
 
 				if (isSelected)
