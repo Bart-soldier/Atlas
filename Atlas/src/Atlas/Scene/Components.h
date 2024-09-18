@@ -52,6 +52,16 @@ namespace Atlas
 		}
 	};
 
+	struct CameraComponent
+	{
+		SceneCamera Camera;
+		bool Primary = true; // TODO: think about moving to Scene
+		bool FixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
+	};
+
 	struct SpriteRendererComponent
 	{
 		enum RenderType
@@ -94,14 +104,14 @@ namespace Atlas
 			: Color(color) {}
 	};
 
-	struct CameraComponent
+	struct LightSourceComponent
 	{
-		SceneCamera Camera;
-		bool Primary = true; // TODO: think about moving to Scene
-		bool FixedAspectRatio = false;
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
 
-		CameraComponent() = default;
-		CameraComponent(const CameraComponent&) = default;
+		LightSourceComponent() = default;
+		LightSourceComponent(const LightSourceComponent&) = default;
+		LightSourceComponent(const glm::vec4& color)
+			: Color(color) {}
 	};
 
 	template<typename... Component>
@@ -110,6 +120,6 @@ namespace Atlas
 	};
 
 	using AllComponents =
-		ComponentGroup<TransformComponent, SpriteRendererComponent,
-		CameraComponent>;
+		ComponentGroup<TransformComponent, CameraComponent,
+		SpriteRendererComponent, LightSourceComponent>;
 }
