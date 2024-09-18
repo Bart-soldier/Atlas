@@ -153,6 +153,7 @@ namespace Atlas
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
 			DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+			DisplayAddComponentEntry<MeshComponent>("Mesh");
 			DisplayAddComponentEntry<LightSourceComponent>("Light Source");
 
 			ImGui::EndPopup();
@@ -322,6 +323,11 @@ namespace Atlas
 				ImGuiUtils::DragFloat("Thickness", component.Thickness, 1.0f, 0.025f, 0.0f, 1.0f);
 				ImGuiUtils::DragFloat("Fade", component.Fade, 0.005f, 0.00025f, 0.0f, 1.0f);
 			}
+		});
+
+		DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
+		{
+			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Color));
 		});
 
 		DrawComponent<LightSourceComponent>("Light Source", entity, [](auto& component)

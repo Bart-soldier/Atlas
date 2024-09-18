@@ -104,6 +104,60 @@ namespace Atlas
 			: Color(color) {}
 	};
 
+	struct MeshComponent
+	{
+		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+		//float vertices[] = {
+		//-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		// 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		// 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		// 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		//-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		//-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		//-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		// 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		// 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		// 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		//-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		//-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		//-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		//-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		//-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		//-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		//-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		//-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		// 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		// 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		// 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		// 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		// 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		// 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		//-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		// 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		// 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		// 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		//-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		//-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		//-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		// 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		// 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		// 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		//-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		//-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		//};
+
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent&) = default;
+		//MeshComponent(const glm::vec4& color)
+		//	: Color(color) {}
+	};
+
 	struct LightSourceComponent
 	{
 		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -121,5 +175,6 @@ namespace Atlas
 
 	using AllComponents =
 		ComponentGroup<TransformComponent, CameraComponent,
-		SpriteRendererComponent, LightSourceComponent>;
+		SpriteRendererComponent, MeshComponent,
+		LightSourceComponent>;
 }
