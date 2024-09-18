@@ -77,7 +77,6 @@ namespace Atlas
 		LineVertex* LineVertexBufferBase = nullptr;
 		LineVertex* LineVertexBufferPtr = nullptr;
 
-		float LineWidth = 2.0f;
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
 
 		std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
@@ -258,9 +257,9 @@ namespace Atlas
 
 			s_Data.LineShader->Bind();
 
-			SetLineWidth(4.0f);
+			RenderCommand::SetLineWidth(4.0f);
 			RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
-			SetLineWidth(2.0f);
+			RenderCommand::SetLineWidth(2.0f);
 			s_Data.Stats.DrawCalls++;
 		}
 	}
@@ -609,17 +608,6 @@ namespace Atlas
 		DrawLine(lineVertices[1], lineVertices[2], color, entityID);
 		DrawLine(lineVertices[2], lineVertices[3], color, entityID);
 		DrawLine(lineVertices[3], lineVertices[0], color, entityID);
-	}
-
-	float Renderer2D::GetLineWidth()
-	{
-		return s_Data.LineWidth;
-	}
-
-	void Renderer2D::SetLineWidth(float width)
-	{
-		s_Data.LineWidth = width;
-		RenderCommand::SetLineWidth(s_Data.LineWidth);
 	}
 
 	RendererAPI::PolygonMode Renderer2D::GetPolygonMode()
