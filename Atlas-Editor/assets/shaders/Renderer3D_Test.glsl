@@ -17,6 +17,7 @@ layout(location = 6) in int a_EntityID;
 layout(std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
+	vec3 u_CameraPosition;
 };
 
 struct VertexOutput
@@ -50,6 +51,12 @@ void main()
 
 layout(location = 0) out vec4 o_color;
 layout(location = 1) out int o_entityID;
+
+layout(std140, binding = 0) uniform Camera
+{
+	mat4 u_ViewProjection;
+	vec3 u_CameraPosition;
+};
 
 layout(std140, binding = 1) uniform AmbientLight
 {
@@ -135,11 +142,14 @@ void main()
 		discard;
 	}
 
-	// Ambient Lighting
+	// Ambient lighting
 	vec4 ambientLight = vec4(u_AmbientLightColor * u_AmbientLightIntensity, 1.0);
 
-	// Diffuse Lighting
+	// Diffuse & specular lighting
 	vec4 diffuseLight = vec4(0.0);
+	vec4 specularLight = vec4(0.0);
+	float specularStrength = 0.5;
+
 	vec3 norm = normalize(Input.Normal);
 
 	for (int i = 0; i < u_LightCount; i++)
@@ -147,10 +157,15 @@ void main()
 		vec3 lightDirection = normalize(u_LightPositions[i] - Input.Position);
 		float impact = max(dot(norm, lightDirection), 0.0);
 		diffuseLight += vec4(impact * u_LightColors[i] * u_LightIntensities[i], 1.0);
+
+		vec3 viewDirection = normalize(u_CameraPosition - Input.Position);
+		vec3 reflectDirection = reflect(-lightDirection, norm);
+		float specularFactor = pow(max(dot(viewDirection, reflectDirection), 0.0), 32);
+		specularLight = specularStrength * specularFactor * texColor;  
 	}
 
 	// Final color
-	o_color = texColor * (ambientLight + diffuseLight);
+	o_color = texColor * (ambientLight + diffuseLight + specularLight);
 
 	// Entity ID (selection buffer)
 	o_entityID = v_EntityID;

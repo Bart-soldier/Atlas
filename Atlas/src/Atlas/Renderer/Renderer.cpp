@@ -120,6 +120,7 @@ namespace Atlas
 		struct CameraData
 		{
 			glm::mat4 ViewProjection;
+			glm::vec3 Position;
 		};
 		CameraData CameraBuffer;
 		Ref<UniformBuffer> CameraUniformBuffer;
@@ -331,6 +332,7 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
+		s_Data.CameraBuffer.Position = camera.GetPosition();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
 		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
