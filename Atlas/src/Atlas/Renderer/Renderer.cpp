@@ -842,6 +842,7 @@ namespace Atlas
 		size_t vertexCount = src.VertexCount;
 		const float textureIndex = 0.0f; // White Texture
 		const float tilingFactor = 1.0f;
+		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
 		if (s_Data.MeshIndexCount >= Renderer2DData::MaxIndices)
 		{
@@ -854,7 +855,7 @@ namespace Atlas
 
 			s_Data.MeshVertexBufferPtr->Position = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
 			s_Data.MeshVertexBufferPtr->Color = src.Color;
-			s_Data.MeshVertexBufferPtr->Normal = glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
+			s_Data.MeshVertexBufferPtr->Normal = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
 			s_Data.MeshVertexBufferPtr->TexCoord = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
 			s_Data.MeshVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.MeshVertexBufferPtr->TilingFactor = tilingFactor;

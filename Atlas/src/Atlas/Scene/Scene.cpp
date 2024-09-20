@@ -229,7 +229,7 @@ namespace Atlas
 				Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 			}
 		}
-
+;
 		{
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto entity : view)
