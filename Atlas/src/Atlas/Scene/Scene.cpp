@@ -11,11 +11,13 @@ namespace Atlas
 	Scene::Scene()
 	{
 		m_Name = "Untitled Scene";
+		m_SceneLighting.AmbientLightIntensity = 0.1f;
 	}
 
 	Scene::Scene(std::string name)
 		: m_Name(name)
 	{
+		m_SceneLighting.AmbientLightIntensity = 0.1f;
 	}
 
 	Scene::~Scene()
@@ -138,56 +140,20 @@ namespace Atlas
 
 		if (mainCamera)
 		{
-			Renderer::BeginScene(*mainCamera, cameraTransform, m_AmbientLight.GetColor(), m_AmbientLight.GetStrength());
+			UpdateSceneLighting();
 
-			{
-				auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-				for (auto entity : group)
-				{
-					auto& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-					Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-				}
-			}
-
-			{
-				auto view = m_Registry.view<TransformComponent, MeshComponent>();
-				for (auto entity : view)
-				{
-					auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-
-					Renderer::DrawMesh(transform.GetTransform(), mesh, (int)entity);
-				}
-			}
-
+			Renderer::BeginScene(*mainCamera, cameraTransform, m_SceneLighting);
+			DrawScene();
 			Renderer::EndScene();
 		}
 	}
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
 	{
-		Renderer::BeginScene(camera, m_AmbientLight.GetColor(), m_AmbientLight.GetStrength());
+		UpdateSceneLighting();
 
-		{
-			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-			for (auto entity : group)
-			{
-				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-				Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-			}
-		}
-
-		{
-			auto view = m_Registry.view<TransformComponent, MeshComponent>();
-			for (auto entity : view)
-			{
-				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-
-				Renderer::DrawMesh(transform.GetTransform(), mesh, (int)entity);
-			}
-		}
-
+		Renderer::BeginScene(camera, m_SceneLighting);
+		DrawScene();
 		Renderer::EndScene();
 	}
 
@@ -230,6 +196,64 @@ namespace Atlas
 		}
 		return {};
 	}
+
+	void Scene::UpdateSceneLighting()
+	{
+		std::vector<glm::vec3> lightPositions = std::vector<glm::vec3>();
+		std::vector<glm::vec3> lightColors = std::vector<glm::vec3>();
+		std::vector<float> lightIntensities = std::vector<float>();
+
+		auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
+		for (auto entity : view)
+		{
+			auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
+
+			lightPositions.push_back(transform.Translation);
+			lightColors.push_back(light.Light.GetColor());
+			lightIntensities.push_back(light.Light.GetIntensity());
+		}
+
+		m_SceneLighting.LightPositions = lightPositions;
+		m_SceneLighting.LightColors = lightColors;
+		m_SceneLighting.LightIntensities = lightIntensities;
+	}
+
+	void Scene::DrawScene()
+	{
+		{
+			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+			for (auto entity : group)
+			{
+				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+
+				Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+			}
+		}
+
+		{
+			auto view = m_Registry.view<TransformComponent, MeshComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+
+				Renderer::DrawMesh(transform.GetTransform(), mesh, (int)entity);
+			}
+		}
+
+		{
+			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
+
+				Renderer::DrawCircle(transform.GetTransform(), glm::vec4(light.Light.GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+			}
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	// OnComponentAdded ////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////
 
 	template<typename T>
 	void Scene::OnComponentAdded(Entity entity, T& component)
@@ -274,5 +298,52 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentAdded<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
+		Renderer::IncreaseLightCount();
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	// OnComponentRemoved //////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////
+
+	template<typename T>
+	void Scene::OnComponentRemoved(Entity entity, T& component)
+	{
+		static_assert(sizeof(T) == 0);
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<IDComponent>(Entity entity, IDComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<TagComponent>(Entity entity, TagComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<CameraComponent>(Entity entity, CameraComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<TransformComponent>(Entity entity, TransformComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<MeshComponent>(Entity entity, MeshComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<LightSourceComponent>(Entity entity, LightSourceComponent& component)
+	{
+		Renderer::DecreaseLightCount();
 	}
 }

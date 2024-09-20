@@ -9,18 +9,18 @@ namespace Atlas
 	public:
 		Light() = default;
 		Light(const glm::vec3& color, const float& strength)
-			: m_Color(color), m_Strength(strength) {}
+			: m_Color(color), m_Intensity(strength) {}
 
 		virtual ~Light() = default;
 
 		void SetColor(const glm::vec3& color) { m_Color = color; }
 		const glm::vec3& GetColor() { return m_Color; }
 
-		void SetStrength(const float& strength) { m_Strength = strength; }
-		const float& GetStrength() { return m_Strength; }
+		void SetIntensity(const float& intensity) { m_Intensity = intensity; }
+		const float& GetIntensity() { return m_Intensity; }
 
 	protected:
 		glm::vec3 m_Color = glm::vec3(1.0f);
-		float m_Strength = 1.0f;
+		float m_Intensity = 1.0f;
 	};
 }

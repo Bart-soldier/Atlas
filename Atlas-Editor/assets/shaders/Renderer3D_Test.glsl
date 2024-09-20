@@ -8,10 +8,11 @@
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec4 a_Color;
-layout(location = 2) in vec2 a_TexCoord;
-layout(location = 3) in float a_TexIndex;
-layout(location = 4) in float a_TilingFactor;
-layout(location = 5) in int a_EntityID;
+layout(location = 2) in vec3 a_Normal;
+layout(location = 3) in vec2 a_TexCoord;
+layout(location = 4) in float a_TexIndex;
+layout(location = 5) in float a_TilingFactor;
+layout(location = 6) in int a_EntityID;
 
 layout(std140, binding = 0) uniform Camera
 {
@@ -20,18 +21,22 @@ layout(std140, binding = 0) uniform Camera
 
 struct VertexOutput
 {
+	vec3 Position;
 	vec4 Color;
+	vec3 Normal;
 	vec2 TexCoord;
 	float TilingFactor;
 };
 
 layout (location = 0) out VertexOutput Output;
-layout (location = 3) out flat float v_TexIndex;
-layout (location = 4) out flat int v_EntityID;
+layout (location = 5) out flat float v_TexIndex;
+layout (location = 6) out flat int v_EntityID;
 
 void main()
 {
+	Output.Position = a_Position;
 	Output.Color = a_Color;
+	Output.Normal = a_Normal;
 	Output.TexCoord = a_TexCoord;
 	Output.TilingFactor = a_TilingFactor;
 	v_TexIndex = a_TexIndex;
@@ -48,25 +53,44 @@ layout(location = 1) out int o_entityID;
 
 layout(std140, binding = 1) uniform AmbientLight
 {
+	uint u_LightCount;
 	vec3 u_AmbientLightColor;
-	float u_AmbientLightStrength;
+	float u_AmbientLightIntensity;
+};
+
+layout(std430, binding = 2) buffer LightPositions
+{
+	vec3 u_LightPositions[];
+};
+
+layout(std430, binding = 3) buffer LightColors
+{
+	vec3 u_LightColors[];
+};
+
+layout(std430, binding = 4) buffer LightIntensities
+{
+	float u_LightIntensities[];
 };
 
 struct VertexOutput
 {
+	vec3 Position;
 	vec4 Color;
+	vec3 Normal;
 	vec2 TexCoord;
 	float TilingFactor;
 };
 
 layout (location = 0) in VertexOutput Input;
-layout (location = 3) in flat float v_TexIndex;
-layout (location = 4) in flat int v_EntityID;
+layout (location = 5) in flat float v_TexIndex;
+layout (location = 6) in flat int v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
 void main()
 {
+	// Texture
 	vec4 texColor = Input.Color;
 
 	switch(int(v_TexIndex))
@@ -105,17 +129,29 @@ void main()
 		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
 		}
 
+	// Alpha discard
 	if (texColor.a == 0.0)
 	{
 		discard;
 	}
 
-	vec4 ambientLight;
-	ambientLight.xyz = u_AmbientLightColor * u_AmbientLightStrength;
-	ambientLight.a = 1.0;
-	
+	// Ambient Lighting
+	vec4 ambientLight = vec4(u_AmbientLightColor * u_AmbientLightIntensity, 1.0);
 
-	o_color = texColor * ambientLight;
+	// Diffuse Lighting
+	vec4 diffuseLight = vec4(0.0);
+	vec3 norm = normalize(Input.Normal);
 
+	for (int i = 0; i < u_LightCount; i++)
+	{
+		vec3 lightDirection = normalize(u_LightPositions[i] - Input.Position);
+		float impact = max(dot(norm, lightDirection), 0.0);
+		diffuseLight += vec4(impact * u_LightColors[i] * u_LightIntensities[i], 1.0);
+	}
+
+	// Final color
+	o_color = texColor * (ambientLight + diffuseLight);
+
+	// Entity ID (selection buffer)
 	o_entityID = v_EntityID;
 }

@@ -2,6 +2,7 @@
 
 #include "Atlas/Core/Timestep.h"
 #include "Atlas/Core/UUID.h"
+#include "Atlas/Renderer/Renderer.h"
 #include "Atlas/Renderer/EditorCamera.h"
 #include "Atlas/Renderer/Light.h"
 
@@ -36,14 +37,20 @@ namespace Atlas
 		std::string const GetName() { return m_Name; }
 		Entity GetPrimaryCameraEntity();
 
-		void SetAmbientLightColor(const glm::vec3 ambientLightColor) { m_AmbientLight.SetColor(ambientLightColor); }
-		const glm::vec3& GetAmbientLightColor() { return m_AmbientLight.GetColor(); }
-		void SetAmbientLightStrength(const float ambientLightStrength) { m_AmbientLight.SetStrength(ambientLightStrength); }
-		const float& GetAmbientLightStrength() { return m_AmbientLight.GetStrength(); }
+		void SetAmbientLightColor(const glm::vec3 ambientLightColor) { m_SceneLighting.AmbientLightColor = ambientLightColor; }
+		const glm::vec3& GetAmbientLightColor() { return m_SceneLighting.AmbientLightColor; }
+		void SetAmbientLightIntensity(const float ambientLightIntensity) { m_SceneLighting.AmbientLightIntensity = ambientLightIntensity; }
+		const float& GetAmbientLightIntensity() { return m_SceneLighting.AmbientLightIntensity; }
 
 	private:
+		void UpdateSceneLighting();
+		void DrawScene();
+
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
+
+		template<typename T>
+		void OnComponentRemoved(Entity entity, T& component);
 
 		std::string m_Name;
 
@@ -51,7 +58,7 @@ namespace Atlas
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;
 
-		Light m_AmbientLight;
+		SceneLighting m_SceneLighting;
 
 		friend class Entity;
 		friend class SceneSerializer;

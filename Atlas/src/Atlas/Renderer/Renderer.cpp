@@ -5,6 +5,7 @@
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
 #include "Atlas/Renderer/UniformBuffer.h"
+#include "Atlas/Renderer/StorageBuffer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -50,6 +51,7 @@ namespace Atlas
 	{
 		glm::vec3 Position;
 		glm::vec4 Color;
+		glm::vec3 Normal;
 		glm::vec2 TexCoord;
 		float TexIndex;
 		float TilingFactor;
@@ -122,14 +124,40 @@ namespace Atlas
 		CameraData CameraBuffer;
 		Ref<UniformBuffer> CameraUniformBuffer;
 
-		// Ambient light
-		struct AmbientLightData
+		// Lights
+		struct LightData
 		{
-			glm::vec3 Color;
-			float Strength;
+			uint32_t LightCount;
+
+			glm::vec3 AmbientLightColor;
+			float AmbientLightIntensity;
 		};
-		AmbientLightData AmbientLightBuffer;
-		Ref<UniformBuffer> AmbientLightUniformBuffer;
+		LightData LightBuffer;
+		Ref<UniformBuffer> LightUniformBuffer;
+
+		// Scene light positions
+		struct SceneLightPositionsData
+		{
+			std::vector<glm::vec3> Positions;
+		};
+		SceneLightPositionsData SceneLightPositionsBuffer;
+		Ref<StorageBuffer> SceneLightPositionsStorageBuffer;
+
+		// Scene light colors
+		struct SceneLightColorsData
+		{
+			std::vector<glm::vec3> Colors;
+		};
+		SceneLightColorsData SceneLightColorsBuffer;
+		Ref<StorageBuffer> SceneLightColorsStorageBuffer;
+
+		// Scene light intensities
+		struct SceneLightIntensitiesData
+		{
+			std::vector<float> Intensities;
+		};
+		SceneLightIntensitiesData SceneLightIntensitiesBuffer;
+		Ref<StorageBuffer> SceneLightIntensitiesStorageBuffer;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -222,6 +250,7 @@ namespace Atlas
 		s_Data.MeshVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
+			{ ShaderDataType::Float3, "a_Normal"        },
 			{ ShaderDataType::Float2, "a_TexCoord"     },
 			{ ShaderDataType::Float,  "a_TexIndex"     },
 			{ ShaderDataType::Float,  "a_TilingFactor" },
@@ -249,9 +278,15 @@ namespace Atlas
 		s_Data.LineShader = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
 		s_Data.MeshShader = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
 	
-		// Camera
+		// Uniform buffers
 		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData), 0);
-		s_Data.AmbientLightUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::AmbientLightData), 1);
+		s_Data.LightUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::LightData), 1);
+		s_Data.SceneLightPositionsStorageBuffer = StorageBuffer::Create(2);
+		s_Data.SceneLightPositionsStorageBuffer->SetSize(sizeof(glm::vec3)* s_Data.SceneLightPositionsBuffer.Positions.size());
+		s_Data.SceneLightColorsStorageBuffer = StorageBuffer::Create(3);
+		s_Data.SceneLightColorsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size());
+		s_Data.SceneLightIntensitiesStorageBuffer = StorageBuffer::Create(4);
+		s_Data.SceneLightIntensitiesStorageBuffer->SetSize(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
 	}
 
 	void Renderer::Shutdown()
@@ -268,30 +303,48 @@ namespace Atlas
 		delete[] s_Data.MeshIndexBufferBase;
 	}
 
-	void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform, const glm::vec3& ambientLightColor, const float& ambientLightStrength)
+	void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform, const SceneLighting& sceneLighting)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
-		s_Data.AmbientLightBuffer.Color = ambientLightColor;
-		s_Data.AmbientLightBuffer.Strength = ambientLightStrength;
-		s_Data.AmbientLightUniformBuffer->SetData(&s_Data.AmbientLightBuffer, sizeof(Renderer2DData::AmbientLightData));
-		
+		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
+		s_Data.LightBuffer.AmbientLightIntensity = sceneLighting.AmbientLightIntensity;
+		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(Renderer2DData::LightData));
+
+		s_Data.SceneLightPositionsBuffer.Positions = sceneLighting.LightPositions;
+		s_Data.SceneLightPositionsStorageBuffer->SetData(s_Data.SceneLightPositionsBuffer.Positions.data(), sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size());
+
+		s_Data.SceneLightColorsBuffer.Colors = sceneLighting.LightColors;
+		s_Data.SceneLightColorsStorageBuffer->SetData(s_Data.SceneLightColorsBuffer.Colors.data(), sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size());
+
+		s_Data.SceneLightIntensitiesBuffer.Intensities = sceneLighting.LightIntensities;
+		s_Data.SceneLightIntensitiesStorageBuffer->SetData(s_Data.SceneLightIntensitiesBuffer.Intensities.data(), sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
+
 		StartBatch();
 	}
 
-	void Renderer::BeginScene(const EditorCamera& camera, const glm::vec3& ambientLightColor, const float& ambientLightStrength)
+	void Renderer::BeginScene(const EditorCamera& camera, const SceneLighting& sceneLighting)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
-		s_Data.AmbientLightBuffer.Color = ambientLightColor;
-		s_Data.AmbientLightBuffer.Strength = ambientLightStrength;
-		s_Data.AmbientLightUniformBuffer->SetData(&s_Data.AmbientLightBuffer, sizeof(Renderer2DData::AmbientLightData));
+		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
+		s_Data.LightBuffer.AmbientLightIntensity = sceneLighting.AmbientLightIntensity;
+		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(Renderer2DData::LightData));
+
+		s_Data.SceneLightPositionsBuffer.Positions = sceneLighting.LightPositions;
+		s_Data.SceneLightPositionsStorageBuffer->SetData(s_Data.SceneLightPositionsBuffer.Positions.data(), sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size());
+
+		s_Data.SceneLightColorsBuffer.Colors = sceneLighting.LightColors;
+		s_Data.SceneLightColorsStorageBuffer->SetData(s_Data.SceneLightColorsBuffer.Colors.data(), sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size());
+
+		s_Data.SceneLightIntensitiesBuffer.Intensities = sceneLighting.LightIntensities;
+		s_Data.SceneLightIntensitiesStorageBuffer->SetData(s_Data.SceneLightIntensitiesBuffer.Intensities.data(), sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
 
 		StartBatch();
 	}
@@ -402,6 +455,25 @@ namespace Atlas
 	{
 		Flush();
 		StartBatch();
+	}
+
+	void Renderer::IncreaseLightCount()
+	{
+		s_Data.LightBuffer.LightCount++;
+		UpdateSceneLightBuffers();
+	}
+
+	void Renderer::DecreaseLightCount()
+	{
+		s_Data.LightBuffer.LightCount--;
+		UpdateSceneLightBuffers();
+	}
+
+	void Renderer::UpdateSceneLightBuffers()
+	{
+		s_Data.SceneLightPositionsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.LightBuffer.LightCount);
+		s_Data.SceneLightColorsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.LightBuffer.LightCount);
+		s_Data.SceneLightIntensitiesStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
 	}
 
 	RendererAPI::PolygonMode Renderer::GetPolygonMode()
@@ -778,11 +850,12 @@ namespace Atlas
 
 		for (size_t i = 0; i < vertexCount; i++)
 		{
-			int currentIndex = i * 5;
+			int currentIndex = i * 8;
 
-			s_Data.MeshVertexBufferPtr->Position = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], src.Vertices[currentIndex + 3] });
+			s_Data.MeshVertexBufferPtr->Position = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
 			s_Data.MeshVertexBufferPtr->Color = src.Color;
-			s_Data.MeshVertexBufferPtr->TexCoord = glm::vec2({ src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
+			s_Data.MeshVertexBufferPtr->Normal = glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
+			s_Data.MeshVertexBufferPtr->TexCoord = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
 			s_Data.MeshVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.MeshVertexBufferPtr->TilingFactor = tilingFactor;
 			s_Data.MeshVertexBufferPtr->EntityID = entityID;

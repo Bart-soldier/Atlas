@@ -339,10 +339,10 @@ namespace Atlas
 				component.Light.SetColor(color);
 			}
 
-			float strength = component.Light.GetStrength();
+			float strength = component.Light.GetIntensity();
 			if (ImGuiUtils::DragFloat("Strength", strength, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Light.SetStrength(strength);
+				component.Light.SetIntensity(strength);
 			}
 		});
 	}

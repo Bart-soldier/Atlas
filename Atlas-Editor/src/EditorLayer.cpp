@@ -350,12 +350,13 @@ namespace Atlas
 				return;
 			}
 
-			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform(),
-								 m_ActiveScene->GetAmbientLightColor(), m_ActiveScene->GetAmbientLightStrength());
+			// Overlay should not be affected by lights
+			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
 		}
 		else
 		{
-			Renderer::BeginScene(m_EditorCamera, m_ActiveScene->GetAmbientLightColor(), m_ActiveScene->GetAmbientLightStrength());
+			// Overlay should not be affected by lights
+			Renderer::BeginScene(m_EditorCamera);
 		}
 
 		// Draw selected entity outline 
@@ -596,6 +597,11 @@ namespace Atlas
 		CameraComponent cameraComponent = cameraEntity.GetComponent<CameraComponent>();
 		cameraComponent.Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
 		cameraComponent.Camera.SetOrthographicFarClip(2.0f);
+
+		Entity lightEntity = newScene->CreateEntity("Point Light");
+		lightEntity.GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
+		lightEntity.AddComponent<LightSourceComponent>();
+		lightEntity.GetComponent<LightSourceComponent>().Light.SetColor(glm::vec3(0.459f, 0.0f, 0.0f));
 
 		return newScene;
 	}

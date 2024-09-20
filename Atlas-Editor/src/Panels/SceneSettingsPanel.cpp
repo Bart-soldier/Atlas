@@ -29,10 +29,10 @@ namespace Atlas
 			m_Context->SetAmbientLightColor(ambientLightColor);
 		}
 
-		float ambientLightStrength = m_Context->GetAmbientLightStrength();
-		if (ImGuiUtils::DragFloat("Ambient Light Strength", ambientLightStrength, 1.0f, 0.001f, 0.0f, 1.0f))
+		float ambientLightIntensity = m_Context->GetAmbientLightIntensity();
+		if (ImGuiUtils::DragFloat("Ambient Light Intensity", ambientLightIntensity, 0.1f, 0.001f, 0.0f, 1.0f))
 		{
-			m_Context->SetAmbientLightStrength(ambientLightStrength);
+			m_Context->SetAmbientLightIntensity(ambientLightIntensity);
 		}
 
 		ImGui::End();
