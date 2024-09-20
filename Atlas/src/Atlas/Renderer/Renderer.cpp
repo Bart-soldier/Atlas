@@ -304,11 +304,12 @@ namespace Atlas
 		delete[] s_Data.MeshIndexBufferBase;
 	}
 
-	void Renderer::BeginScene(const Camera& camera, const glm::mat4& transform, const SceneLighting& sceneLighting)
+	void Renderer::BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const SceneLighting& sceneLighting)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
+		s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(cameraTransform.GetTransform());
+		s_Data.CameraBuffer.Position = cameraTransform.Translation;
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
 		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;

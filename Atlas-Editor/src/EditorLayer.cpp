@@ -351,7 +351,7 @@ namespace Atlas
 			}
 
 			// Overlay should not be affected by lights
-			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>());
 		}
 		else
 		{
@@ -594,9 +594,10 @@ namespace Atlas
 
 		Entity cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity.AddComponent<CameraComponent>();
-		CameraComponent cameraComponent = cameraEntity.GetComponent<CameraComponent>();
-		cameraComponent.Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
-		cameraComponent.Camera.SetOrthographicFarClip(2.0f);
+		cameraEntity.GetComponent<CameraComponent>().Camera.SetProjectionType(Camera::ProjectionType::Perspective);
+		TransformComponent* cameraTransform = &cameraEntity.GetComponent<TransformComponent>();
+		cameraTransform->Translation = glm::vec3(3.5f, 2.1f, 3.5f);
+		cameraTransform->Rotation = glm::radians(glm::vec3(-25.0f, 45.0f, 0.0f));
 
 		Entity lightEntity = newScene->CreateEntity("Point Light");
 		lightEntity.GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);

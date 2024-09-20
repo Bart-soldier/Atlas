@@ -121,18 +121,18 @@ namespace Atlas
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
 		// Render 2D
-		Camera* mainCamera = nullptr;
-		glm::mat4 cameraTransform;
+		SceneCamera* mainCamera = nullptr;
+		TransformComponent* cameraTransform;
 		{
 			auto view = m_Registry.view<TransformComponent, CameraComponent>();
 			for (auto entity : view)
 			{
-				auto& [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
 
 				if (camera.Primary)
 				{
 					mainCamera = &camera.Camera;
-					cameraTransform = transform.GetTransform();
+					cameraTransform = &transform;
 					break;
 				}
 			}
@@ -142,7 +142,7 @@ namespace Atlas
 		{
 			UpdateSceneLighting();
 
-			Renderer::BeginScene(*mainCamera, cameraTransform, m_SceneLighting);
+			Renderer::BeginScene(*mainCamera, *cameraTransform, m_SceneLighting);
 			DrawScene();
 			Renderer::EndScene();
 		}
