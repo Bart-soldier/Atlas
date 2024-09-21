@@ -7,6 +7,7 @@ namespace Atlas
 	class OpenGLStorageBuffer : public StorageBuffer
 	{
 	public:
+		OpenGLStorageBuffer(uint32_t size, uint32_t binding);
 		OpenGLStorageBuffer(uint32_t binding);
 		virtual ~OpenGLStorageBuffer();
 

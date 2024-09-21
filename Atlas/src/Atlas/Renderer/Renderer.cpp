@@ -291,12 +291,9 @@ namespace Atlas
 		// Uniform buffers
 		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData), 0);
 		s_Data.LightUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::LightData), 1);
-		s_Data.SceneLightPositionsStorageBuffer = StorageBuffer::Create(2);
-		s_Data.SceneLightPositionsStorageBuffer->SetSize(sizeof(glm::vec3)* s_Data.SceneLightPositionsBuffer.Positions.size());
-		s_Data.SceneLightColorsStorageBuffer = StorageBuffer::Create(3);
-		s_Data.SceneLightColorsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size());
-		s_Data.SceneLightIntensitiesStorageBuffer = StorageBuffer::Create(4);
-		s_Data.SceneLightIntensitiesStorageBuffer->SetSize(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
+		s_Data.SceneLightPositionsStorageBuffer = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size(), 2);
+		s_Data.SceneLightColorsStorageBuffer = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size(), 3);
+		s_Data.SceneLightIntensitiesStorageBuffer = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size(), 4);
 	}
 
 	void Renderer::Shutdown()

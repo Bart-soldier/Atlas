@@ -5,6 +5,13 @@
 
 namespace Atlas
 {
+	OpenGLStorageBuffer::OpenGLStorageBuffer(uint32_t size, uint32_t binding)
+		: m_Binding(binding)
+	{
+		glCreateBuffers(1, &m_RendererID);
+		SetSize(size);
+	}
+
 	OpenGLStorageBuffer::OpenGLStorageBuffer(uint32_t binding)
 		: m_Binding(binding)
 	{
