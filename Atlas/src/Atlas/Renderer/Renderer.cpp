@@ -50,11 +50,16 @@ namespace Atlas
 	struct MeshVertex
 	{
 		glm::vec3 Position;
-		glm::vec4 Color;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
 		float TexIndex;
 		float TilingFactor;
+
+		glm::vec4 Color;
+		glm::vec3 AmbientTint;
+		glm::vec3 DiffuseTint;
+		glm::vec3 SpecularTint;
+		float Shininess;
 
 		// Editor-only
 		int EntityID;
@@ -250,11 +255,15 @@ namespace Atlas
 		s_Data.MeshVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(MeshVertex));
 		s_Data.MeshVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"     },
-			{ ShaderDataType::Float4, "a_Color"        },
-			{ ShaderDataType::Float3, "a_Normal"        },
+			{ ShaderDataType::Float3, "a_Normal"       },
 			{ ShaderDataType::Float2, "a_TexCoord"     },
 			{ ShaderDataType::Float,  "a_TexIndex"     },
 			{ ShaderDataType::Float,  "a_TilingFactor" },
+			{ ShaderDataType::Float4, "a_Color"        },
+			{ ShaderDataType::Float3, "a_AmbientTint"  },
+			{ ShaderDataType::Float3, "a_DiffuseTint"  },
+			{ ShaderDataType::Float3, "a_SpecularTint" },
+			{ ShaderDataType::Float,  "a_Shininess"    },
 			{ ShaderDataType::Int,    "a_EntityID"     }
 			});
 		s_Data.MeshVertexArray->AddVertexBuffer(s_Data.MeshVertexBuffer);
@@ -856,13 +865,17 @@ namespace Atlas
 		{
 			int currentIndex = i * 8;
 
-			s_Data.MeshVertexBufferPtr->Position = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
-			s_Data.MeshVertexBufferPtr->Color = src.Color;
-			s_Data.MeshVertexBufferPtr->Normal = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
-			s_Data.MeshVertexBufferPtr->TexCoord = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
-			s_Data.MeshVertexBufferPtr->TexIndex = textureIndex;
+			s_Data.MeshVertexBufferPtr->Position     = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
+			s_Data.MeshVertexBufferPtr->Normal       = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
+			s_Data.MeshVertexBufferPtr->TexCoord     = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
+			s_Data.MeshVertexBufferPtr->TexIndex     = textureIndex;
 			s_Data.MeshVertexBufferPtr->TilingFactor = tilingFactor;
-			s_Data.MeshVertexBufferPtr->EntityID = entityID;
+			s_Data.MeshVertexBufferPtr->Color        = src.Material.GetColor();
+			s_Data.MeshVertexBufferPtr->AmbientTint  = src.Material.GetAmbientTint();
+			s_Data.MeshVertexBufferPtr->DiffuseTint  = src.Material.GetDiffuseTint();
+			s_Data.MeshVertexBufferPtr->SpecularTint = src.Material.GetSpecularTint();
+			s_Data.MeshVertexBufferPtr->Shininess    = src.Material.GetShininess();
+			s_Data.MeshVertexBufferPtr->EntityID     = entityID;
 			s_Data.MeshVertexBufferPtr++;
 		}
 

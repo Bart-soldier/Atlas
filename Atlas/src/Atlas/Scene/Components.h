@@ -6,6 +6,7 @@
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
 #include "Atlas/Renderer/Light.h"
+#include "Atlas/Renderer/Material.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -155,12 +156,10 @@ namespace Atlas
 			-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 		};
 
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		Material Material;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const glm::vec4& color)
-			: Color(color) {}
 	};
 
 	struct LightSourceComponent

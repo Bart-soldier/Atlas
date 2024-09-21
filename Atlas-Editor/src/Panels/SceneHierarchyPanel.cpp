@@ -328,7 +328,35 @@ namespace Atlas
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
 		{
-			ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(component.Color));
+			glm::vec4 color = component.Material.GetColor();
+			if (ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(color)))
+			{
+				component.Material.SetColor(color);
+			}
+
+			glm::vec3 ambientTint = component.Material.GetAmbientTint();
+			if (ImGuiUtils::ColorEdit3("Ambient Tint", *glm::value_ptr(ambientTint)))
+			{
+				component.Material.SetAmbientTint(ambientTint);
+			}
+
+			glm::vec3 diffuseTint = component.Material.GetDiffuseTint();
+			if (ImGuiUtils::ColorEdit3("Diffuse Tint", *glm::value_ptr(diffuseTint)))
+			{
+				component.Material.SetDiffuseTint(diffuseTint);
+			}
+
+			glm::vec3 specularTint = component.Material.GetSpecularTint();
+			if (ImGuiUtils::ColorEdit3("Specular Tint", *glm::value_ptr(specularTint)))
+			{
+				component.Material.SetSpecularTint(specularTint);
+			}
+
+			float shininess = component.Material.GetShininess();
+			if (ImGuiUtils::DragFloat("Shininess", shininess, 1.0f, 0.001f, 0.0f, 1.0f))
+			{
+				component.Material.SetShininess(shininess);
+			}
 		});
 
 		DrawComponent<LightSourceComponent>("Light Source", entity, [](auto& component)
