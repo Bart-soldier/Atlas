@@ -70,7 +70,7 @@ namespace Atlas
 		uint32_t Index;
 	};
 
-	struct Renderer2DData
+	struct RendererData
 	{
 		// Per draw call
 		static const uint32_t MaxQuads = 20000;
@@ -170,7 +170,7 @@ namespace Atlas
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
 	};
 
-	static Renderer2DData s_Data;
+	static RendererData s_Data;
 
 	void Renderer::Init()
 	{
@@ -289,8 +289,8 @@ namespace Atlas
 		s_Data.MeshShader = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
 	
 		// Uniform buffers
-		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData), 0);
-		s_Data.LightUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::LightData), 1);
+		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
+		s_Data.LightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::LightData), 1);
 		s_Data.SceneLightPositionsStorageBuffer = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size(), 2);
 		s_Data.SceneLightColorsStorageBuffer = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size(), 3);
 		s_Data.SceneLightIntensitiesStorageBuffer = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size(), 4);
@@ -314,22 +314,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(cameraTransform.GetTransform());
-		s_Data.CameraBuffer.Position = cameraTransform.Translation;
-		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
-
-		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
-		s_Data.LightBuffer.AmbientLightIntensity = sceneLighting.AmbientLightIntensity;
-		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(Renderer2DData::LightData));
-
-		s_Data.SceneLightPositionsBuffer.Positions = sceneLighting.LightPositions;
-		s_Data.SceneLightPositionsStorageBuffer->SetData(s_Data.SceneLightPositionsBuffer.Positions.data(), sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size());
-
-		s_Data.SceneLightColorsBuffer.Colors = sceneLighting.LightColors;
-		s_Data.SceneLightColorsStorageBuffer->SetData(s_Data.SceneLightColorsBuffer.Colors.data(), sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size());
-
-		s_Data.SceneLightIntensitiesBuffer.Intensities = sceneLighting.LightIntensities;
-		s_Data.SceneLightIntensitiesStorageBuffer->SetData(s_Data.SceneLightIntensitiesBuffer.Intensities.data(), sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
+		SetUniformAndStorageBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), cameraTransform.Translation, sceneLighting);
 
 		StartBatch();
 	}
@@ -338,14 +323,23 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
-		s_Data.CameraBuffer.Position = camera.GetPosition();
-		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+		SetUniformAndStorageBuffers(camera.GetViewProjection(), camera.GetPosition(), sceneLighting);
+
+		StartBatch();
+	}
+
+	void Renderer::SetUniformAndStorageBuffers(const glm::mat4 cameraViewProjection, const glm::vec3 cameraPosition, const SceneLighting & sceneLighting)
+	{
+		// Uniform buffers
+		s_Data.CameraBuffer.ViewProjection = cameraViewProjection;
+		s_Data.CameraBuffer.Position = cameraPosition;
+		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
 
 		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
 		s_Data.LightBuffer.AmbientLightIntensity = sceneLighting.AmbientLightIntensity;
-		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(Renderer2DData::LightData));
+		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(RendererData::LightData));
 
+		// Storage buffers
 		s_Data.SceneLightPositionsBuffer.Positions = sceneLighting.LightPositions;
 		s_Data.SceneLightPositionsStorageBuffer->SetData(s_Data.SceneLightPositionsBuffer.Positions.data(), sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size());
 
@@ -354,8 +348,6 @@ namespace Atlas
 
 		s_Data.SceneLightIntensitiesBuffer.Intensities = sceneLighting.LightIntensities;
 		s_Data.SceneLightIntensitiesStorageBuffer->SetData(s_Data.SceneLightIntensitiesBuffer.Intensities.data(), sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
-
-		StartBatch();
 	}
 
 	void Renderer::EndScene()
@@ -548,7 +540,7 @@ namespace Atlas
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -614,7 +606,7 @@ namespace Atlas
 			{ 0.0f, 1.0f }
 		};
 
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -631,7 +623,7 @@ namespace Atlas
 
 		if (textureIndex == 0.0f)
 		{
-			if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+			if (s_Data.TextureSlotIndex >= RendererData::MaxTextureSlots)
 			{
 				NextBatch();
 			}
@@ -698,7 +690,7 @@ namespace Atlas
 		const glm::vec2* textureCoords = subTexture->GetTexCoords();
 		const Ref<Texture2D> texture = subTexture->GetTexture();
 
-		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+		if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -715,7 +707,7 @@ namespace Atlas
 
 		if (textureIndex == 0.0f)
 		{
-			if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+			if (s_Data.TextureSlotIndex >= RendererData::MaxTextureSlots)
 			{
 				NextBatch();
 			}
@@ -772,7 +764,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		if (s_Data.CircleIndexCount >= Renderer2DData::MaxIndices)
+		if (s_Data.CircleIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -797,7 +789,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		if (s_Data.LineIndexCount >= Renderer2DData::MaxIndices)
+		if (s_Data.LineIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -853,7 +845,7 @@ namespace Atlas
 		const float tilingFactor = 1.0f;
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		if (s_Data.MeshIndexCount >= Renderer2DData::MaxIndices)
+		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
