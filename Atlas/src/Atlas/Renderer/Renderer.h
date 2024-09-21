@@ -81,7 +81,7 @@ namespace Atlas
 		static Statistics GetStats();
 
 	private:
-		static void SetUniformAndStorageBuffers(const glm::mat4 cameraViewProjection, const glm::vec3 cameraPosition, const SceneLighting& sceneLighting);
+		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec3& cameraPosition, const SceneLighting& sceneLighting);
 
 		static void StartBatch();
 		static void NextBatch();

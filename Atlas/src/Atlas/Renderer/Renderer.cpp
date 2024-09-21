@@ -283,16 +283,16 @@ namespace Atlas
 		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 
 		// Shaders
-		s_Data.QuadShader = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
+		s_Data.QuadShader   = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
 		s_Data.CircleShader = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
-		s_Data.LineShader = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
-		s_Data.MeshShader = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
+		s_Data.LineShader   = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
+		s_Data.MeshShader   = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
 	
 		// Uniform buffers
-		s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
-		s_Data.LightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::LightData), 1);
-		s_Data.SceneLightPositionsStorageBuffer = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size(), 2);
-		s_Data.SceneLightColorsStorageBuffer = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size(), 3);
+		s_Data.CameraUniformBuffer                = UniformBuffer::Create(sizeof(RendererData::CameraData)                                     , 0);
+		s_Data.LightUniformBuffer                 = UniformBuffer::Create(sizeof(RendererData::LightData)                                      , 1);
+		s_Data.SceneLightPositionsStorageBuffer   = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size(), 2);
+		s_Data.SceneLightColorsStorageBuffer      = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size()      , 3);
 		s_Data.SceneLightIntensitiesStorageBuffer = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size(), 4);
 	}
 
@@ -328,7 +328,7 @@ namespace Atlas
 		StartBatch();
 	}
 
-	void Renderer::SetUniformAndStorageBuffers(const glm::mat4 cameraViewProjection, const glm::vec3 cameraPosition, const SceneLighting & sceneLighting)
+	void Renderer::SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec3& cameraPosition, const SceneLighting& sceneLighting)
 	{
 		// Uniform buffers
 		s_Data.CameraBuffer.ViewProjection = cameraViewProjection;
