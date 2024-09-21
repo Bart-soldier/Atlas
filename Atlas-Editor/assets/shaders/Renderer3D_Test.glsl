@@ -113,7 +113,7 @@ layout (location = 11) in flat int     v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
-vec4 LightCalculations()
+vec4 GetLightColor()
 {
 	// Ambient, diffuse & specular lighting
 	vec4  ambientTint     = vec4((u_AmbientLightColor * u_AmbientLightIntensity) * Input.AmbientTint, 1.0);
@@ -139,9 +139,8 @@ vec4 LightCalculations()
 	return ambientTint + diffuseTint + specularTint;
 }
 
-void main()
+vec4 GetTextureColor()
 {
-	// Texture
 	vec4 texColor = Input.Color;
 
 	switch(int(v_TexIndex))
@@ -186,9 +185,14 @@ void main()
 		discard;
 	}
 
-	// Final color
-	o_color = texColor * LightCalculations();
+	return texColor;
+}
 
-	// Entity ID (selection buffer)
+void main()
+{
+	// Color buffer
+	o_color = GetTextureColor() * GetLightColor();
+
+	// Entity ID buffer
 	o_entityID = v_EntityID;
 }
