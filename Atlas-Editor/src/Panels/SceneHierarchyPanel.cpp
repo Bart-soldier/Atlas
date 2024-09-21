@@ -367,10 +367,28 @@ namespace Atlas
 				component.Light.SetColor(color);
 			}
 
-			float strength = component.Light.GetIntensity();
-			if (ImGuiUtils::DragFloat("Strength", strength, 1.0f, 0.001f, 0.0f, 1.0f))
+			float intensity = component.Light.GetIntensity();
+			if (ImGuiUtils::DragFloat("Intensity", intensity, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Light.SetIntensity(strength);
+				component.Light.SetIntensity(intensity);
+			}
+
+			float ambientStrength = component.Light.GetAmbientStrength();
+			if (ImGuiUtils::DragFloat("Ambient Strength", ambientStrength, 0.1f, 0.001f, 0.0f, 1.0f))
+			{
+				component.Light.SetAmbientStrength(ambientStrength);
+			}
+
+			float diffuseStrength = component.Light.GetDiffuseStrength();
+			if (ImGuiUtils::DragFloat("Diffuse Strength", diffuseStrength, 0.5f, 0.001f, 0.0f, 1.0f))
+			{
+				component.Light.SetDiffuseStrength(diffuseStrength);
+			}
+
+			float specularStrength = component.Light.GetSpecularStrength();
+			if (ImGuiUtils::DragFloat("Specular Strength", specularStrength, 1.0f, 0.001f, 0.0f, 1.0f))
+			{
+				component.Light.SetSpecularStrength(specularStrength);
 			}
 		});
 	}

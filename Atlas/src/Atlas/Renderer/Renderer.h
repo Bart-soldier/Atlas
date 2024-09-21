@@ -15,9 +15,12 @@ namespace Atlas
 		glm::vec3 AmbientLightColor = glm::vec3(1.0f);
 		float AmbientLightIntensity = 1.0f;
 
-		std::vector<glm::vec3> LightPositions = std::vector<glm::vec3>();
-		std::vector<glm::vec3> LightColors = std::vector<glm::vec3>();
-		std::vector<float> LightIntensities = std::vector<float>();
+		std::vector<glm::vec3> LightPositions      = std::vector<glm::vec3>();
+		std::vector<glm::vec3> LightColors         = std::vector<glm::vec3>();
+		std::vector<float> LightIntensities        = std::vector<float>();
+		std::vector<float> LightAmbientStrengths   = std::vector<float>();
+		std::vector<float> LightDiffuseStrengths   = std::vector<float>();
+		std::vector<float> LightSpecularStrengths  = std::vector<float>();
 	};
 
 	class Renderer

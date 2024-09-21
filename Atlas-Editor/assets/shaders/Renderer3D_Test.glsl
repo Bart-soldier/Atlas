@@ -93,6 +93,21 @@ layout(std430, binding = 4) buffer LightIntensities
 	float u_LightIntensities[];
 };
 
+layout(std430, binding = 5) buffer LightAmbientStrengths
+{
+	float u_LightAmbientStrengths[];
+};
+
+layout(std430, binding = 6) buffer LightDiffuseStrengths
+{
+	float u_LightDiffuseStrengths[];
+};
+
+layout(std430, binding = 7) buffer LightSpecularStrengths
+{
+	float u_LightSpecularStrengths[];
+};
+
 struct VertexOutput
 {
 	vec3  Position;
@@ -116,27 +131,29 @@ layout (binding = 0) uniform sampler2D u_Textures[32];
 vec4 GetLightColor()
 {
 	// Ambient, diffuse & specular lighting
-	vec4  ambientTint     = vec4((u_AmbientLightColor * u_AmbientLightIntensity) * Input.AmbientTint, 1.0);
-	vec4  diffuseTint     = vec4(0.0);
-	vec4  specularTint    = vec4(0.0);
+	vec3  ambientTint     = u_AmbientLightColor * u_AmbientLightIntensity;
+	vec3  diffuseTint     = vec3(0.0);
+	vec3  specularTint    = vec3(0.0);
 
 	vec3 norm = normalize(Input.Normal);
 
 	for (uint i = 0; i < u_LightCount; i++)
 	{
 		vec3 lightColor = u_LightColors[i] * u_LightIntensities[i];
+		
+		ambientTint *= (lightColor * u_LightAmbientStrengths[i]) * Input.AmbientTint;
 
 		vec3 lightDirection = normalize(u_LightPositions[i] - Input.Position);
 		float diffuseImpact = max(dot(norm, lightDirection), 0.0);
-		diffuseTint += vec4(lightColor * (diffuseImpact * Input.DiffuseTint), 1.0);
+		diffuseTint += (lightColor * u_LightDiffuseStrengths[i]) * (diffuseImpact * Input.DiffuseTint);
 
 		vec3 viewDirection       = normalize(u_CameraPosition - Input.Position);
 		vec3 reflectionDirection = reflect(-lightDirection, norm);
 		float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), Input.Shininess * 128);
-		specularTint += vec4(lightColor * (specularFactor * Input.SpecularTint), 1.0);  
+		specularTint += (lightColor * u_LightSpecularStrengths[i]) * (specularFactor * Input.SpecularTint);
 	}
 
-	return ambientTint + diffuseTint + specularTint;
+	return vec4(ambientTint + diffuseTint + specularTint, 1.0);
 }
 
 vec4 GetTextureColor()
@@ -192,6 +209,7 @@ void main()
 {
 	// Color buffer
 	o_color = GetTextureColor() * GetLightColor();
+	//o_color = GetTextureColor() * vec4((u_AmbientLightColor * u_AmbientLightIntensity), 1.0);
 
 	// Entity ID buffer
 	o_entityID = v_EntityID;

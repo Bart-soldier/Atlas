@@ -141,29 +141,29 @@ namespace Atlas
 		LightData LightBuffer;
 		Ref<UniformBuffer> LightUniformBuffer;
 
-		// Scene light positions
-		struct SceneLightPositionsData
+		// Scene light positions and colors
+		struct SceneLightRGBData
 		{
-			std::vector<glm::vec3> Positions;
+			std::vector<glm::vec3> RGB;
 		};
-		SceneLightPositionsData SceneLightPositionsBuffer;
+		SceneLightRGBData  SceneLightPositionsBuffer;
 		Ref<StorageBuffer> SceneLightPositionsStorageBuffer;
-
-		// Scene light colors
-		struct SceneLightColorsData
-		{
-			std::vector<glm::vec3> Colors;
-		};
-		SceneLightColorsData SceneLightColorsBuffer;
+		SceneLightRGBData  SceneLightColorsBuffer;
 		Ref<StorageBuffer> SceneLightColorsStorageBuffer;
 
-		// Scene light intensities
-		struct SceneLightIntensitiesData
+		// Scene light strengths and intensities
+		struct SceneLightREDData
 		{
-			std::vector<float> Intensities;
+			std::vector<float> RED;
 		};
-		SceneLightIntensitiesData SceneLightIntensitiesBuffer;
+		SceneLightREDData  SceneLightIntensitiesBuffer;
 		Ref<StorageBuffer> SceneLightIntensitiesStorageBuffer;
+		SceneLightREDData  SceneLightAmbientStrengthBuffer;
+		Ref<StorageBuffer> SceneLightAmbientStrengthStorageBuffer;
+		SceneLightREDData  SceneLightDiffuseStrengthBuffer;
+		Ref<StorageBuffer> SceneLightDiffuseStrengthStorageBuffer;
+		SceneLightREDData  SceneLightSpecularStrengthBuffer;
+		Ref<StorageBuffer> SceneLightSpecularStrengthStorageBuffer;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -289,11 +289,14 @@ namespace Atlas
 		s_Data.MeshShader   = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
 	
 		// Uniform buffers
-		s_Data.CameraUniformBuffer                = UniformBuffer::Create(sizeof(RendererData::CameraData)                                     , 0);
-		s_Data.LightUniformBuffer                 = UniformBuffer::Create(sizeof(RendererData::LightData)                                      , 1);
-		s_Data.SceneLightPositionsStorageBuffer   = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size(), 2);
-		s_Data.SceneLightColorsStorageBuffer      = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size()      , 3);
-		s_Data.SceneLightIntensitiesStorageBuffer = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size(), 4);
+		s_Data.CameraUniformBuffer                     = UniformBuffer::Create(sizeof(RendererData::CameraData)                                  , 0);
+		s_Data.LightUniformBuffer                      = UniformBuffer::Create(sizeof(RendererData::LightData)                                   , 1);
+		s_Data.SceneLightPositionsStorageBuffer        = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.RGB.size()   , 2);
+		s_Data.SceneLightColorsStorageBuffer           = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.RGB.size()      , 3);
+		s_Data.SceneLightIntensitiesStorageBuffer      = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightIntensitiesBuffer.RED.size()     , 4);
+		s_Data.SceneLightAmbientStrengthStorageBuffer  = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightAmbientStrengthBuffer.RED.size() , 5);
+		s_Data.SceneLightDiffuseStrengthStorageBuffer  = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightDiffuseStrengthBuffer.RED.size() , 6);
+		s_Data.SceneLightSpecularStrengthStorageBuffer = StorageBuffer::Create(sizeof(float) * s_Data.SceneLightSpecularStrengthBuffer.RED.size(), 7);
 	}
 
 	void Renderer::Shutdown()
@@ -340,14 +343,23 @@ namespace Atlas
 		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(RendererData::LightData));
 
 		// Storage buffers
-		s_Data.SceneLightPositionsBuffer.Positions = sceneLighting.LightPositions;
-		s_Data.SceneLightPositionsStorageBuffer->SetData(s_Data.SceneLightPositionsBuffer.Positions.data(), sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.Positions.size());
+		s_Data.SceneLightPositionsBuffer.RGB = sceneLighting.LightPositions;
+		s_Data.SceneLightPositionsStorageBuffer->SetData(s_Data.SceneLightPositionsBuffer.RGB.data(), sizeof(glm::vec3) * s_Data.SceneLightPositionsBuffer.RGB.size());
 
-		s_Data.SceneLightColorsBuffer.Colors = sceneLighting.LightColors;
-		s_Data.SceneLightColorsStorageBuffer->SetData(s_Data.SceneLightColorsBuffer.Colors.data(), sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.Colors.size());
+		s_Data.SceneLightColorsBuffer.RGB = sceneLighting.LightColors;
+		s_Data.SceneLightColorsStorageBuffer->SetData(s_Data.SceneLightColorsBuffer.RGB.data(), sizeof(glm::vec3) * s_Data.SceneLightColorsBuffer.RGB.size());
 
-		s_Data.SceneLightIntensitiesBuffer.Intensities = sceneLighting.LightIntensities;
-		s_Data.SceneLightIntensitiesStorageBuffer->SetData(s_Data.SceneLightIntensitiesBuffer.Intensities.data(), sizeof(float) * s_Data.SceneLightIntensitiesBuffer.Intensities.size());
+		s_Data.SceneLightIntensitiesBuffer.RED = sceneLighting.LightIntensities;
+		s_Data.SceneLightIntensitiesStorageBuffer->SetData(s_Data.SceneLightIntensitiesBuffer.RED.data(), sizeof(float) * s_Data.SceneLightIntensitiesBuffer.RED.size());
+
+		s_Data.SceneLightAmbientStrengthBuffer.RED = sceneLighting.LightAmbientStrengths;
+		s_Data.SceneLightAmbientStrengthStorageBuffer->SetData(s_Data.SceneLightAmbientStrengthBuffer.RED.data(), sizeof(float) * s_Data.SceneLightAmbientStrengthBuffer.RED.size());
+
+		s_Data.SceneLightDiffuseStrengthBuffer.RED = sceneLighting.LightDiffuseStrengths;
+		s_Data.SceneLightDiffuseStrengthStorageBuffer->SetData(s_Data.SceneLightDiffuseStrengthBuffer.RED.data(), sizeof(float) * s_Data.SceneLightDiffuseStrengthBuffer.RED.size());
+
+		s_Data.SceneLightSpecularStrengthBuffer.RED = sceneLighting.LightSpecularStrengths;
+		s_Data.SceneLightSpecularStrengthStorageBuffer->SetData(s_Data.SceneLightSpecularStrengthBuffer.RED.data(), sizeof(float) * s_Data.SceneLightSpecularStrengthBuffer.RED.size());
 	}
 
 	void Renderer::EndScene()
@@ -475,6 +487,9 @@ namespace Atlas
 		s_Data.SceneLightPositionsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.LightBuffer.LightCount);
 		s_Data.SceneLightColorsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.LightBuffer.LightCount);
 		s_Data.SceneLightIntensitiesStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
+		s_Data.SceneLightAmbientStrengthStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
+		s_Data.SceneLightDiffuseStrengthStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
+		s_Data.SceneLightSpecularStrengthStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
 	}
 
 	RendererAPI::PolygonMode Renderer::GetPolygonMode()

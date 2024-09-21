@@ -199,9 +199,12 @@ namespace Atlas
 
 	void Scene::UpdateSceneLighting()
 	{
-		std::vector<glm::vec3> lightPositions = std::vector<glm::vec3>();
-		std::vector<glm::vec3> lightColors = std::vector<glm::vec3>();
-		std::vector<float> lightIntensities = std::vector<float>();
+		std::vector<glm::vec3> lightPositions     = std::vector<glm::vec3>();
+		std::vector<glm::vec3> lightColors        = std::vector<glm::vec3>();
+		std::vector<float> lightIntensities       = std::vector<float>();
+		std::vector<float> lightAmbientStrengths  = std::vector<float>();
+		std::vector<float> lightDiffuseStrengths  = std::vector<float>();
+		std::vector<float> lightSpecularStrengths = std::vector<float>();
 
 		auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 		for (auto entity : view)
@@ -211,11 +214,17 @@ namespace Atlas
 			lightPositions.push_back(transform.Translation);
 			lightColors.push_back(light.Light.GetColor());
 			lightIntensities.push_back(light.Light.GetIntensity());
+			lightAmbientStrengths.push_back(light.Light.GetAmbientStrength());
+			lightDiffuseStrengths.push_back(light.Light.GetDiffuseStrength());
+			lightSpecularStrengths.push_back(light.Light.GetSpecularStrength());
 		}
 
-		m_SceneLighting.LightPositions = lightPositions;
-		m_SceneLighting.LightColors = lightColors;
-		m_SceneLighting.LightIntensities = lightIntensities;
+		m_SceneLighting.LightPositions         = lightPositions;
+		m_SceneLighting.LightColors            = lightColors;
+		m_SceneLighting.LightIntensities       = lightIntensities;
+		m_SceneLighting.LightAmbientStrengths  = lightAmbientStrengths;
+		m_SceneLighting.LightDiffuseStrengths  = lightDiffuseStrengths;
+		m_SceneLighting.LightSpecularStrengths = lightSpecularStrengths;
 	}
 
 	void Scene::DrawScene()
