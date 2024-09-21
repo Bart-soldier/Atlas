@@ -28,6 +28,7 @@ struct VertexOutput
 {
 	vec3  Position;
 	vec3  Normal;
+
 	vec2  TexCoord;
 	float TilingFactor;
 
@@ -39,20 +40,23 @@ struct VertexOutput
 };
 
 layout (location = 0)  out VertexOutput Output;
-layout (location = 10) out flat float v_TexIndex;
-layout (location = 11) out flat int v_EntityID;
+layout (location = 9)  out flat float v_TexIndex;
+layout (location = 10) out flat int v_EntityID;
 
 void main()
 {
 	Output.Position     = a_Position;
 	Output.Normal       = a_Normal;
+
 	Output.TexCoord     = a_TexCoord;
 	Output.TilingFactor = a_TilingFactor;
+
 	Output.Color        = a_Color;
 	Output.AmbientTint  = a_AmbientTint;
 	Output.DiffuseTint  = a_DiffuseTint;
 	Output.SpecularTint = a_SpecularTint;
 	Output.Shininess    = a_Shininess;
+
 	v_TexIndex          = a_TexIndex;
 	v_EntityID          = a_EntityID;
 
@@ -62,8 +66,25 @@ void main()
 #type fragment
 #version 450 core
 
-layout(location = 0) out vec4 o_color;
-layout(location = 1) out int  o_entityID;
+struct VertexOutput
+{
+	vec3  Position;
+	vec3  Normal;
+	vec2  TexCoord;
+	float TilingFactor;
+
+	vec4  Color;
+	vec3  AmbientTint;
+	vec3  DiffuseTint;
+	vec3  SpecularTint;
+	float Shininess;
+};
+
+layout (location = 0)  in VertexOutput Input;
+layout (location = 9)  in flat float   v_TexIndex;
+layout (location = 10) in flat int     v_EntityID;
+
+layout (binding = 0) uniform sampler2D u_Textures[32];
 
 layout(std140, binding = 0) uniform Camera
 {
@@ -108,25 +129,8 @@ layout(std430, binding = 7) buffer LightSpecularStrengths
 	float u_LightSpecularStrengths[];
 };
 
-struct VertexOutput
-{
-	vec3  Position;
-	vec3  Normal;
-	vec2  TexCoord;
-	float TilingFactor;
-
-	vec4  Color;
-	vec3  AmbientTint;
-	vec3  DiffuseTint;
-	vec3  SpecularTint;
-	float Shininess;
-};
-
-layout (location = 0)  in VertexOutput Input;
-layout (location = 10) in flat float   v_TexIndex;
-layout (location = 11) in flat int     v_EntityID;
-
-layout (binding = 0) uniform sampler2D u_Textures[32];
+layout(location = 0) out vec4 o_color;
+layout(location = 1) out int  o_entityID;
 
 vec4 GetLightColor()
 {
