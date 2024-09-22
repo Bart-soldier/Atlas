@@ -328,34 +328,86 @@ namespace Atlas
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
 		{
-			glm::vec4 color = component.Material.GetColor();
+			auto& material = component.Material;
+
+			glm::vec4 color = material.GetColor();
 			if (ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(color)))
 			{
-				component.Material.SetColor(color);
+				material.SetColor(color);
 			}
 
-			glm::vec3 ambientTint = component.Material.GetAmbientTint();
+			ImGui::Separator();
+
+			const char* materialPresetStrings[] = {
+				"Custom",
+				"Emerald",
+				"Jade",
+				"Obsidian",
+				"Pearl",
+				"Ruby",
+				"Turquoise",
+				"Brass",
+				"Bronze",
+				"Chrome",
+				"Copper",
+				"Gold",
+				"Silver",
+				"Black Plastic",
+				"Cyan Plastic",
+				"Green Plastic",
+				"Red Plastic",
+				"White Plastic",
+				"Yellow Plastic",
+				"Black Rubber",
+				"Cyan Rubber",
+				"Green Rubber",
+				"Red Rubber",
+				"White Rubber",
+				"Yellow Rubber"
+			};
+			const char* currentMaterialPresetString = materialPresetStrings[(int)material.GetMaterialPreset()];
+			if (ImGuiUtils::BeginCombo("Presets", *currentMaterialPresetString))
+			{
+				for (int i = 0; i < 25; i++)
+				{
+					bool isSelected = currentMaterialPresetString == materialPresetStrings[i];
+					if (ImGui::Selectable(materialPresetStrings[i], isSelected))
+					{
+						currentMaterialPresetString = materialPresetStrings[i];
+						material.SetMaterialPreset((Material::MaterialPresets)i);
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGuiUtils::EndCombo();
+			}
+
+			glm::vec3 ambientTint = material.GetAmbientTint();
 			if (ImGuiUtils::ColorEdit3("Ambient Tint", *glm::value_ptr(ambientTint)))
 			{
-				component.Material.SetAmbientTint(ambientTint);
+				material.SetAmbientTint(ambientTint);
 			}
 
-			glm::vec3 diffuseTint = component.Material.GetDiffuseTint();
+			glm::vec3 diffuseTint = material.GetDiffuseTint();
 			if (ImGuiUtils::ColorEdit3("Diffuse Tint", *glm::value_ptr(diffuseTint)))
 			{
-				component.Material.SetDiffuseTint(diffuseTint);
+				material.SetDiffuseTint(diffuseTint);
 			}
 
-			glm::vec3 specularTint = component.Material.GetSpecularTint();
+			glm::vec3 specularTint = material.GetSpecularTint();
 			if (ImGuiUtils::ColorEdit3("Specular Tint", *glm::value_ptr(specularTint)))
 			{
-				component.Material.SetSpecularTint(specularTint);
+				material.SetSpecularTint(specularTint);
 			}
 
-			float shininess = component.Material.GetShininess();
+			float shininess = material.GetShininess();
 			if (ImGuiUtils::DragFloat("Shininess", shininess, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Material.SetShininess(shininess);
+				material.SetShininess(shininess);
 			}
 		});
 

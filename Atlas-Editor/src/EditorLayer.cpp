@@ -591,6 +591,7 @@ namespace Atlas
 
 		Entity squareEntity = newScene->CreateEntity("White Cube");
 		squareEntity.AddComponent<MeshComponent>();
+		squareEntity.GetComponent<MeshComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
 
 		Entity cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity.AddComponent<CameraComponent>();
@@ -602,7 +603,6 @@ namespace Atlas
 		Entity lightEntity = newScene->CreateEntity("Point Light");
 		lightEntity.GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
 		lightEntity.AddComponent<LightSourceComponent>();
-		lightEntity.GetComponent<LightSourceComponent>().Light.SetColor(glm::vec3(0.459f, 0.0f, 0.0f));
 
 		return newScene;
 	}

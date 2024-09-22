@@ -374,6 +374,18 @@ namespace Atlas
 			ATLAS_CORE_TRACE("    Binding = {0}", binding);
 			ATLAS_CORE_TRACE("    Members = {0}", memberCount);
 		}
+
+		ATLAS_CORE_TRACE("Storage buffers:");
+		for (const auto& resource : resources.storage_buffers)
+		{
+			const auto& bufferType = compiler.get_type(resource.base_type_id);
+			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			int memberCount = bufferType.member_types.size();
+
+			ATLAS_CORE_TRACE("  {0}", resource.name);
+			ATLAS_CORE_TRACE("    Binding = {0}", binding);
+			ATLAS_CORE_TRACE("    Members = {0}", memberCount);
+		}
 	}
 
 	void OpenGLShader::Bind() const
