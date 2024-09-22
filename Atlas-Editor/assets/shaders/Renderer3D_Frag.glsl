@@ -120,20 +120,19 @@ vec4 GetColorFromTexture(int textureIndex)
 	return texColor;
 }
 
-vec4 GetAmbientColor(vec3 lightColor, float lightAmbientStrength, int textureIndex)
+vec4 GetAmbientColor(vec3 lightColor, float lightAmbientStrength)
 {
-//	vec4 ambientColor = VertexInput.AmbientColor == vec3(-1.0) ? GetColorFromTexture(textureIndex) : vec4(VertexInput.AmbientColor, 1.0);
-//	return vec4(lightColor * lightAmbientStrength, 1.0) * ambientColor;
-	return vec4(lightColor * lightAmbientStrength * VertexInput.AmbientColor, 1.0) * GetColorFromTexture(textureIndex);
+//		ambientColor += lightColor * u_LightAmbientStrengths[i] *
+//			(VertexInput.AmbientColor != vec3(-1.0) ? vec4(VertexInput.AmbientColor, 1.0) : GetColorFromTexture(v_TexIndex));
+	return vec4(lightColor * lightAmbientStrength * VertexInput.AmbientColor, 1.0);
 }
 
-vec4 GetDiffuseColor(vec3 lightColor, float lightDiffuseStrength, vec3 lightDirection, vec3 vertexNormal, int textureIndex)
+vec4 GetDiffuseColor(vec3 lightColor, float lightDiffuseStrength, vec3 lightDirection, vec3 vertexNormal)
 {
-//	float diffuseImpact = max(dot(vertexNormal, lightDirection), 0.0);
-//	vec4 diffuseColor = VertexInput.DiffuseColor == vec3(-1.0) ? GetColorFromTexture(textureIndex) : vec4(VertexInput.DiffuseColor, 1.0);
-//	return vec4(lightColor * lightDiffuseStrength * diffuseImpact, 1.0) * diffuseColor;
+//		diffuseColor += lightColor * u_LightDiffuseStrengths[i] * diffuseImpact *
+//			(VertexInput.DiffuseColor != vec3(-1.0) ? vec4(VertexInput.DiffuseColor, 1.0) : GetColorFromTexture(v_TexIndex));
 	float diffuseImpact = max(dot(vertexNormal, lightDirection), 0.0);
-	return vec4(lightColor * lightDiffuseStrength * diffuseImpact * VertexInput.DiffuseColor, 1.0) * GetColorFromTexture(textureIndex);
+	return vec4(lightColor * lightDiffuseStrength * diffuseImpact * VertexInput.DiffuseColor, 1.0);
 }
 
 vec4 GetSpecularColor(vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal)
@@ -160,9 +159,9 @@ vec4 GetColor()
 		vec3 lightColor     = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
 		vec3 lightDirection = normalize(u_LightPositions[lightIndex] - VertexInput.Position);
 		
-		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex],                               v_TexIndex);
-		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal, v_TexIndex);
-		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal            );
+		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]);
+		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal);
+		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal);
 	}
 
 	return ambientColor + diffuseColor + specularColor;
