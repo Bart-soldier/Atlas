@@ -332,14 +332,6 @@ namespace Atlas
 		{
 			auto& material = component.Material;
 
-			glm::vec4 color = material.GetColor();
-			if (ImGuiUtils::ColorEdit4("Color", *glm::value_ptr(color)))
-			{
-				material.SetColor(color);
-			}
-
-			ImGui::Separator();
-
 			const char* materialPresetStrings[] = {
 				"Custom",
 				"Emerald",
@@ -388,22 +380,22 @@ namespace Atlas
 				ImGuiUtils::EndCombo();
 			}
 
-			glm::vec3 ambientTint = material.GetAmbientTint();
-			if (ImGuiUtils::ColorEdit3("Ambient Tint", *glm::value_ptr(ambientTint)))
+			glm::vec3 ambientColor = material.GetAmbientColor();
+			if (ImGuiUtils::ColorEdit3("Ambient Color", *glm::value_ptr(ambientColor)))
 			{
-				material.SetAmbientTint(ambientTint);
+				material.SetAmbientColor(ambientColor);
 			}
 
-			glm::vec3 diffuseTint = material.GetDiffuseTint();
-			if (ImGuiUtils::ColorEdit3("Diffuse Tint", *glm::value_ptr(diffuseTint)))
+			glm::vec3 diffuseColor = material.GetDiffuseColor();
+			if (ImGuiUtils::ColorEdit3("Diffuse Color", *glm::value_ptr(diffuseColor)))
 			{
-				material.SetDiffuseTint(diffuseTint);
+				material.SetDiffuseColor(diffuseColor);
 			}
 
-			glm::vec3 specularTint = material.GetSpecularTint();
-			if (ImGuiUtils::ColorEdit3("Specular Tint", *glm::value_ptr(specularTint)))
+			glm::vec3 specularColor = material.GetSpecularColor();
+			if (ImGuiUtils::ColorEdit3("Specular Color", *glm::value_ptr(specularColor)))
 			{
-				material.SetSpecularTint(specularTint);
+				material.SetSpecularColor(specularColor);
 			}
 
 			float shininess = material.GetShininess();

@@ -37,22 +37,20 @@ namespace Atlas
 		};
 
 		Material() = default;
-		Material(const glm::vec4& color, const glm::vec3& ambientTint, const glm::vec3& diffuseTint, const glm::vec3& specularTint, const float& shininess)
-			: m_Color(color), m_AmbientTint(ambientTint), m_DiffuseTint(diffuseTint), m_SpecularTint(specularTint), m_Shininess(shininess) {}
+		Material(const glm::vec4& color, const glm::vec3& ambientColor, const glm::vec3& diffuseColor, const glm::vec3& specularColor, const float& shininess)
+			: m_AmbientColor(ambientColor), m_DiffuseColor(diffuseColor), m_SpecularColor(specularColor), m_Shininess(shininess) {}
 
 		virtual ~Material() = default;
 
 		MaterialPresets GetMaterialPreset() const { return m_MaterialPreset; }
 		void SetMaterialPreset(MaterialPresets materialPreset);
 
-		void SetColor(const glm::vec4& color) { m_Color = color; }
-		const glm::vec4& GetColor() { return m_Color; }
-		void SetAmbientTint(const glm::vec3& ambientTint) { m_AmbientTint = ambientTint; m_MaterialPreset = MaterialPresets::Custom; }
-		const glm::vec3& GetAmbientTint() { return m_AmbientTint; }
-		void SetDiffuseTint(const glm::vec3& diffuseTint) { m_DiffuseTint = diffuseTint; m_MaterialPreset = MaterialPresets::Custom; }
-		const glm::vec3& GetDiffuseTint() { return m_DiffuseTint; }
-		void SetSpecularTint(const glm::vec3& specularTint) { m_SpecularTint = specularTint; m_MaterialPreset = MaterialPresets::Custom; }
-		const glm::vec3& GetSpecularTint() { return m_SpecularTint; }
+		void SetAmbientColor(const glm::vec3& ambientTint) { m_AmbientColor = ambientTint; m_MaterialPreset = MaterialPresets::Custom; }
+		const glm::vec3& GetAmbientColor() { return m_AmbientColor; }
+		void SetDiffuseColor(const glm::vec3& diffuseTint) { m_DiffuseColor = diffuseTint; m_MaterialPreset = MaterialPresets::Custom; }
+		const glm::vec3& GetDiffuseColor() { return m_DiffuseColor; }
+		void SetSpecularColor(const glm::vec3& specularTint) { m_SpecularColor = specularTint; m_MaterialPreset = MaterialPresets::Custom; }
+		const glm::vec3& GetSpecularColor() { return m_SpecularColor; }
 
 		void SetShininess(const float& shininess) { m_Shininess = shininess; m_MaterialPreset = MaterialPresets::Custom; }
 		const float& GetShininess() { return m_Shininess; }
@@ -60,10 +58,9 @@ namespace Atlas
 	protected:
 		MaterialPresets m_MaterialPreset = MaterialPresets::Custom;
 
-		glm::vec4 m_Color        = glm::vec4(1.0f);
-		glm::vec3 m_AmbientTint  = glm::vec3(1.0f);
-		glm::vec3 m_DiffuseTint  = glm::vec3(1.0f);
-		glm::vec3 m_SpecularTint = glm::vec3(1.0f);
+		glm::vec3 m_AmbientColor  = glm::vec3(1.0f);
+		glm::vec3 m_DiffuseColor  = glm::vec3(1.0f);
+		glm::vec3 m_SpecularColor = glm::vec3(1.0f);
 		float m_Shininess         = 0.25f;
 	};
 }

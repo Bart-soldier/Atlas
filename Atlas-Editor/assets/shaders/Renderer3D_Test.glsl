@@ -6,17 +6,16 @@
 #type vertex
 #version 450 core
 
-layout(location = 0)  in vec3  a_Position;
-layout(location = 1)  in vec3  a_Normal;
-layout(location = 2)  in vec2  a_TexCoord;
-layout(location = 3)  in float a_TexIndex;
-layout(location = 4)  in float a_TilingFactor;
-layout(location = 5)  in vec4  a_Color;
-layout(location = 6)  in vec3  a_AmbientTint;
-layout(location = 7)  in vec3  a_DiffuseTint;
-layout(location = 8)  in vec3  a_SpecularTint;
-layout(location = 9)  in float a_Shininess;
-layout(location = 10) in int   a_EntityID;
+layout(location = 0) in vec3  a_Position;
+layout(location = 1) in vec3  a_Normal;
+layout(location = 2) in vec2  a_TexCoord;
+layout(location = 3) in float a_TexIndex;
+layout(location = 4) in float a_TilingFactor;
+layout(location = 5) in vec3  a_AmbientColor;
+layout(location = 6) in vec3  a_DiffuseColor;
+layout(location = 7) in vec3  a_SpecularColor;
+layout(location = 8) in float a_Shininess;
+layout(location = 9) in int   a_EntityID;
 
 layout(std140, binding = 0) uniform Camera
 {
@@ -32,33 +31,31 @@ struct VertexData
 	vec2  TexCoord;
 	float TilingFactor;
 
-	vec4  Color;
-	vec3  AmbientTint;
-	vec3  DiffuseTint;
-	vec3  SpecularTint;
+	vec3  AmbientColor;
+	vec3  DiffuseColor;
+	vec3  SpecularColor;
 	float Shininess;
 };
 
-layout (location = 0)  out VertexData VertexOutput;
-layout (location = 9)  out flat float v_TexIndex;
-layout (location = 10) out flat int   v_EntityID;
+layout (location = 0) out VertexData VertexOutput;
+layout (location = 8) out flat float v_TexIndex;
+layout (location = 9) out flat int   v_EntityID;
 
 void main()
 {
-	VertexOutput.Position     = a_Position;
-	VertexOutput.Normal       = a_Normal;
+	VertexOutput.Position      = a_Position;
+	VertexOutput.Normal        = a_Normal;
 
-	VertexOutput.TexCoord     = a_TexCoord;
-	VertexOutput.TilingFactor = a_TilingFactor;
+	VertexOutput.TexCoord      = a_TexCoord;
+	VertexOutput.TilingFactor  = a_TilingFactor;
 
-	VertexOutput.Color        = a_Color;
-	VertexOutput.AmbientTint  = a_AmbientTint;
-	VertexOutput.DiffuseTint  = a_DiffuseTint;
-	VertexOutput.SpecularTint = a_SpecularTint;
-	VertexOutput.Shininess    = a_Shininess;
+	VertexOutput.AmbientColor  = a_AmbientColor;
+	VertexOutput.DiffuseColor  = a_DiffuseColor;
+	VertexOutput.SpecularColor = a_SpecularColor;
+	VertexOutput.Shininess     = a_Shininess;
 
-	v_TexIndex                = a_TexIndex;
-	v_EntityID                = a_EntityID;
+	v_TexIndex                 = a_TexIndex;
+	v_EntityID                 = a_EntityID;
 
 	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 }
@@ -73,16 +70,15 @@ struct VertexData
 	vec2  TexCoord;
 	float TilingFactor;
 
-	vec4  Color;
-	vec3  AmbientTint;
-	vec3  DiffuseTint;
-	vec3  SpecularTint;
+	vec3  AmbientColor;
+	vec3  DiffuseColor;
+	vec3  SpecularColor;
 	float Shininess;
 };
 
-layout (location = 0)  in VertexData VertexInput;
-layout (location = 9)  in flat float v_TexIndex;
-layout (location = 10) in flat int   v_EntityID;
+layout (location = 0) in VertexData VertexInput;
+layout (location = 8) in flat float v_TexIndex;
+layout (location = 9) in flat int   v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -136,10 +132,10 @@ vec4 GetLightColor()
 {
 	// Ambient, diffuse & specular lighting
 	// TODO: Fix ambient light settings not working (color corresponds to intensity and intensity is null)
-	//vec3  ambientTint  = u_AmbientLightColor * u_AmbientLightIntensity;
-	vec3  ambientTint  = vec3(0.0);
-	vec3  diffuseTint  = vec3(0.0);
-	vec3  specularTint = vec3(0.0);
+	//vec3  ambientColor  = u_AmbientLightColor * u_AmbientLightIntensity;
+	vec3  ambientColor  = vec3(0.0);
+	vec3  diffuseColor  = vec3(0.0);
+	vec3  specularColor = vec3(0.0);
 
 	vec3 norm = normalize(VertexInput.Normal);
 
@@ -147,24 +143,24 @@ vec4 GetLightColor()
 	{
 		vec3 lightColor = u_LightColors[i] * u_LightIntensities[i];
 		
-		ambientTint += (lightColor * u_LightAmbientStrengths[i]) * VertexInput.AmbientTint;
+		ambientColor += (lightColor * u_LightAmbientStrengths[i]) * VertexInput.AmbientColor;
 
 		vec3 lightDirection = normalize(u_LightPositions[i] - VertexInput.Position);
 		float diffuseImpact = max(dot(norm, lightDirection), 0.0);
-		diffuseTint += (lightColor * u_LightDiffuseStrengths[i]) * (diffuseImpact * VertexInput.DiffuseTint);
+		diffuseColor += (lightColor * u_LightDiffuseStrengths[i]) * (diffuseImpact * VertexInput.DiffuseColor);
 
 		vec3 viewDirection       = normalize(u_CameraPosition - VertexInput.Position);
 		vec3 reflectionDirection = reflect(-lightDirection, norm);
 		float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128);
-		specularTint += (lightColor * u_LightSpecularStrengths[i]) * (specularFactor * VertexInput.SpecularTint);
+		specularColor += (lightColor * u_LightSpecularStrengths[i]) * (specularFactor * VertexInput.SpecularColor);
 	}
 
-	return vec4(ambientTint + diffuseTint + specularTint, 1.0);
+	return vec4(ambientColor + diffuseColor + specularColor, 1.0);
 }
 
 vec4 GetTextureColor()
 {
-	vec4 texColor = VertexInput.Color;
+	vec4 texColor = vec4(1.0);
 
 	switch(int(v_TexIndex))
 	{
