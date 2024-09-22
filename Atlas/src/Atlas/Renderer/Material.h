@@ -63,9 +63,9 @@ namespace Atlas
 	protected:
 		MaterialPresets m_MaterialPreset = MaterialPresets::Custom;
 
-		glm::vec3 m_AmbientColor  = glm::vec3(1.0f); // A vec3(-1) will signal the shader to use texture instead
-		glm::vec3 m_DiffuseColor  = glm::vec3(1.0f); // A vec3(-1) will signal the shader to use texture instead
-		glm::vec3 m_SpecularColor = glm::vec3(1.0f); // A vec3(-1) will signal the shader to use texture instead
+		glm::vec3 m_AmbientColor  = glm::vec3(1.0f);
+		glm::vec3 m_DiffuseColor  = glm::vec3(1.0f);
+		glm::vec3 m_SpecularColor = glm::vec3(1.0f);
 		float m_Shininess         = 0.25f;
 
 		Ref<Texture2D> m_DiffuseTexture = nullptr;

@@ -98,7 +98,7 @@ namespace Atlas
 	}
 
 	OpenGLShader::OpenGLShader(const std::filesystem::path& path)
-		: m_Path(path)
+		: m_VertexPath(path), m_FragmentPath(path)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
@@ -116,6 +116,23 @@ namespace Atlas
 		}
 
 		m_Name = path.stem().string();
+	}
+
+	OpenGLShader::OpenGLShader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath)
+		: m_VertexPath(vertexPath), m_FragmentPath(fragmentPath)
+	{
+		ATLAS_PROFILE_FUNCTION();
+
+		std::string vertexSource   = ReadFile(vertexPath);
+		std::string fragmentSource = ReadFile(fragmentPath);
+
+		std::unordered_map<GLenum, std::string> sources;
+		sources[GL_VERTEX_SHADER] = vertexSource;
+		sources[GL_FRAGMENT_SHADER] = fragmentSource;
+
+		CompileOrGetVulkanBinaries(sources);
+		CompileOrGetOpenGLBinaries();
+		CreateProgram();
 	}
 
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
@@ -212,7 +229,9 @@ namespace Atlas
 		shaderData.clear();
 		for (auto&& [stage, source] : shaderSources)
 		{
-			std::filesystem::path cachedPath = cacheDirectory / (m_Path.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
+			std::filesystem::path shaderPath = stage == GL_VERTEX_SHADER ? m_VertexPath : m_FragmentPath;
+
+			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
 
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
@@ -227,7 +246,7 @@ namespace Atlas
 			}
 			else
 			{
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_Path.string().c_str(), options);
+				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), shaderPath.string().c_str(), options);
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
@@ -268,7 +287,9 @@ namespace Atlas
 		m_OpenGLSourceCode.clear();
 		for (auto&& [stage, spirv] : m_VulkanSPIRV)
 		{
-			std::filesystem::path cachedPath = cacheDirectory / (m_Path.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
+			std::filesystem::path shaderPath = stage == GL_VERTEX_SHADER ? m_VertexPath : m_FragmentPath;
+
+			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
 
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
@@ -287,7 +308,7 @@ namespace Atlas
 				m_OpenGLSourceCode[stage] = glslCompiler.compile();
 				auto& source = m_OpenGLSourceCode[stage];
 
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_Path.string().c_str());
+				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), shaderPath.string().c_str());
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
@@ -332,7 +353,7 @@ namespace Atlas
 
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
-			ATLAS_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_Path.string(), infoLog.data());
+			ATLAS_CORE_ERROR("Shader linking failed ({0}, {1}):\n{2}", m_VertexPath.string(), m_FragmentPath.string(), infoLog.data());
 
 			glDeleteProgram(program);
 
@@ -353,38 +374,74 @@ namespace Atlas
 
 	void OpenGLShader::Reflect(GLenum stage, const std::vector<uint32_t>& shaderData)
 	{
+		std::filesystem::path shaderPath = stage == GL_VERTEX_SHADER ? m_VertexPath : m_FragmentPath;
+
 		spirv_cross::Compiler compiler(shaderData);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-		ATLAS_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Path.string());
+		ATLAS_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), shaderPath.string());
+		ATLAS_CORE_TRACE("    {0} inputs", resources.stage_inputs.size());
+		ATLAS_CORE_TRACE("    {0} ouputs", resources.stage_outputs.size());
 		ATLAS_CORE_TRACE("    {0} uniform buffers", resources.uniform_buffers.size());
 		ATLAS_CORE_TRACE("    {0} storage buffers", resources.storage_buffers.size());
 		ATLAS_CORE_TRACE("    {0} resources", resources.sampled_images.size());
 
-		ATLAS_CORE_TRACE("Uniform buffers:");
-		for (const auto& resource : resources.uniform_buffers)
+		if (resources.stage_inputs.size() > 0)
 		{
-			const auto& bufferType = compiler.get_type(resource.base_type_id);
-			uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
-			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-			int memberCount = bufferType.member_types.size();
+			ATLAS_CORE_TRACE("Inputs:");
+			for (const auto& resource : resources.stage_inputs)
+			{
+				uint32_t location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+				std::string name = compiler.get_fallback_name(resource.id);
 
-			ATLAS_CORE_TRACE("  {0}", resource.name);
-			ATLAS_CORE_TRACE("    Size = {0}", bufferSize);
-			ATLAS_CORE_TRACE("    Binding = {0}", binding);
-			ATLAS_CORE_TRACE("    Members = {0}", memberCount);
+				ATLAS_CORE_TRACE("  {0}", name);
+				ATLAS_CORE_TRACE("    Location = {0}", location);
+			}
 		}
 
-		ATLAS_CORE_TRACE("Storage buffers:");
-		for (const auto& resource : resources.storage_buffers)
+		if (resources.stage_outputs.size() > 0)
 		{
-			const auto& bufferType = compiler.get_type(resource.base_type_id);
-			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-			int memberCount = bufferType.member_types.size();
+			ATLAS_CORE_TRACE("Outputs:");
+			for (const auto& resource : resources.stage_outputs)
+			{
+				uint32_t location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+				std::string name = compiler.get_fallback_name(resource.id);
 
-			ATLAS_CORE_TRACE("  {0}", resource.name);
-			ATLAS_CORE_TRACE("    Binding = {0}", binding);
-			ATLAS_CORE_TRACE("    Members = {0}", memberCount);
+				ATLAS_CORE_TRACE("  {0}", name);
+				ATLAS_CORE_TRACE("    Location = {0}", location);
+			}
+		}
+
+		if (resources.uniform_buffers.size() > 0)
+		{
+			ATLAS_CORE_TRACE("Uniform buffers:");
+			for (const auto& resource : resources.uniform_buffers)
+			{
+				const auto& bufferType = compiler.get_type(resource.base_type_id);
+				uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
+				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				int memberCount = bufferType.member_types.size();
+
+				ATLAS_CORE_TRACE("  {0}", resource.name);
+				ATLAS_CORE_TRACE("    Size = {0}", bufferSize);
+				ATLAS_CORE_TRACE("    Binding = {0}", binding);
+				ATLAS_CORE_TRACE("    Members = {0}", memberCount);
+			}
+		}
+
+		if (resources.storage_buffers.size() > 0)
+		{
+			ATLAS_CORE_TRACE("Storage buffers:");
+			for (const auto& resource : resources.storage_buffers)
+			{
+				const auto& bufferType = compiler.get_type(resource.base_type_id);
+				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				int memberCount = bufferType.member_types.size();
+
+				ATLAS_CORE_TRACE("  {0}", resource.name);
+				ATLAS_CORE_TRACE("    Binding = {0}", binding);
+				ATLAS_CORE_TRACE("    Members = {0}", memberCount);
+			}
 		}
 	}
 

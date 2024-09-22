@@ -7,8 +7,8 @@ namespace Atlas
 	{
 		m_DiffuseTexture = diffuseTexture;
 		m_MaterialPreset = MaterialPresets::Custom;
-		m_AmbientColor = glm::vec3(-1.0f);
-		m_DiffuseColor = glm::vec3(-1.0f);
+		m_AmbientColor = glm::vec3(1.0f);
+		m_DiffuseColor = glm::vec3(1.0f);
 	}
 
 	void Material::SetMaterialPreset(MaterialPresets materialPreset)

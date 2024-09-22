@@ -13,6 +13,7 @@ namespace Atlas
 	{
 	public:
 		OpenGLShader(const std::filesystem::path& path);
+		OpenGLShader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
 		OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		virtual ~OpenGLShader();
 
@@ -50,7 +51,8 @@ namespace Atlas
 		void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
 
 		uint32_t m_RendererID;
-		std::filesystem::path m_Path;
+		std::filesystem::path m_VertexPath;
+		std::filesystem::path m_FragmentPath;
 		std::string m_Name;
 
 		std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV;
