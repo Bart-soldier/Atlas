@@ -18,7 +18,7 @@ namespace Atlas
 		glm::vec3 Position;
 		glm::vec4 Color;
 		glm::vec2 TexCoord;
-		float TexIndex;
+		int TexIndex;
 		float TilingFactor;
 
 		// Editor-only
@@ -52,7 +52,7 @@ namespace Atlas
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
-		float TexIndex;
+		int TexIndex;
 		float TilingFactor;
 
 		glm::vec3 AmbientColor;
@@ -184,7 +184,7 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
 			{ ShaderDataType::Float2, "a_TexCoord"     },
-			{ ShaderDataType::Float,  "a_TexIndex"     },
+			{ ShaderDataType::Int,    "a_TexIndex"     },
 			{ ShaderDataType::Float,  "a_TilingFactor" },
 			{ ShaderDataType::Int,    "a_EntityID"     }
 		});
@@ -256,7 +256,7 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Position"      },
 			{ ShaderDataType::Float3, "a_Normal"        },
 			{ ShaderDataType::Float2, "a_TexCoord"      },
-			{ ShaderDataType::Float,  "a_TexIndex"      },
+			{ ShaderDataType::Int,    "a_TexIndex"      },
 			{ ShaderDataType::Float,  "a_TilingFactor"  },
 			{ ShaderDataType::Float3, "a_AmbientColor"  },
 			{ ShaderDataType::Float3, "a_DiffuseColor"  },
@@ -358,6 +358,36 @@ namespace Atlas
 
 		s_Data.SceneLightSpecularStrengthBuffer.RED = sceneLighting.LightSpecularStrengths;
 		s_Data.SceneLightSpecularStrengthStorageBuffer->SetData(s_Data.SceneLightSpecularStrengthBuffer.RED.data(), sizeof(float) * s_Data.SceneLightSpecularStrengthBuffer.RED.size());
+	}
+
+	int Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
+	{
+		int textureIndex = 0;
+
+		// Check if texture is already slotted
+		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		{
+			if (*s_Data.TextureSlots[i] == *texture)
+			{
+				textureIndex = i;
+				break;
+			}
+		}
+
+		// If texture is not found
+		if (textureIndex == 0)
+		{
+			if (s_Data.TextureSlotIndex >= RendererData::MaxTextureSlots)
+			{
+				NextBatch();
+			}
+
+			textureIndex = s_Data.TextureSlotIndex;
+			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+			s_Data.TextureSlotIndex++;
+		}
+
+		return textureIndex;
 	}
 
 	void Renderer::EndScene()
@@ -549,7 +579,7 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
-		const float textureIndex = 0.0f; // White Texture
+		const int textureIndex = 0; // White Texture
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
@@ -624,27 +654,7 @@ namespace Atlas
 			NextBatch();
 		}
 
-		float textureIndex = 0.0f;
-		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
-		{
-			if (*s_Data.TextureSlots[i] == *texture)
-			{
-				textureIndex = (float)i;
-				break;
-			}
-		}
-
-		if (textureIndex == 0.0f)
-		{
-			if (s_Data.TextureSlotIndex >= RendererData::MaxTextureSlots)
-			{
-				NextBatch();
-			}
-
-			textureIndex = (float)s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
-			s_Data.TextureSlotIndex++;
-		}
+		int textureIndex = EnsureTextureSlot(texture);
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -708,27 +718,7 @@ namespace Atlas
 			NextBatch();
 		}
 
-		float textureIndex = 0.0f;
-		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
-		{
-			if (*s_Data.TextureSlots[i] == *texture)
-			{
-				textureIndex = (float)i;
-				break;
-			}
-		}
-
-		if (textureIndex == 0.0f)
-		{
-			if (s_Data.TextureSlotIndex >= RendererData::MaxTextureSlots)
-			{
-				NextBatch();
-			}
-
-			textureIndex = (float)s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
-			s_Data.TextureSlotIndex++;
-		}
+		int textureIndex = EnsureTextureSlot(texture);
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -770,7 +760,6 @@ namespace Atlas
 				DrawCircle(transform, src.Color, src.Thickness, src.Fade, entityID);
 				break;
 		}
-
 	}
 
 	void Renderer::DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness, float fade, int entityID)
@@ -854,9 +843,16 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		size_t vertexCount = src.VertexCount;
-		const float textureIndex = 0.0f; // White Texture
-		const float tilingFactor = 1.0f;
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
+
+		int textureIndex = 0; // White Texture
+		const float tilingFactor = 1.0f;
+
+		const Ref<Texture2D>& diffuseTexture = src.Material.GetDiffuseTexture();
+		if (diffuseTexture != nullptr)
+		{
+			textureIndex = EnsureTextureSlot(diffuseTexture);
+		}
 
 		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)
 		{

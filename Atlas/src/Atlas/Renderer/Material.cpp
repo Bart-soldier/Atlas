@@ -3,6 +3,14 @@
 
 namespace Atlas
 {
+	void Material::SetDiffuseTexture(const Ref<Texture2D>& diffuseTexture)
+	{
+		m_DiffuseTexture = diffuseTexture;
+		m_MaterialPreset = MaterialPresets::Custom;
+		m_AmbientColor = glm::vec3(-1.0f);
+		m_DiffuseColor = glm::vec3(-1.0f);
+	}
+
 	void Material::SetMaterialPreset(MaterialPresets materialPreset)
 	{
 		if (m_MaterialPreset == materialPreset)
@@ -15,8 +23,9 @@ namespace Atlas
 		// These numbers come from the OpenGL teapots.c demo, Silicon Graphics, Inc., 1994, Mark J. Kilgard
 		switch (m_MaterialPreset)
 		{
+			default:
 			case Atlas::Material::MaterialPresets::Custom:
-				break;
+				return;
 			case Atlas::Material::MaterialPresets::Emerald:
 				m_AmbientColor  = glm::vec3(0.0215f    , 0.1745f    , 0.0215f    );
 				m_DiffuseColor  = glm::vec3(0.07568f   , 0.61424f   , 0.07568f   );
@@ -161,8 +170,8 @@ namespace Atlas
 				m_SpecularColor = glm::vec3(0.7f       , 0.7f       , 0.04f      );
 				m_Shininess    = 0.078125f;
 				break;
-			default:
-				break;
 		}
+
+		m_DiffuseTexture = nullptr;
 	}
 }

@@ -9,7 +9,7 @@
 layout(location = 0) in vec3  a_Position;
 layout(location = 1) in vec3  a_Normal;
 layout(location = 2) in vec2  a_TexCoord;
-layout(location = 3) in float a_TexIndex;
+layout(location = 3) in int   a_TexIndex;
 layout(location = 4) in float a_TilingFactor;
 layout(location = 5) in vec3  a_AmbientColor;
 layout(location = 6) in vec3  a_DiffuseColor;
@@ -38,7 +38,7 @@ struct VertexData
 };
 
 layout (location = 0) out VertexData VertexOutput;
-layout (location = 8) out flat float v_TexIndex;
+layout (location = 8) out flat int   v_TexIndex;
 layout (location = 9) out flat int   v_EntityID;
 
 void main()
@@ -77,7 +77,7 @@ struct VertexData
 };
 
 layout (location = 0) in VertexData VertexInput;
-layout (location = 8) in flat float v_TexIndex;
+layout (location = 8) in flat int   v_TexIndex;
 layout (location = 9) in flat int   v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
@@ -128,41 +128,11 @@ layout(std430, binding = 7) buffer LightSpecularStrengths
 layout(location = 0) out vec4 o_color;
 layout(location = 1) out int  o_entityID;
 
-vec4 GetLightColor()
-{
-	// Ambient, diffuse & specular lighting
-	// TODO: Fix ambient light settings not working (color corresponds to intensity and intensity is null)
-	//vec3  ambientColor  = u_AmbientLightColor * u_AmbientLightIntensity;
-	vec3  ambientColor  = vec3(0.0);
-	vec3  diffuseColor  = vec3(0.0);
-	vec3  specularColor = vec3(0.0);
-
-	vec3 norm = normalize(VertexInput.Normal);
-
-	for (uint i = 0; i < u_LightCount; i++)
-	{
-		vec3 lightColor = u_LightColors[i] * u_LightIntensities[i];
-		
-		ambientColor += (lightColor * u_LightAmbientStrengths[i]) * VertexInput.AmbientColor;
-
-		vec3 lightDirection = normalize(u_LightPositions[i] - VertexInput.Position);
-		float diffuseImpact = max(dot(norm, lightDirection), 0.0);
-		diffuseColor += (lightColor * u_LightDiffuseStrengths[i]) * (diffuseImpact * VertexInput.DiffuseColor);
-
-		vec3 viewDirection       = normalize(u_CameraPosition - VertexInput.Position);
-		vec3 reflectionDirection = reflect(-lightDirection, norm);
-		float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128);
-		specularColor += (lightColor * u_LightSpecularStrengths[i]) * (specularFactor * VertexInput.SpecularColor);
-	}
-
-	return vec4(ambientColor + diffuseColor + specularColor, 1.0);
-}
-
-vec4 GetTextureColor()
+vec4 GetColorFromTexture(int textureIndex)
 {
 	vec4 texColor = vec4(1.0);
 
-	switch(int(v_TexIndex))
+	switch(textureIndex)
 	{
 		case  0: texColor *= texture(u_Textures[ 0], VertexInput.TexCoord * VertexInput.TilingFactor); break;
 		case  1: texColor *= texture(u_Textures[ 1], VertexInput.TexCoord * VertexInput.TilingFactor); break;
@@ -207,10 +177,58 @@ vec4 GetTextureColor()
 	return texColor;
 }
 
+vec4 GetAmbientColor(uint lightIndex, vec3 lightColor)
+{
+//		ambientColor += lightColor * u_LightAmbientStrengths[i] *
+//			(VertexInput.AmbientColor != vec3(-1.0) ? vec4(VertexInput.AmbientColor, 1.0) : GetColorFromTexture(v_TexIndex));
+	return vec4(lightColor * u_LightAmbientStrengths[lightIndex] * VertexInput.AmbientColor, 1.0);
+}
+
+vec4 GetDiffuseColor(uint lightIndex, vec3 lightColor, vec3 lightDirection, vec3 vertexNormal)
+{
+	
+	float diffuseImpact = max(dot(vertexNormal, lightDirection), 0.0);
+//		diffuseColor += lightColor * u_LightDiffuseStrengths[i] * diffuseImpact *
+//			(VertexInput.DiffuseColor != vec3(-1.0) ? vec4(VertexInput.DiffuseColor, 1.0) : GetColorFromTexture(v_TexIndex));
+	return vec4(lightColor * u_LightDiffuseStrengths[lightIndex] * diffuseImpact * VertexInput.DiffuseColor, 1.0);
+}
+
+vec4 GetSpecularColor(uint lightIndex, vec3 lightColor, vec3 lightDirection, vec3 vertexNormal)
+{
+	vec3 viewDirection       = normalize(u_CameraPosition - VertexInput.Position);
+	vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);
+	float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128); // TODO: Fix Shininess == 0
+	return vec4(lightColor * u_LightSpecularStrengths[lightIndex] * (specularFactor * VertexInput.SpecularColor), 1.0);
+}
+
+vec4 GetColor()
+{
+	// Ambient, diffuse & specular lighting
+	// TODO: Fix ambient light settings not working (color corresponds to intensity and intensity is null)
+	//vec3  ambientColor  = u_AmbientLightColor * u_AmbientLightIntensity;
+	vec4  ambientColor  = vec4(0.0);
+	vec4  diffuseColor  = vec4(0.0);
+	vec4  specularColor = vec4(0.0);
+
+	vec3 vertexNormal = normalize(VertexInput.Normal);
+
+	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
+	{
+		vec3 lightColor     = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
+		vec3 lightDirection = normalize(u_LightPositions[lightIndex] - VertexInput.Position);
+		
+		ambientColor  += GetAmbientColor  (lightIndex, lightColor);
+		diffuseColor  += GetDiffuseColor  (lightIndex, lightColor, lightDirection, vertexNormal);
+		specularColor += GetSpecularColor (lightIndex, lightColor, lightDirection, vertexNormal);
+	}
+
+	return ambientColor + diffuseColor + specularColor;
+}
+
 void main()
 {
 	// Color buffer
-	o_color = GetTextureColor() * GetLightColor();
+	o_color = GetColor();
 
 	// Entity ID buffer
 	o_entityID = v_EntityID;

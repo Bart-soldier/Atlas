@@ -295,7 +295,7 @@ namespace Atlas
 
 	}
 
-	void ImGuiUtils::BeginTextureViewer(const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped)
+	void ImGuiUtils::BeginTextureViewer(const std::string& label, const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped)
 	{
 		// Texture UV
 		ImVec2 uv_min;                                   // Top-left
@@ -318,7 +318,7 @@ namespace Atlas
 		ImGui::Columns(2, 0, false);
 		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
 
-		ImGui::Text("Texture");
+		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
 		if (texture == nullptr)

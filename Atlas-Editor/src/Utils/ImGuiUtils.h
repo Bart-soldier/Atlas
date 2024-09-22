@@ -20,7 +20,7 @@ namespace Atlas
 		static bool BeginCombo(const std::string& label, const char& value);
 		static void EndCombo();
 
-		static void BeginTextureViewer(const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped);
+		static void BeginTextureViewer(const std::string& label, const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped);
 		static bool EndTextureViewer(const Ref<Texture2D> texture);
 	};
 }

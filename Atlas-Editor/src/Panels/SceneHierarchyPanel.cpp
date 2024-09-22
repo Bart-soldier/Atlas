@@ -274,7 +274,7 @@ namespace Atlas
 
 			if (component.Type == SpriteRendererComponent::RenderType::Square)
 			{
-				ImGuiUtils::BeginTextureViewer(component.Texture, 150.0, 150.0, true);
+				ImGuiUtils::BeginTextureViewer("Texture", component.Texture, 150.0, 150.0, true);
 
 				if (ImGui::BeginDragDropTarget())
 				{
@@ -380,16 +380,43 @@ namespace Atlas
 				ImGuiUtils::EndCombo();
 			}
 
-			glm::vec3 ambientColor = material.GetAmbientColor();
-			if (ImGuiUtils::ColorEdit3("Ambient Color", *glm::value_ptr(ambientColor)))
+			// Diffuse component
+			ImGuiUtils::BeginTextureViewer("Diffuse Texture", material.GetDiffuseTexture(), 150.0, 150.0, true);
+
+			if (ImGui::BeginDragDropTarget())
 			{
-				material.SetAmbientColor(ambientColor);
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path payloadPath(path);
+
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
+					{
+						material.SetDiffuseTexture(texture);
+					}
+				}
+				ImGui::EndDragDropTarget();
 			}
 
-			glm::vec3 diffuseColor = material.GetDiffuseColor();
-			if (ImGuiUtils::ColorEdit3("Diffuse Color", *glm::value_ptr(diffuseColor)))
+			if (ImGuiUtils::EndTextureViewer(material.GetDiffuseTexture()))
 			{
-				material.SetDiffuseColor(diffuseColor);
+				material.SetDiffuseTexture(nullptr);
+			}
+
+			if (material.GetDiffuseTexture() == nullptr)
+			{
+				glm::vec3 ambientColor = material.GetAmbientColor();
+				if (ImGuiUtils::ColorEdit3("Ambient Color", *glm::value_ptr(ambientColor)))
+				{
+					material.SetAmbientColor(ambientColor);
+				}
+
+				glm::vec3 diffuseColor = material.GetDiffuseColor();
+				if (ImGuiUtils::ColorEdit3("Diffuse Color", *glm::value_ptr(diffuseColor)))
+				{
+					material.SetDiffuseColor(diffuseColor);
+				}
 			}
 
 			glm::vec3 specularColor = material.GetSpecularColor();

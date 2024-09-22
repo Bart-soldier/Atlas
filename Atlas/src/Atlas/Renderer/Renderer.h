@@ -85,6 +85,7 @@ namespace Atlas
 
 	private:
 		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec3& cameraPosition, const SceneLighting& sceneLighting);
+		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
 		static void NextBatch();
