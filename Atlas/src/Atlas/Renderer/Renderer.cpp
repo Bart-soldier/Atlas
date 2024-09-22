@@ -52,13 +52,12 @@ namespace Atlas
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
-		int TexIndex;
-		float TilingFactor;
 
 		glm::vec3 AmbientColor;
 		glm::vec3 DiffuseColor;
 		glm::vec3 SpecularColor;
 		float Shininess;
+		uint32_t DiffuseTextureIndex;
 
 		// Editor-only
 		int EntityID;
@@ -253,16 +252,15 @@ namespace Atlas
 		// Mesh VBO
 		s_Data.MeshVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(MeshVertex));
 		s_Data.MeshVertexBuffer->SetLayout({
-			{ ShaderDataType::Float3, "a_Position"      },
-			{ ShaderDataType::Float3, "a_Normal"        },
-			{ ShaderDataType::Float2, "a_TexCoord"      },
-			{ ShaderDataType::Int,    "a_TexIndex"      },
-			{ ShaderDataType::Float,  "a_TilingFactor"  },
-			{ ShaderDataType::Float3, "a_AmbientColor"  },
-			{ ShaderDataType::Float3, "a_DiffuseColor"  },
-			{ ShaderDataType::Float3, "a_SpecularColor" },
-			{ ShaderDataType::Float,  "a_Shininess"     },
-			{ ShaderDataType::Int,    "a_EntityID"      }
+			{ ShaderDataType::Float3, "a_Position"            },
+			{ ShaderDataType::Float3, "a_Normal"              },
+			{ ShaderDataType::Float2, "a_TexCoord"            },
+			{ ShaderDataType::Float3, "a_AmbientColor"        },
+			{ ShaderDataType::Float3, "a_DiffuseColor"        },
+			{ ShaderDataType::Float3, "a_SpecularColor"       },
+			{ ShaderDataType::Float,  "a_Shininess"           },
+			{ ShaderDataType::Int,    "a_DiffuseTextureIndex" },
+			{ ShaderDataType::Int,    "a_EntityID"            }
 			});
 		s_Data.MeshVertexArray->AddVertexBuffer(s_Data.MeshVertexBuffer);
 		s_Data.MeshVertexBufferBase = new MeshVertex[s_Data.MaxVertices];
@@ -846,13 +844,12 @@ namespace Atlas
 		size_t vertexCount = src.VertexCount;
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int textureIndex = 0; // White Texture
-		const float tilingFactor = 1.0f;
+		int diffuseTextureIndex = 0; // White Texture
 
 		const Ref<Texture2D>& diffuseTexture = src.Material.GetDiffuseTexture();
 		if (diffuseTexture != nullptr)
 		{
-			textureIndex = EnsureTextureSlot(diffuseTexture);
+			diffuseTextureIndex = EnsureTextureSlot(diffuseTexture);
 		}
 
 		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)
@@ -864,16 +861,18 @@ namespace Atlas
 		{
 			int currentIndex = i * 8;
 
-			s_Data.MeshVertexBufferPtr->Position      = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
-			s_Data.MeshVertexBufferPtr->Normal        = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
-			s_Data.MeshVertexBufferPtr->TexCoord      = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
-			s_Data.MeshVertexBufferPtr->TexIndex      = textureIndex;
-			s_Data.MeshVertexBufferPtr->TilingFactor  = tilingFactor;
-			s_Data.MeshVertexBufferPtr->AmbientColor  = src.Material.GetAmbientColor();
-			s_Data.MeshVertexBufferPtr->DiffuseColor  = src.Material.GetDiffuseColor();
-			s_Data.MeshVertexBufferPtr->SpecularColor = src.Material.GetSpecularColor();
-			s_Data.MeshVertexBufferPtr->Shininess     = src.Material.GetShininess();
-			s_Data.MeshVertexBufferPtr->EntityID      = entityID;
+			s_Data.MeshVertexBufferPtr->Position            = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
+			s_Data.MeshVertexBufferPtr->Normal              = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
+			s_Data.MeshVertexBufferPtr->TexCoord            = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
+
+			s_Data.MeshVertexBufferPtr->AmbientColor        = src.Material.GetAmbientColor();
+			s_Data.MeshVertexBufferPtr->DiffuseColor        = src.Material.GetDiffuseColor();
+			s_Data.MeshVertexBufferPtr->SpecularColor       = src.Material.GetSpecularColor();
+			s_Data.MeshVertexBufferPtr->Shininess           = src.Material.GetShininess();
+			s_Data.MeshVertexBufferPtr->DiffuseTextureIndex = diffuseTextureIndex;
+
+			s_Data.MeshVertexBufferPtr->EntityID            = entityID;
+
 			s_Data.MeshVertexBufferPtr++;
 		}
 
