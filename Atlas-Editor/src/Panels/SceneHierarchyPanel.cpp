@@ -287,6 +287,8 @@ namespace Atlas
 						if (texture->IsLoaded())
 						{
 							component.Texture = texture;
+							component.SpriteSheet = false;
+							component.SubTexture = nullptr;
 						}
 					}
 					ImGui::EndDragDropTarget();
