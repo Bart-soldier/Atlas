@@ -358,6 +358,7 @@ namespace Atlas
 
 		ATLAS_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Path.string());
 		ATLAS_CORE_TRACE("    {0} uniform buffers", resources.uniform_buffers.size());
+		ATLAS_CORE_TRACE("    {0} storage buffers", resources.storage_buffers.size());
 		ATLAS_CORE_TRACE("    {0} resources", resources.sampled_images.size());
 
 		ATLAS_CORE_TRACE("Uniform buffers:");
