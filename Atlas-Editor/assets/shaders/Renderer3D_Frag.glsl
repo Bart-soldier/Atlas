@@ -52,9 +52,9 @@ layout(std430, binding = 4) buffer LightDirections
 	vec4 u_LightDirections[];
 };
 
-layout(std430, binding = 5) buffer LightAttenuations
+layout(std430, binding = 5) buffer LightRadius
 {
-	vec4 u_LightAttenuations[];
+	float u_LightRadius[];
 };
 
 layout(std430, binding = 6) buffer LightIntensities
@@ -99,18 +99,18 @@ vec4 GetSpecularColor(vec3 lightColor, float lightSpecularStrength, vec3 lightDi
 	return vec4(lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor), 1.0);
 }
 
-float GetLightAttenuation(vec4 lightAttenuation, vec3 lightPosition, vec3 vertexPosition)
+float GetLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vertexPosition)
 {
 	float attenuation = 0.0;
 
-	if(lightAttenuation.w > 0)
+	if(lightRadius > 0)
 	{
 		float dist = length(lightPosition - vertexPosition);
 
-		if(dist <= lightAttenuation.w)
-		{
-			attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * dist + lightAttenuation.z * dist * dist);
-		}
+		// Cem Yuksel Nonsingular Point Light Attenuation
+		float temp = dist * dist + lightRadius * lightRadius;
+		attenuation = 2.0 / (temp + dist * sqrt(temp));
+		//attenuation = 1.0 / temp;
 	}
 
 	return attenuation;
@@ -141,7 +141,7 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 			lightDirection = normalize(-u_LightDirections[lightIndex].xyz);
 		}
 		
-		float attenuation = GetLightAttenuation(u_LightAttenuations[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
+		float attenuation = GetLightAttenuation(u_LightRadius[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
 
 		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor  * attenuation;
 		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor  * attenuation;

@@ -470,7 +470,7 @@ namespace Atlas
 			}
 
 			float intensity = light.GetIntensity();
-			if (ImGuiUtils::DragFloat("Intensity", intensity, 1.0f, 0.001f, 0.0f, 1.0f))
+			if (ImGuiUtils::DragFloat("Intensity", intensity, 1.0f, 1.0f, 0.0f))
 			{
 				light.SetIntensity(intensity);
 			}
@@ -528,16 +528,10 @@ namespace Atlas
 
 			if (light.GetCastType() != Light::CastType::DirectionalLight)
 			{
-				float range = light.GetRange();
-				if (ImGuiUtils::DragFloat("Range", range, 50.0f, 1.0f, 0.0f))
+				float range = light.GetRadius();
+				if (ImGuiUtils::DragFloat("Radius", range, 0.01f, 0.01f, 0.0f))
 				{
-					light.SetRange(range);
-				}
-
-				glm::vec3 direction = light.GetAttenuation();
-				if (ImGuiUtils::DragFloat3("Attenuation terms", direction, 1.0f, 0.01f))
-				{
-					light.SetAttenuation(direction);
+					light.SetRadius(range);
 				}
 			}
 		});
