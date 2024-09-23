@@ -94,9 +94,9 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 	// Ambient, diffuse & specular lighting
 	// TODO: Fix ambient light settings not working (color corresponds to intensity and intensity is null)
 	//vec3  ambientColor  = u_AmbientLightColor * u_AmbientLightIntensity;
-	vec4  ambientColor  = vec4(0.0);
-	vec4  diffuseColor  = vec4(0.0);
-	vec4  specularColor = vec4(0.0);
+	vec4  ambientColor  = vec4(0.0, 0.0, 0.0, 1.0);
+	vec4  diffuseColor  = vec4(0.0, 0.0, 0.0, 1.0);
+	vec4  specularColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 	vec3 vertexNormal = normalize(VertexInput.Normal);
 
