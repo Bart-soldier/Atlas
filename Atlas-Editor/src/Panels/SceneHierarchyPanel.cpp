@@ -494,7 +494,7 @@ namespace Atlas
 			if (light.GetCastType() != Light::CastType::PointLight)
 			{
 				glm::vec3 direction = light.GetDirection();
-				if (ImGuiUtils::ColorEdit3("Direction", *glm::value_ptr(direction)))
+				if (ImGuiUtils::DragFloat3("Direction", direction, 0.0f, 1.0f, -1.0f, 1.0f))
 				{
 					light.SetDirection(direction);
 				}
