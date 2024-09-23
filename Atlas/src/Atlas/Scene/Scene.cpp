@@ -203,6 +203,7 @@ namespace Atlas
 		m_SceneLighting.LightPositions.clear();
 		m_SceneLighting.LightColors.clear();
 		m_SceneLighting.LightDirections.clear();
+		m_SceneLighting.LightAttenuations.clear();
 		m_SceneLighting.LightIntensities.clear();
 		m_SceneLighting.LightAmbientStrengths.clear();
 		m_SceneLighting.LightDiffuseStrengths.clear();
@@ -216,6 +217,7 @@ namespace Atlas
 			m_SceneLighting.LightPositions.push_back(transform.Translation);
 			m_SceneLighting.LightColors.push_back(light.Light.GetColor());
 			m_SceneLighting.LightDirections.push_back(light.Light.GetDirection());
+			m_SceneLighting.LightAttenuations.push_back(light.Light.GetAttenuation());
 			m_SceneLighting.LightIntensities.push_back(light.Light.GetIntensity());
 			m_SceneLighting.LightAmbientStrengths.push_back(light.Light.GetAmbientStrength());
 			m_SceneLighting.LightDiffuseStrengths.push_back(light.Light.GetDiffuseStrength());

@@ -463,41 +463,10 @@ namespace Atlas
 		{
 			auto& light = component.Light;
 
-			const char* castTypeStrings[] = { "Directional Light", "Point Light", "Spotlight"};
-			const char* currentCastTypeString = castTypeStrings[(int)light.GetCastType()];
-			if (ImGuiUtils::BeginCombo("Cast Type", *currentCastTypeString))
-			{
-				for (int i = 0; i < 3; i++)
-				{
-					bool isSelected = currentCastTypeString == castTypeStrings[i];
-					if (ImGui::Selectable(castTypeStrings[i], isSelected))
-					{
-						currentCastTypeString = castTypeStrings[i];
-						light.SetCastType((Light::CastType)i);
-					}
-
-					if (isSelected)
-					{
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-
-				ImGuiUtils::EndCombo();
-			}
-
 			glm::vec3 color = light.GetColor();
 			if (ImGuiUtils::ColorEdit3("Color", *glm::value_ptr(color)))
 			{
 				light.SetColor(color);
-			}
-
-			if (light.GetCastType() != Light::CastType::PointLight)
-			{
-				glm::vec3 direction = light.GetDirection();
-				if (ImGuiUtils::DragFloat3("Direction", direction, 0.0f, 1.0f, -1.0f, 1.0f))
-				{
-					light.SetDirection(direction);
-				}
 			}
 
 			float intensity = light.GetIntensity();
@@ -522,6 +491,48 @@ namespace Atlas
 			if (ImGuiUtils::DragFloat("Specular Strength", specularStrength, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
 				light.SetSpecularStrength(specularStrength);
+			}
+
+			ImGui::Separator();
+
+			const char* castTypeStrings[] = { "Directional Light", "Point Light", "Spotlight"};
+			const char* currentCastTypeString = castTypeStrings[(int)light.GetCastType()];
+			if (ImGuiUtils::BeginCombo("Cast Type", *currentCastTypeString))
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					bool isSelected = currentCastTypeString == castTypeStrings[i];
+					if (ImGui::Selectable(castTypeStrings[i], isSelected))
+					{
+						currentCastTypeString = castTypeStrings[i];
+						light.SetCastType((Light::CastType)i);
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGuiUtils::EndCombo();
+			}
+
+			if (light.GetCastType() != Light::CastType::PointLight)
+			{
+				glm::vec3 direction = light.GetDirection();
+				if (ImGuiUtils::DragFloat3("Direction", direction, 0.0f, 1.0f, -1.0f, 1.0f))
+				{
+					light.SetDirection(direction);
+				}
+			}
+
+			if (light.GetCastType() != Light::CastType::DirectionalLight)
+			{
+				glm::vec3 direction = light.GetAttenuation();
+				if (ImGuiUtils::DragFloat3("Attenuation terms", direction, 1.0f, 0.01f))
+				{
+					light.SetAttenuation(direction);
+				}
 			}
 		});
 	}

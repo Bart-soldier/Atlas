@@ -7,13 +7,20 @@ namespace Atlas
 	{
 		m_CastType = castType;
 
-		if (m_CastType == CastType::PointLight)
+		switch (castType)
 		{
-			m_Direction.w = 0.0f;
-		}
-		else
-		{
-			m_Direction.w = 1.0f;
+			case CastType::DirectionalLight:
+				m_Direction.w   = 1.0f;
+				m_Attenuation.w = 0.0f;
+				break;
+			case CastType::PointLight:
+				m_Direction.w   = 0.0f;
+				m_Attenuation.w = 1.0f;
+				break;
+			case CastType::Spotlight:
+				m_Direction.w   = 1.0f;
+				m_Attenuation.w = 1.0f;
+				break;
 		}
 	}
 }

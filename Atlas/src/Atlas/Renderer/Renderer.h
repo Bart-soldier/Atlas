@@ -19,6 +19,7 @@ namespace Atlas
 		std::vector<glm::vec3> LightPositions;
 		std::vector<glm::vec3> LightColors;
 		std::vector<glm::vec4> LightDirections;
+		std::vector<glm::vec4> LightAttenuations;
 		std::vector<float> LightIntensities;
 		std::vector<float> LightAmbientStrengths;
 		std::vector<float> LightDiffuseStrengths;

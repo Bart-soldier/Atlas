@@ -52,28 +52,46 @@ layout(std430, binding = 4) buffer LightDirections
 	vec4 u_LightDirections[];
 };
 
-layout(std430, binding = 5) buffer LightIntensities
+layout(std430, binding = 5) buffer LightAttenuations
+{
+	vec4 u_LightAttenuations[];
+};
+
+layout(std430, binding = 6) buffer LightIntensities
 {
 	float u_LightIntensities[];
 };
 
-layout(std430, binding = 6) buffer LightAmbientStrengths
+layout(std430, binding = 7) buffer LightAmbientStrengths
 {
 	float u_LightAmbientStrengths[];
 };
 
-layout(std430, binding = 7) buffer LightDiffuseStrengths
+layout(std430, binding = 8) buffer LightDiffuseStrengths
 {
 	float u_LightDiffuseStrengths[];
 };
 
-layout(std430, binding = 8) buffer LightSpecularStrengths
+layout(std430, binding = 9) buffer LightSpecularStrengths
 {
 	float u_LightSpecularStrengths[];
 };
 
 layout(location = 0) out vec4 o_color;
 layout(location = 1) out int  o_entityID;
+
+//float GetAttenuation(vec4 lightAttenuation, vec3 lightPosition, vec3 vertexPosition)
+//{
+//	float attenuation = 1.0;
+//
+//	if(lightAttenuation.w == 1)
+//	{
+//		float dist  = length(lightPosition - vertexPosition);
+//		attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * dist + lightAttenuation.z * dist * dist);
+//	}
+//
+//	return attenuation;
+//}
 
 vec4 GetAmbientColor(vec3 lightColor, float lightAmbientStrength)
 {
@@ -120,9 +138,20 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 			lightDirection = normalize(-u_LightDirections[lightIndex].xyz);
 		}
 		
-		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor;
-		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor;
-		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * specularTextureColor;
+		//float attenuation = GetAttenuation(u_LightAttenuations[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
+
+		float attenuation = 1.0;
+		vec4 lightAttenuation = u_LightAttenuations[lightIndex];
+
+		if(lightAttenuation.w == 1)
+		{
+			float dist  = length(u_LightPositions[lightIndex] - VertexInput.Position);
+			attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * dist + lightAttenuation.z * dist * dist);
+		}
+
+		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor  * attenuation;
+		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor  * attenuation;
+		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * specularTextureColor * attenuation;
 	}
 
 	return ambientColor + diffuseColor + specularColor;

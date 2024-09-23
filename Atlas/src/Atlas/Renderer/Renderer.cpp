@@ -144,6 +144,7 @@ namespace Atlas
 		Ref<StorageBuffer> SceneLightPositionsStorageBuffer;
 		Ref<StorageBuffer> SceneLightColorsStorageBuffer;
 		Ref<StorageBuffer> SceneLightDirectionsStorageBuffer;
+		Ref<StorageBuffer> SceneLightAttenuationsStorageBuffer;
 		Ref<StorageBuffer> SceneLightIntensitiesStorageBuffer;
 		Ref<StorageBuffer> SceneLightAmbientStrengthStorageBuffer;
 		Ref<StorageBuffer> SceneLightDiffuseStrengthStorageBuffer;
@@ -277,10 +278,11 @@ namespace Atlas
 		s_Data.SceneLightPositionsStorageBuffer        = StorageBuffer::Create(0                               , 2);
 		s_Data.SceneLightColorsStorageBuffer           = StorageBuffer::Create(0                               , 3);
 		s_Data.SceneLightDirectionsStorageBuffer       = StorageBuffer::Create(0                               , 4);
-		s_Data.SceneLightIntensitiesStorageBuffer      = StorageBuffer::Create(0                               , 5);
-		s_Data.SceneLightAmbientStrengthStorageBuffer  = StorageBuffer::Create(0                               , 6);
-		s_Data.SceneLightDiffuseStrengthStorageBuffer  = StorageBuffer::Create(0                               , 7);
-		s_Data.SceneLightSpecularStrengthStorageBuffer = StorageBuffer::Create(0                               , 8);
+		s_Data.SceneLightAttenuationsStorageBuffer     = StorageBuffer::Create(0                               , 5);
+		s_Data.SceneLightIntensitiesStorageBuffer      = StorageBuffer::Create(0                               , 6);
+		s_Data.SceneLightAmbientStrengthStorageBuffer  = StorageBuffer::Create(0                               , 7);
+		s_Data.SceneLightDiffuseStrengthStorageBuffer  = StorageBuffer::Create(0                               , 8);
+		s_Data.SceneLightSpecularStrengthStorageBuffer = StorageBuffer::Create(0                               , 9);
 	}
 
 	void Renderer::Shutdown()
@@ -336,6 +338,7 @@ namespace Atlas
 		s_Data.SceneLightPositionsStorageBuffer       ->SetData(sceneLighting.LightPositions.data()        , sizeof(glm::vec3) * sceneLighting.LightPositions.size()        );
 		s_Data.SceneLightColorsStorageBuffer          ->SetData(sceneLighting.LightColors.data()           , sizeof(glm::vec3) * sceneLighting.LightColors.size()           );
 		s_Data.SceneLightDirectionsStorageBuffer      ->SetData(sceneLighting.LightDirections.data()       , sizeof(glm::vec4) * sceneLighting.LightDirections.size()       );
+		s_Data.SceneLightAttenuationsStorageBuffer    ->SetData(sceneLighting.LightAttenuations.data()     , sizeof(glm::vec4) * sceneLighting.LightAttenuations.size()     );
 		s_Data.SceneLightIntensitiesStorageBuffer     ->SetData(sceneLighting.LightIntensities.data()      , sizeof(float)     * sceneLighting.LightIntensities.size()      );
 		s_Data.SceneLightAmbientStrengthStorageBuffer ->SetData(sceneLighting.LightAmbientStrengths.data() , sizeof(float)     * sceneLighting.LightAmbientStrengths.size() );
 		s_Data.SceneLightDiffuseStrengthStorageBuffer ->SetData(sceneLighting.LightDiffuseStrengths.data() , sizeof(float)     * sceneLighting.LightDiffuseStrengths.size() );
@@ -490,6 +493,7 @@ namespace Atlas
 		s_Data.SceneLightPositionsStorageBuffer       ->SetSize(sizeof(glm::vec3) * lightCount);
 		s_Data.SceneLightColorsStorageBuffer          ->SetSize(sizeof(glm::vec3) * lightCount);
 		s_Data.SceneLightDirectionsStorageBuffer      ->SetSize(sizeof(glm::vec4) * lightCount);
+		s_Data.SceneLightAttenuationsStorageBuffer    ->SetSize(sizeof(glm::vec4) * lightCount);
 		s_Data.SceneLightIntensitiesStorageBuffer     ->SetSize(sizeof(float)     * lightCount);
 		s_Data.SceneLightAmbientStrengthStorageBuffer ->SetSize(sizeof(float)     * lightCount);
 		s_Data.SceneLightDiffuseStrengthStorageBuffer ->SetSize(sizeof(float)     * lightCount);
