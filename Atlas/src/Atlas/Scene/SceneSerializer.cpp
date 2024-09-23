@@ -195,8 +195,55 @@ namespace Atlas
 			out << YAML::Key << "Thickness" << YAML::Value << spriteRendererComponent.Thickness;
 			out << YAML::Key << "Fade" << YAML::Value << spriteRendererComponent.Fade;
 
-
 			out << YAML::EndMap; // SpriteRendererComponent
+		}
+
+		if (entity.HasComponent<MeshComponent>())
+		{
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap; // MeshComponent
+
+			auto& meshComponent = entity.GetComponent<MeshComponent>();
+			auto& material = meshComponent.Material;
+
+			out << YAML::Key << "Preset" << YAML::Value << (int)material.GetMaterialPreset();
+
+			out << YAML::Key << "AmbientColor" << YAML::Value << material.GetDiffuseColor();
+			out << YAML::Key << "DiffuseColor" << YAML::Value << material.GetDiffuseColor();
+			out << YAML::Key << "SpecularColor" << YAML::Value << material.GetDiffuseColor();
+			out << YAML::Key << "Shininess" << YAML::Value << material.GetShininess();
+
+			auto& diffuseTexture = material.GetDiffuseTexture();
+			if (diffuseTexture)
+			{
+				out << YAML::Key << "DiffuseTexturePath" << YAML::Value << diffuseTexture->GetPath().string();
+			}
+
+			auto& specularTexture = material.GetSpecularTexture();
+			if (specularTexture)
+			{
+				out << YAML::Key << "SpecularTexturePath" << YAML::Value << specularTexture->GetPath().string();
+			}
+
+			out << YAML::EndMap; // MeshComponent
+		}
+
+		if (entity.HasComponent<LightSourceComponent>())
+		{
+			out << YAML::Key << "LightSourceComponent";
+			out << YAML::BeginMap; // LightSourceComponent
+
+			auto& lightSourceComponent = entity.GetComponent<LightSourceComponent>();
+			auto& light = lightSourceComponent.Light;
+
+			out << YAML::Key << "Color" << YAML::Value << light.GetColor();
+			out << YAML::Key << "Intensity" << YAML::Value << light.GetIntensity();
+
+			out << YAML::Key << "AmbientStrength" << YAML::Value << light.GetAmbientStrength();
+			out << YAML::Key << "DiffuseStrength" << YAML::Value << light.GetDiffuseStrength();
+			out << YAML::Key << "SpecularStrength" << YAML::Value << light.GetSpecularStrength();
+
+			out << YAML::EndMap; // LightSourceComponent
 		}
 
 		out << YAML::EndMap; // Entity
@@ -395,6 +442,82 @@ namespace Atlas
 					if (src.SpriteSheet)
 					{
 						src.SubTexture = SubTexture2D::CreateFromCoords(src.Texture, src.SubTextureCoords, src.SubTextureCellSize, src.SubTextureSpriteSize);
+					}
+				}
+
+				auto meshComponent = entity["MeshComponent"];
+				if (meshComponent)
+				{
+					auto& src = deserializedEntity.AddComponent<MeshComponent>();
+
+					if (meshComponent["Preset"])
+					{
+						src.Material.SetMaterialPreset((Material::MaterialPresets)meshComponent["Preset"].as<int>());
+					}
+
+					if (meshComponent["AmbientColor"])
+					{
+						src.Material.SetAmbientColor(meshComponent["AmbientColor"].as<glm::vec3>());
+					}
+
+					if (meshComponent["DiffuseColor"])
+					{
+						src.Material.SetDiffuseColor(meshComponent["DiffuseColor"].as<glm::vec3>());
+					}
+
+					if (meshComponent["SpecularColor"])
+					{
+						src.Material.SetSpecularColor(meshComponent["SpecularColor"].as<glm::vec3>());
+					}
+
+					if (meshComponent["Shininess"])
+					{
+						src.Material.SetShininess(meshComponent["Shininess"].as<float>());
+					}
+
+					if (meshComponent["DiffuseTexturePath"])
+					{
+						std::string texturePath = meshComponent["DiffuseTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material.SetDiffuseTexture(Texture2D::Create(path.string()));
+					}
+
+					if (meshComponent["SpecularTexturePath"])
+					{
+						std::string texturePath = meshComponent["SpecularTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material.SetSpecularTexture(Texture2D::Create(path.string()));
+					}
+				}
+
+				auto lightSourceComponent = entity["LightSourceComponent"];
+				if (lightSourceComponent)
+				{
+					auto& src = deserializedEntity.AddComponent<LightSourceComponent>();
+
+					if (lightSourceComponent["Color"])
+					{
+						src.Light.SetColor(lightSourceComponent["Color"].as<glm::vec3>());
+					}
+
+					if (lightSourceComponent["Intensity"])
+					{
+						src.Light.SetIntensity(lightSourceComponent["Intensity"].as<float>());
+					}
+
+					if (lightSourceComponent["AmbientStrength"])
+					{
+						src.Light.SetAmbientStrength(lightSourceComponent["AmbientStrength"].as<float>());
+					}
+
+					if (lightSourceComponent["DiffuseStrength"])
+					{
+						src.Light.SetDiffuseStrength(lightSourceComponent["DiffuseStrength"].as<float>());
+					}
+
+					if (lightSourceComponent["SpecularStrength"])
+					{
+						src.Light.SetSpecularStrength(lightSourceComponent["SpecularStrength"].as<float>());
 					}
 				}
 			}
