@@ -80,19 +80,6 @@ layout(std430, binding = 9) buffer LightSpecularStrengths
 layout(location = 0) out vec4 o_color;
 layout(location = 1) out int  o_entityID;
 
-//float GetAttenuation(vec4 lightAttenuation, vec3 lightPosition, vec3 vertexPosition)
-//{
-//	float attenuation = 1.0;
-//
-//	if(lightAttenuation.w == 1)
-//	{
-//		float dist  = length(lightPosition - vertexPosition);
-//		attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * dist + lightAttenuation.z * dist * dist);
-//	}
-//
-//	return attenuation;
-//}
-
 vec4 GetAmbientColor(vec3 lightColor, float lightAmbientStrength)
 {
 	return vec4(lightColor * lightAmbientStrength * VertexInput.AmbientColor, 1.0);
@@ -110,6 +97,19 @@ vec4 GetSpecularColor(vec3 lightColor, float lightSpecularStrength, vec3 lightDi
 	vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);
 	float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128); // TODO: Fix Shininess == 0
 	return vec4(lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor), 1.0);
+}
+
+float GetAttenuation(vec4 lightAttenuation, vec3 lightPosition, vec3 vertexPosition)
+{
+	float attenuation = 1.0;
+
+	if(lightAttenuation.w == 1)
+	{
+		float dist  = length(lightPosition - vertexPosition);
+		attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * dist + lightAttenuation.z * dist * dist);
+	}
+
+	return attenuation;
 }
 
 vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
@@ -138,16 +138,7 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 			lightDirection = normalize(-u_LightDirections[lightIndex].xyz);
 		}
 		
-		//float attenuation = GetAttenuation(u_LightAttenuations[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
-
-		float attenuation = 1.0;
-		vec4 lightAttenuation = u_LightAttenuations[lightIndex];
-
-		if(lightAttenuation.w == 1)
-		{
-			float dist  = length(u_LightPositions[lightIndex] - VertexInput.Position);
-			attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * dist + lightAttenuation.z * dist * dist);
-		}
+		float attenuation = GetAttenuation(u_LightAttenuations[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
 
 		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor  * attenuation;
 		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor  * attenuation;
