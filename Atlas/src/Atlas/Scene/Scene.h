@@ -43,7 +43,6 @@ namespace Atlas
 		const float& GetAmbientLightIntensity() { return m_SceneLighting.AmbientLightIntensity; }
 
 	private:
-		void ResetSceneSettings();
 		void UpdateSceneLighting();
 		void DrawScene();
 

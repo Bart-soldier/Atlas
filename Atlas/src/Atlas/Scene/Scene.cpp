@@ -11,19 +11,11 @@ namespace Atlas
 	Scene::Scene()
 	{
 		m_Name = "Untitled Scene";
-		ResetSceneSettings();
 	}
 
 	Scene::Scene(std::string name)
 		: m_Name(name)
 	{
-		ResetSceneSettings();
-	}
-
-	void Scene::ResetSceneSettings()
-	{
-		m_SceneLighting.AmbientLightIntensity = 0.1f;
-		Renderer::SetLightCount(0);
 	}
 
 	Scene::~Scene()
@@ -80,6 +72,8 @@ namespace Atlas
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
 		std::unordered_map<UUID, entt::entity> enttMap;
+
+		newScene->m_SceneLighting = other->m_SceneLighting;
 
 		// Create entities in new scene
 		auto idView = srcSceneRegistry.view<IDComponent>();
@@ -314,7 +308,7 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentAdded<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
-		Renderer::IncreaseLightCount();
+		m_SceneLighting.LightCount++;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -373,6 +367,6 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentRemoved<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
-		Renderer::DecreaseLightCount();
+		m_SceneLighting.LightCount--;
 	}
 }

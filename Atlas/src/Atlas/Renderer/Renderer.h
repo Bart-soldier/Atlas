@@ -13,8 +13,9 @@ namespace Atlas
 	struct SceneLighting
 	{
 		glm::vec3 AmbientLightColor = glm::vec3(1.0f);
-		float AmbientLightIntensity = 1.0f;
+		float AmbientLightIntensity = 0.1f;
 
+		uint32_t LightCount = 0;
 		std::vector<glm::vec3> LightPositions      = std::vector<glm::vec3>();
 		std::vector<glm::vec3> LightColors         = std::vector<glm::vec3>();
 		std::vector<float> LightIntensities        = std::vector<float>();
@@ -33,10 +34,6 @@ namespace Atlas
 		static void BeginScene(const EditorCamera& camera, const SceneLighting& sceneLighting = SceneLighting());
 		static void EndScene();
 		static void Flush();
-
-		static void SetLightCount(uint32_t count);
-		static void IncreaseLightCount();
-		static void DecreaseLightCount();
 
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
@@ -91,6 +88,6 @@ namespace Atlas
 		static void StartBatch();
 		static void NextBatch();
 
-		static void UpdateSceneLightBuffers();
+		static void UpdateSceneLightBuffers(uint32_t lightCount);
 	};
 }

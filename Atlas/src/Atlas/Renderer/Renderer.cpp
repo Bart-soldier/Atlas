@@ -336,9 +336,15 @@ namespace Atlas
 		s_Data.CameraBuffer.Position = cameraPosition;
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
 
+		if (s_Data.LightBuffer.LightCount != sceneLighting.LightCount)
+		{
+			s_Data.LightBuffer.LightCount = sceneLighting.LightCount;
+			UpdateSceneLightBuffers(sceneLighting.LightCount);
+		}
 		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
 		s_Data.LightBuffer.AmbientLightIntensity = sceneLighting.AmbientLightIntensity;
 		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(RendererData::LightData));
+
 
 		// Storage buffers
 		s_Data.SceneLightPositionsBuffer.RGB = sceneLighting.LightPositions;
@@ -503,32 +509,14 @@ namespace Atlas
 		StartBatch();
 	}
 
-	void Renderer::SetLightCount(uint32_t count)
+	void Renderer::UpdateSceneLightBuffers(uint32_t lightCount)
 	{
-		s_Data.LightBuffer.LightCount = count;
-		UpdateSceneLightBuffers();
-	}
-
-	void Renderer::IncreaseLightCount()
-	{
-		s_Data.LightBuffer.LightCount++;
-		UpdateSceneLightBuffers();
-	}
-
-	void Renderer::DecreaseLightCount()
-	{
-		s_Data.LightBuffer.LightCount--;
-		UpdateSceneLightBuffers();
-	}
-
-	void Renderer::UpdateSceneLightBuffers()
-	{
-		s_Data.SceneLightPositionsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.LightBuffer.LightCount);
-		s_Data.SceneLightColorsStorageBuffer->SetSize(sizeof(glm::vec3) * s_Data.LightBuffer.LightCount);
-		s_Data.SceneLightIntensitiesStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
-		s_Data.SceneLightAmbientStrengthStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
-		s_Data.SceneLightDiffuseStrengthStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
-		s_Data.SceneLightSpecularStrengthStorageBuffer->SetSize(sizeof(float) * s_Data.LightBuffer.LightCount);
+		s_Data.SceneLightPositionsStorageBuffer->SetSize(sizeof(glm::vec3) * lightCount);
+		s_Data.SceneLightColorsStorageBuffer->SetSize(sizeof(glm::vec3) * lightCount);
+		s_Data.SceneLightIntensitiesStorageBuffer->SetSize(sizeof(float) * lightCount);
+		s_Data.SceneLightAmbientStrengthStorageBuffer->SetSize(sizeof(float) * lightCount);
+		s_Data.SceneLightDiffuseStrengthStorageBuffer->SetSize(sizeof(float) * lightCount);
+		s_Data.SceneLightSpecularStrengthStorageBuffer->SetSize(sizeof(float) * lightCount);
 	}
 
 	RendererAPI::PolygonMode Renderer::GetPolygonMode()
