@@ -260,8 +260,8 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_DiffuseColor"         },
 			{ ShaderDataType::Float3, "a_SpecularColor"        },
 			{ ShaderDataType::Float,  "a_Shininess"            },
-			{ ShaderDataType::Int,    "a_DiffuseTextureIndex"  },
-			{ ShaderDataType::Int,    "a_SpecularTextureIndex" },
+			{ ShaderDataType::UInt,   "a_DiffuseTextureIndex"  },
+			{ ShaderDataType::UInt,   "a_SpecularTextureIndex" },
 			{ ShaderDataType::Int,    "a_EntityID"             }
 			});
 		s_Data.MeshVertexArray->AddVertexBuffer(s_Data.MeshVertexBuffer);
@@ -284,7 +284,6 @@ namespace Atlas
 		s_Data.QuadShader   = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
 		s_Data.CircleShader = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
 		s_Data.LineShader   = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
-		//s_Data.MeshShader   = Shader::Create("assets/shaders/Renderer3D_Test.glsl");
 		s_Data.MeshShader   = Shader::Create("assets/shaders/Renderer3D_Vert.glsl", "assets/shaders/Renderer3D_Frag.glsl");
 	
 		// Uniform buffers
@@ -851,7 +850,7 @@ namespace Atlas
 		size_t vertexCount = src.VertexCount;
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int diffuseTextureIndex   = EnsureTextureSlot(src.Material.GetDiffuseTexture());
+		int diffuseTextureIndex  = EnsureTextureSlot(src.Material.GetDiffuseTexture());
 		int specularTextureIndex = EnsureTextureSlot(src.Material.GetSpecularTexture());
 
 		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)

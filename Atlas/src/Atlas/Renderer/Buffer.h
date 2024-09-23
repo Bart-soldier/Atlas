@@ -4,18 +4,19 @@ namespace Atlas
 {
 	enum class ShaderDataType
 	{
-		None = 0,
-		Float,
-		Float2,
-		Float3,
-		Float4,
-		Mat3,
-		Mat4,
-		Int,
-		Int2,
-		Int3,
-		Int4,
-		Bool
+		None   = 0,
+		Float  = 1,
+		Float2 = 2,
+		Float3 = 3,
+		Float4 = 4,
+		Mat3   = 5,
+		Mat4   = 6,
+		UInt   = 7,
+		Int    = 8,
+		Int2   = 9,
+		Int3   = 10,
+		Int4   = 11,
+		Bool   = 12
 	};
 
 	static uint32_t ShaderDataTypeSize(ShaderDataType type)
@@ -28,6 +29,7 @@ namespace Atlas
 			case ShaderDataType::Float4:   return 4 * 4;
 			case ShaderDataType::Mat3:     return 4 * 3 * 3;
 			case ShaderDataType::Mat4:     return 4 * 4 * 4;
+			case ShaderDataType::UInt:     return 4;
 			case ShaderDataType::Int:      return 4;
 			case ShaderDataType::Int2:     return 4 * 2;
 			case ShaderDataType::Int3:     return 4 * 3;
@@ -64,6 +66,7 @@ namespace Atlas
 				case ShaderDataType::Float4:  return 4;
 				case ShaderDataType::Mat3:    return 3;
 				case ShaderDataType::Mat4:    return 4;
+				case ShaderDataType::UInt:    return 1;
 				case ShaderDataType::Int:     return 1;
 				case ShaderDataType::Int2:    return 2;
 				case ShaderDataType::Int3:    return 3;

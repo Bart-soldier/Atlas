@@ -15,6 +15,7 @@ namespace Atlas
 			case ShaderDataType::Float4:   return GL_FLOAT;
 			case ShaderDataType::Mat3:     return GL_FLOAT;
 			case ShaderDataType::Mat4:     return GL_FLOAT;
+			case ShaderDataType::UInt:     return GL_UNSIGNED_INT;
 			case ShaderDataType::Int:      return GL_INT;
 			case ShaderDataType::Int2:     return GL_INT;
 			case ShaderDataType::Int3:     return GL_INT;
@@ -83,6 +84,7 @@ namespace Atlas
 				m_VertexBufferIndex++;
 				break;
 			}
+			case ShaderDataType::UInt:
 			case ShaderDataType::Int:
 			case ShaderDataType::Int2:
 			case ShaderDataType::Int3:

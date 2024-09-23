@@ -18,8 +18,8 @@ struct VertexData
 };
 
 layout (location = 0) in VertexData VertexInput;
-layout (location = 7) in flat int   v_DiffuseTextureIndex;
-layout (location = 8) in flat int   v_SpecularTextureIndex;
+layout (location = 7) in flat uint  v_DiffuseTextureIndex;
+layout (location = 8) in flat uint  v_SpecularTextureIndex;
 layout (location = 9) in flat int   v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
@@ -113,7 +113,7 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 	return ambientColor + diffuseColor + specularColor;
 }
 
-vec4 GetTextureColor(int textureIndex)
+vec4 GetTextureColor(uint textureIndex)
 {
 	switch(textureIndex)
 	{
