@@ -157,13 +157,13 @@ void main()
 	vec4 diffuseTextureColor  = GetTextureColor(v_DiffuseTextureIndex);
 	vec4 specularTextureColor = GetTextureColor(v_SpecularTextureIndex);
 
-	vec4 fragmentColor = GetColorFromLights(diffuseTextureColor, specularTextureColor);
-
-	// Alpha discard
-	if (fragmentColor.a == 0.0)
+	// Alpha discard on diffuse
+	if (diffuseTextureColor.a == 0.0)
 	{
 		discard;
 	}
+
+	vec4 fragmentColor = GetColorFromLights(diffuseTextureColor, specularTextureColor);
 
 	// Color buffer
 	o_color = fragmentColor;
