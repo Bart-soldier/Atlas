@@ -19,7 +19,8 @@ struct VertexData
 
 layout (location = 0) in VertexData VertexInput;
 layout (location = 7) in flat int   v_DiffuseTextureIndex;
-layout (location = 8) in flat int   v_EntityID;
+layout (location = 8) in flat int   v_SpecularTextureIndex;
+layout (location = 9) in flat int   v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -88,7 +89,7 @@ vec4 GetSpecularColor(vec3 lightColor, float lightSpecularStrength, vec3 lightDi
 	return vec4(lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor), 1.0);
 }
 
-vec4 GetColorFromLights(vec4 diffuseTextureColor)
+vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 {
 	// Ambient, diffuse & specular lighting
 	// TODO: Fix ambient light settings not working (color corresponds to intensity and intensity is null)
@@ -106,7 +107,7 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor)
 		
 		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor;
 		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor;
-		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal);
+		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * specularTextureColor;
 	}
 
 	return ambientColor + diffuseColor + specularColor;
@@ -153,9 +154,10 @@ vec4 GetTextureColor(int textureIndex)
 
 void main()
 {
-	vec4 diffuseTextureColor = GetTextureColor(v_DiffuseTextureIndex);
+	vec4 diffuseTextureColor  = GetTextureColor(v_DiffuseTextureIndex);
+	vec4 specularTextureColor = GetTextureColor(v_SpecularTextureIndex);
 
-	vec4 fragmentColor = GetColorFromLights(diffuseTextureColor);
+	vec4 fragmentColor = GetColorFromLights(diffuseTextureColor, specularTextureColor);
 
 	// Alpha discard
 	if (fragmentColor.a == 0.0)

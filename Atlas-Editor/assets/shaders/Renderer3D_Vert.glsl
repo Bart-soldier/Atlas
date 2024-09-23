@@ -13,9 +13,11 @@ layout(location = 3) in vec3  a_AmbientColor;
 layout(location = 4) in vec3  a_DiffuseColor;
 layout(location = 5) in vec3  a_SpecularColor;
 layout(location = 6) in float a_Shininess;
-layout(location = 7) in int   a_DiffuseTextureIndex;
 
-layout(location = 8) in int   a_EntityID;
+layout(location = 7) in int   a_DiffuseTextureIndex;
+layout(location = 8) in int   a_SpecularTextureIndex;
+
+layout(location = 9) in int   a_EntityID;
 
 layout(std140, binding = 0) uniform Camera
 {
@@ -37,7 +39,8 @@ struct VertexData
 
 layout (location = 0) out VertexData VertexOutput;
 layout (location = 7) out flat int   v_DiffuseTextureIndex;
-layout (location = 8) out flat int   v_EntityID;
+layout (location = 8) out flat int   v_SpecularTextureIndex;
+layout (location = 9) out flat int   v_EntityID;
 
 void main()
 {
@@ -51,6 +54,7 @@ void main()
 	VertexOutput.Shininess     = a_Shininess;
 
 	v_DiffuseTextureIndex      = a_DiffuseTextureIndex;
+	v_SpecularTextureIndex     = a_SpecularTextureIndex;
 
 	v_EntityID                 = a_EntityID;
 

@@ -11,6 +11,13 @@ namespace Atlas
 		m_DiffuseColor = glm::vec3(1.0f);
 	}
 
+	void Material::SetSpecularTexture(const Ref<Texture2D>& specularTexture)
+	{
+		m_SpecularTexture = specularTexture;
+		m_MaterialPreset = MaterialPresets::Custom;
+		m_SpecularColor = glm::vec3(1.0f);
+	}
+
 	void Material::SetMaterialPreset(MaterialPresets materialPreset)
 	{
 		if (m_MaterialPreset == materialPreset)
@@ -173,5 +180,6 @@ namespace Atlas
 		}
 
 		m_DiffuseTexture = nullptr;
+		m_SpecularTexture = nullptr;
 	}
 }

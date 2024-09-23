@@ -54,6 +54,9 @@ namespace Atlas
 		void SetDiffuseTexture(const Ref<Texture2D>& diffuseTexture);
 		const Ref<Texture2D>& GetDiffuseTexture() { return m_DiffuseTexture; }
 
+		void SetSpecularTexture(const Ref<Texture2D>& specularTexture);
+		const Ref<Texture2D>& GetSpecularTexture() { return m_SpecularTexture; }
+
 		void SetShininess(const float& shininess) { m_Shininess = shininess; m_MaterialPreset = MaterialPresets::Custom; }
 		const float& GetShininess() { return m_Shininess; }
 
@@ -68,6 +71,7 @@ namespace Atlas
 		glm::vec3 m_SpecularColor = glm::vec3(1.0f);
 		float m_Shininess         = 0.25f;
 
-		Ref<Texture2D> m_DiffuseTexture = nullptr;
+		Ref<Texture2D> m_DiffuseTexture  = nullptr;
+		Ref<Texture2D> m_SpecularTexture = nullptr;
 	};
 }

@@ -419,10 +419,37 @@ namespace Atlas
 				}
 			}
 
-			glm::vec3 specularColor = material.GetSpecularColor();
-			if (ImGuiUtils::ColorEdit3("Specular Color", *glm::value_ptr(specularColor)))
+			// Specular component
+			ImGuiUtils::BeginTextureViewer("Specular Texture", material.GetSpecularTexture(), 150.0, 150.0, true);
+
+			if (ImGui::BeginDragDropTarget())
 			{
-				material.SetSpecularColor(specularColor);
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path payloadPath(path);
+
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
+					{
+						material.SetSpecularTexture(texture);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGuiUtils::EndTextureViewer(material.GetSpecularTexture()))
+			{
+				material.SetSpecularTexture(nullptr);
+			}
+
+			if (material.GetSpecularTexture() == nullptr)
+			{
+				glm::vec3 specularColor = material.GetSpecularColor();
+				if (ImGuiUtils::ColorEdit3("Specular Color", *glm::value_ptr(specularColor)))
+				{
+					material.SetSpecularColor(specularColor);
+				}
 			}
 
 			float shininess = material.GetShininess();
