@@ -43,11 +43,15 @@ namespace Atlas
 		const float& GetAmbientLightIntensity() { return m_SceneLighting.AmbientLightIntensity; }
 
 	private:
+		void ResetSceneSettings();
 		void UpdateSceneLighting();
 		void DrawScene();
 
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
+
+		template<typename... Component>
+		void OnComponentRemoved(Entity entity, ComponentGroup<Component...>);
 
 		template<typename T>
 		void OnComponentRemoved(Entity entity, T& component);

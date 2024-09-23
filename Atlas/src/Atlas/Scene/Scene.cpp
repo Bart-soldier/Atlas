@@ -11,13 +11,19 @@ namespace Atlas
 	Scene::Scene()
 	{
 		m_Name = "Untitled Scene";
-		m_SceneLighting.AmbientLightIntensity = 0.1f;
+		ResetSceneSettings();
 	}
 
 	Scene::Scene(std::string name)
 		: m_Name(name)
 	{
+		ResetSceneSettings();
+	}
+
+	void Scene::ResetSceneSettings()
+	{
 		m_SceneLighting.AmbientLightIntensity = 0.1f;
+		Renderer::SetLightCount(0);
 	}
 
 	Scene::~Scene()
@@ -107,6 +113,7 @@ namespace Atlas
 
 	void Scene::DestroyEntity(Entity entity)
 	{
+		OnComponentRemoved(entity, AllComponents{});
 		m_Registry.destroy(entity);
 	}
 
@@ -311,8 +318,21 @@ namespace Atlas
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
-	// OnComponentRemoved //////////////////////////////////////////////////////////////////
+	// OnComponentAdded ////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////
+
+	template<typename... Component>
+	void Scene::OnComponentRemoved(Entity entity, ComponentGroup<Component...>)
+	{
+		([&]()
+			{
+				if (entity.HasComponent<Component>())
+				{
+					OnComponentRemoved<Component>(entity, entity.GetComponent<Component>());
+				}
+			}
+		(), ...);
+	}
 
 	template<typename T>
 	void Scene::OnComponentRemoved(Entity entity, T& component)

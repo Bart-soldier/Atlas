@@ -34,6 +34,7 @@ namespace Atlas
 		static void EndScene();
 		static void Flush();
 
+		static void SetLightCount(uint32_t count);
 		static void IncreaseLightCount();
 		static void DecreaseLightCount();
 

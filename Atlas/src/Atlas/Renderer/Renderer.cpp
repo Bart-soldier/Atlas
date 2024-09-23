@@ -503,6 +503,12 @@ namespace Atlas
 		StartBatch();
 	}
 
+	void Renderer::SetLightCount(uint32_t count)
+	{
+		s_Data.LightBuffer.LightCount = count;
+		UpdateSceneLightBuffers();
+	}
+
 	void Renderer::IncreaseLightCount()
 	{
 		s_Data.LightBuffer.LightCount++;

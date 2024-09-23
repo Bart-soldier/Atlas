@@ -1,20 +1,18 @@
 Scene: 3D Example
 Entities:
-  - Entity: 8973117593411618567
+  - Entity: 8975641200445455453
     TagComponent:
-      Tag: Cube
+      Tag: Untitled Entity
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [2.5999999, 1.60000002, 1.60000002]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    MeshComponent:
-      Preset: 0
-      AmbientColor: [1, 1, 1]
-      DiffuseColor: [1, 1, 1]
-      SpecularColor: [1, 1, 1]
-      Shininess: 0.25
-      DiffuseTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container.png
-      SpecularTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\ContainerSpecular.png
+    LightSourceComponent:
+      Color: [1, 1, 1]
+      Intensity: 1
+      AmbientStrength: 0.100000001
+      DiffuseStrength: 0.5
+      SpecularStrength: 1
   - Entity: 8499682893995048034
     TagComponent:
       Tag: Camera
@@ -33,3 +31,18 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
+  - Entity: 8973117593411618567
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Preset: 0
+      AmbientColor: [1, 1, 1]
+      DiffuseColor: [1, 1, 1]
+      SpecularColor: [1, 1, 1]
+      Shininess: 0.25
+      DiffuseTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container.png
+      SpecularTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\ContainerSpecular.png
