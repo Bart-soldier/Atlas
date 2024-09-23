@@ -11,15 +11,15 @@ namespace Atlas
 		{
 			case CastType::DirectionalLight:
 				m_Direction.w   = 1.0f;
-				m_Attenuation.w = 0.0f;
+				m_Attenuation.w = -abs(m_Attenuation.w);
 				break;
 			case CastType::PointLight:
 				m_Direction.w   = 0.0f;
-				m_Attenuation.w = 1.0f;
+				m_Attenuation.w = abs(m_Attenuation.w);
 				break;
 			case CastType::Spotlight:
 				m_Direction.w   = 1.0f;
-				m_Attenuation.w = 1.0f;
+				m_Attenuation.w = abs(m_Attenuation.w);
 				break;
 		}
 	}

@@ -528,6 +528,12 @@ namespace Atlas
 
 			if (light.GetCastType() != Light::CastType::DirectionalLight)
 			{
+				float range = light.GetRange();
+				if (ImGuiUtils::DragFloat("Range", range, 50.0f, 1.0f, 0.0f))
+				{
+					light.SetRange(range);
+				}
+
 				glm::vec3 direction = light.GetAttenuation();
 				if (ImGuiUtils::DragFloat3("Attenuation terms", direction, 1.0f, 0.01f))
 				{

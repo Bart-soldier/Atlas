@@ -26,6 +26,8 @@ namespace Atlas
 		const glm::vec4& GetDirection() { return m_Direction; }
 		void SetAttenuation(const glm::vec3& attenuation) { m_Attenuation = glm::vec4(attenuation, m_Attenuation.w); }
 		const glm::vec4& GetAttenuation() { return m_Attenuation; }
+		void SetRange(const float& range) { m_Attenuation.w = range; }
+		const float& GetRange() { return m_Attenuation.w; }
 		void SetIntensity(const float& intensity) { m_Intensity = intensity; }
 		const float& GetIntensity() { return m_Intensity; }
 
@@ -44,7 +46,7 @@ namespace Atlas
 
 		glm::vec3 m_Color = glm::vec3(1.0f);
 		glm::vec4 m_Direction = glm::vec4(0.0f); // w is used as flag to signal if we use direction or not
-		glm::vec4 m_Attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 1.0f); // w is used as flag to signal if we use direction or not
+		glm::vec4 m_Attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 50.0f); // w is used for max range. Negative w means attenuation disabled
 		float m_Intensity = 1.0f;
 
 		float m_AmbientStrength  = 0.1f;
