@@ -461,34 +461,67 @@ namespace Atlas
 
 		DrawComponent<LightSourceComponent>("Light Source", entity, [](auto& component)
 		{
-			glm::vec3 color = component.Light.GetColor();
+			auto& light = component.Light;
+
+			const char* castTypeStrings[] = { "Directional Light", "Point Light", "Spotlight"};
+			const char* currentCastTypeString = castTypeStrings[(int)light.GetCastType()];
+			if (ImGuiUtils::BeginCombo("Cast Type", *currentCastTypeString))
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					bool isSelected = currentCastTypeString == castTypeStrings[i];
+					if (ImGui::Selectable(castTypeStrings[i], isSelected))
+					{
+						currentCastTypeString = castTypeStrings[i];
+						light.SetCastType((Light::CastType)i);
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGuiUtils::EndCombo();
+			}
+
+			glm::vec3 color = light.GetColor();
 			if (ImGuiUtils::ColorEdit3("Color", *glm::value_ptr(color)))
 			{
-				component.Light.SetColor(color);
+				light.SetColor(color);
 			}
 
-			float intensity = component.Light.GetIntensity();
+			if (light.GetCastType() != Light::CastType::PointLight)
+			{
+				glm::vec3 direction = light.GetDirection();
+				if (ImGuiUtils::ColorEdit3("Direction", *glm::value_ptr(direction)))
+				{
+					light.SetDirection(direction);
+				}
+			}
+
+			float intensity = light.GetIntensity();
 			if (ImGuiUtils::DragFloat("Intensity", intensity, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Light.SetIntensity(intensity);
+				light.SetIntensity(intensity);
 			}
 
-			float ambientStrength = component.Light.GetAmbientStrength();
+			float ambientStrength = light.GetAmbientStrength();
 			if (ImGuiUtils::DragFloat("Ambient Strength", ambientStrength, 0.1f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Light.SetAmbientStrength(ambientStrength);
+				light.SetAmbientStrength(ambientStrength);
 			}
 
-			float diffuseStrength = component.Light.GetDiffuseStrength();
+			float diffuseStrength = light.GetDiffuseStrength();
 			if (ImGuiUtils::DragFloat("Diffuse Strength", diffuseStrength, 0.5f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Light.SetDiffuseStrength(diffuseStrength);
+				light.SetDiffuseStrength(diffuseStrength);
 			}
 
-			float specularStrength = component.Light.GetSpecularStrength();
+			float specularStrength = light.GetSpecularStrength();
 			if (ImGuiUtils::DragFloat("Specular Strength", specularStrength, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				component.Light.SetSpecularStrength(specularStrength);
+				light.SetSpecularStrength(specularStrength);
 			}
 		});
 	}

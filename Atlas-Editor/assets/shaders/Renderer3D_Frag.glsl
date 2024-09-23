@@ -47,22 +47,27 @@ layout(std430, binding = 3) buffer LightColors
 	vec3 u_LightColors[];
 };
 
-layout(std430, binding = 4) buffer LightIntensities
+layout(std430, binding = 4) buffer LightDirections
+{
+	vec4 u_LightDirections[];
+};
+
+layout(std430, binding = 5) buffer LightIntensities
 {
 	float u_LightIntensities[];
 };
 
-layout(std430, binding = 5) buffer LightAmbientStrengths
+layout(std430, binding = 6) buffer LightAmbientStrengths
 {
 	float u_LightAmbientStrengths[];
 };
 
-layout(std430, binding = 6) buffer LightDiffuseStrengths
+layout(std430, binding = 7) buffer LightDiffuseStrengths
 {
 	float u_LightDiffuseStrengths[];
 };
 
-layout(std430, binding = 7) buffer LightSpecularStrengths
+layout(std430, binding = 8) buffer LightSpecularStrengths
 {
 	float u_LightSpecularStrengths[];
 };
@@ -103,7 +108,17 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
 		vec3 lightColor     = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
-		vec3 lightDirection = normalize(u_LightPositions[lightIndex] - VertexInput.Position);
+
+		vec3 lightDirection;
+		// If light does not have a direction
+		if(u_LightDirections[lightIndex].w == 0)
+		{
+			lightDirection = normalize(u_LightPositions[lightIndex] - VertexInput.Position);
+		}
+		else
+		{
+			lightDirection = normalize(-u_LightDirections[lightIndex].xyz);
+		}
 		
 		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor;
 		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor;

@@ -7,6 +7,13 @@ namespace Atlas
 	class Light
 	{
 	public:
+		enum class CastType
+		{
+			DirectionalLight = 0,
+			PointLight       = 1,
+			Spotlight        = 2,
+		};
+
 		Light() = default;
 		Light(const glm::vec3& color, const float& intensity)
 			: m_Color(color), m_Intensity(intensity) {}
@@ -15,6 +22,8 @@ namespace Atlas
 
 		void SetColor(const glm::vec3& color) { m_Color = color; }
 		const glm::vec3& GetColor() { return m_Color; }
+		void SetDirection(const glm::vec3& direction) { m_Direction = glm::vec4(direction, m_Direction.w); }
+		const glm::vec4& GetDirection() { return m_Direction; }
 		void SetIntensity(const float& intensity) { m_Intensity = intensity; }
 		const float& GetIntensity() { return m_Intensity; }
 
@@ -25,8 +34,14 @@ namespace Atlas
 		void SetSpecularStrength(const float& specularStrength) { m_SpecularStrength = specularStrength; }
 		const float& GetSpecularStrength() { return m_SpecularStrength; }
 
+		CastType GetCastType() const { return m_CastType; }
+		void SetCastType(CastType castType);
+
 	protected:
+		CastType m_CastType = CastType::PointLight;
+
 		glm::vec3 m_Color = glm::vec3(1.0f);
+		glm::vec4 m_Direction = glm::vec4(0.0f); // w is used as flag to signal if we use direction or not
 		float m_Intensity = 1.0f;
 
 		float m_AmbientStrength  = 0.1f;

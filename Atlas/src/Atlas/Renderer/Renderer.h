@@ -16,12 +16,13 @@ namespace Atlas
 		float AmbientLightIntensity = 0.1f;
 
 		uint32_t LightCount = 0;
-		std::vector<glm::vec3> LightPositions      = std::vector<glm::vec3>();
-		std::vector<glm::vec3> LightColors         = std::vector<glm::vec3>();
-		std::vector<float> LightIntensities        = std::vector<float>();
-		std::vector<float> LightAmbientStrengths   = std::vector<float>();
-		std::vector<float> LightDiffuseStrengths   = std::vector<float>();
-		std::vector<float> LightSpecularStrengths  = std::vector<float>();
+		std::vector<glm::vec3> LightPositions;
+		std::vector<glm::vec3> LightColors;
+		std::vector<glm::vec4> LightDirections;
+		std::vector<float> LightIntensities;
+		std::vector<float> LightAmbientStrengths;
+		std::vector<float> LightDiffuseStrengths;
+		std::vector<float> LightSpecularStrengths;
 	};
 
 	class Renderer

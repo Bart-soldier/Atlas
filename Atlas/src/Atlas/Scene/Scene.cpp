@@ -200,32 +200,27 @@ namespace Atlas
 
 	void Scene::UpdateSceneLighting()
 	{
-		std::vector<glm::vec3> lightPositions     = std::vector<glm::vec3>();
-		std::vector<glm::vec3> lightColors        = std::vector<glm::vec3>();
-		std::vector<float> lightIntensities       = std::vector<float>();
-		std::vector<float> lightAmbientStrengths  = std::vector<float>();
-		std::vector<float> lightDiffuseStrengths  = std::vector<float>();
-		std::vector<float> lightSpecularStrengths = std::vector<float>();
+		m_SceneLighting.LightPositions.clear();
+		m_SceneLighting.LightColors.clear();
+		m_SceneLighting.LightDirections.clear();
+		m_SceneLighting.LightIntensities.clear();
+		m_SceneLighting.LightAmbientStrengths.clear();
+		m_SceneLighting.LightDiffuseStrengths.clear();
+		m_SceneLighting.LightSpecularStrengths.clear();
 
 		auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 		for (auto entity : view)
 		{
 			auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
 
-			lightPositions.push_back(transform.Translation);
-			lightColors.push_back(light.Light.GetColor());
-			lightIntensities.push_back(light.Light.GetIntensity());
-			lightAmbientStrengths.push_back(light.Light.GetAmbientStrength());
-			lightDiffuseStrengths.push_back(light.Light.GetDiffuseStrength());
-			lightSpecularStrengths.push_back(light.Light.GetSpecularStrength());
+			m_SceneLighting.LightPositions.push_back(transform.Translation);
+			m_SceneLighting.LightColors.push_back(light.Light.GetColor());
+			m_SceneLighting.LightDirections.push_back(light.Light.GetDirection());
+			m_SceneLighting.LightIntensities.push_back(light.Light.GetIntensity());
+			m_SceneLighting.LightAmbientStrengths.push_back(light.Light.GetAmbientStrength());
+			m_SceneLighting.LightDiffuseStrengths.push_back(light.Light.GetDiffuseStrength());
+			m_SceneLighting.LightSpecularStrengths.push_back(light.Light.GetSpecularStrength());
 		}
-
-		m_SceneLighting.LightPositions         = lightPositions;
-		m_SceneLighting.LightColors            = lightColors;
-		m_SceneLighting.LightIntensities       = lightIntensities;
-		m_SceneLighting.LightAmbientStrengths  = lightAmbientStrengths;
-		m_SceneLighting.LightDiffuseStrengths  = lightDiffuseStrengths;
-		m_SceneLighting.LightSpecularStrengths = lightSpecularStrengths;
 	}
 
 	void Scene::DrawScene()
