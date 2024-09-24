@@ -205,6 +205,7 @@ namespace Atlas
 		m_SceneLighting.LightDirections.clear();
 		m_SceneLighting.LightRadius.clear();
 		m_SceneLighting.LightIntensities.clear();
+		m_SceneLighting.LightCutOffs.clear();
 		m_SceneLighting.LightAmbientStrengths.clear();
 		m_SceneLighting.LightDiffuseStrengths.clear();
 		m_SceneLighting.LightSpecularStrengths.clear();
@@ -212,15 +213,28 @@ namespace Atlas
 		auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 		for (auto entity : view)
 		{
-			auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
+			auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);	
 
-			m_SceneLighting.LightPositions.push_back(transform.Translation);
-			m_SceneLighting.LightColors.push_back(light.Light.GetColor());
-			m_SceneLighting.LightDirections.push_back(light.Light.GetDirection());
-			m_SceneLighting.LightRadius.push_back(light.Light.GetRadius());
-			m_SceneLighting.LightIntensities.push_back(light.Light.GetIntensity());
-			m_SceneLighting.LightAmbientStrengths.push_back(light.Light.GetAmbientStrength());
-			m_SceneLighting.LightDiffuseStrengths.push_back(light.Light.GetDiffuseStrength());
+			glm::vec4 lightDirection = glm::vec4(0.0f); // w is a flag for lightDirection calculation
+			switch (light.Light.GetCastType())
+			{
+				case Light::CastType::DirectionalLight:
+					lightDirection = glm::vec4(transform.GetDirection());
+					break;
+				case Light::CastType::Spotlight:
+					lightDirection = glm::vec4(transform.GetDirection());
+					lightDirection.w = 0.0f;
+					break;
+			}
+
+			m_SceneLighting.LightPositions        .push_back(transform.Translation);
+			m_SceneLighting.LightColors           .push_back(light.Light.GetColor());
+			m_SceneLighting.LightDirections       .push_back(lightDirection);
+			m_SceneLighting.LightRadius           .push_back(light.Light.GetRadius());
+			m_SceneLighting.LightIntensities      .push_back(light.Light.GetIntensity());
+			m_SceneLighting.LightCutOffs          .push_back(light.Light.GetCutOff().x >= 0 ? glm::cos(glm::radians(light.Light.GetCutOff())) : light.Light.GetCutOff());
+			m_SceneLighting.LightAmbientStrengths .push_back(light.Light.GetAmbientStrength());
+			m_SceneLighting.LightDiffuseStrengths .push_back(light.Light.GetDiffuseStrength());
 			m_SceneLighting.LightSpecularStrengths.push_back(light.Light.GetSpecularStrength());
 		}
 	}

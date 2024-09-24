@@ -517,15 +517,6 @@ namespace Atlas
 				ImGuiUtils::EndCombo();
 			}
 
-			if (light.GetCastType() != Light::CastType::PointLight)
-			{
-				glm::vec3 direction = light.GetDirection();
-				if (ImGuiUtils::DragFloat3("Direction", direction, 0.0f, 1.0f, -1.0f, 1.0f))
-				{
-					light.SetDirection(direction);
-				}
-			}
-
 			if (light.GetCastType() != Light::CastType::DirectionalLight)
 			{
 				float range = light.GetRadius();

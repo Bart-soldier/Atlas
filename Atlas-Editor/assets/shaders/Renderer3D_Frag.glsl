@@ -62,17 +62,22 @@ layout(std430, binding = 6) buffer LightIntensities
 	float u_LightIntensities[];
 };
 
-layout(std430, binding = 7) buffer LightAmbientStrengths
+layout(std430, binding = 7) buffer LightCutOffs
+{
+	vec2 u_LightCutOffs[];
+};
+
+layout(std430, binding = 8) buffer LightAmbientStrengths
 {
 	float u_LightAmbientStrengths[];
 };
 
-layout(std430, binding = 8) buffer LightDiffuseStrengths
+layout(std430, binding = 9) buffer LightDiffuseStrengths
 {
 	float u_LightDiffuseStrengths[];
 };
 
-layout(std430, binding = 9) buffer LightSpecularStrengths
+layout(std430, binding = 10) buffer LightSpecularStrengths
 {
 	float u_LightSpecularStrengths[];
 };
@@ -105,15 +110,29 @@ float GetLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vertexPosi
 
 	if(lightRadius > 0)
 	{
-		float dist = length(lightPosition - vertexPosition);
+		float dist  = length(lightPosition - vertexPosition);
 
 		// Cem Yuksel Nonsingular Point Light Attenuation
-		float temp = dist * dist + lightRadius * lightRadius;
+		float temp  = dist * dist + lightRadius * lightRadius;
 		attenuation = 2.0 / (temp + dist * sqrt(temp));
 		//attenuation = 1.0 / temp;
 	}
 
 	return attenuation;
+}
+
+float GetLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirection)
+{
+	float cutOff = 1.0f;
+
+	if(lightCutOff.x >= 0 && lightCutOff.y >= 0)
+	{
+		float theta   = dot(lightDirection, normalize(-spotDirection));
+		float epsilon = lightCutOff.x - lightCutOff.y;
+		cutOff        = clamp((theta - lightCutOff.y) / epsilon, 0.0, 1.0);
+	}
+
+	return cutOff;
 }
 
 vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
@@ -142,10 +161,11 @@ vec4 GetColorFromLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 		}
 		
 		float attenuation = GetLightAttenuation(u_LightRadius[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
+		float lightCutOff = GetLightCutOff(u_LightCutOffs[lightIndex], normalize(u_LightPositions[lightIndex] - VertexInput.Position), u_LightDirections[lightIndex].xyz);
 
 		ambientColor  += GetAmbientColor  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor  * attenuation;
-		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor  * attenuation;
-		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * specularTextureColor * attenuation;
+		diffuseColor  += GetDiffuseColor  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor  * attenuation * lightCutOff;
+		specularColor += GetSpecularColor (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * specularTextureColor * attenuation * lightCutOff;
 	}
 
 	return ambientColor + diffuseColor + specularColor;

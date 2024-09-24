@@ -53,6 +53,11 @@ namespace Atlas
 				* rotation
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+
+		glm::vec4 GetDirection() const
+		{
+			return glm::toMat4(glm::quat(Rotation)) * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+		}
 	};
 
 	struct CameraComponent

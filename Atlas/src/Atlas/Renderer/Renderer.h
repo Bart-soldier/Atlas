@@ -21,6 +21,7 @@ namespace Atlas
 		std::vector<glm::vec4> LightDirections;
 		std::vector<float> LightRadius;
 		std::vector<float> LightIntensities;
+		std::vector<glm::vec2> LightCutOffs;
 		std::vector<float> LightAmbientStrengths;
 		std::vector<float> LightDiffuseStrengths;
 		std::vector<float> LightSpecularStrengths;
