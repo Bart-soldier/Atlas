@@ -331,15 +331,15 @@ namespace Atlas
 		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(RendererData::LightData));
 
 		// Storage buffers
-		s_Data.SceneLightPositionsStorageBuffer       ->SetData(sceneLighting.LightPositions        .data(), sizeof(glm::vec3) * sceneLighting.LightPositions        .size());
-		s_Data.SceneLightColorsStorageBuffer          ->SetData(sceneLighting.LightColors           .data(), sizeof(glm::vec3) * sceneLighting.LightColors           .size());
-		s_Data.SceneLightDirectionsStorageBuffer      ->SetData(sceneLighting.LightDirections       .data(), sizeof(glm::vec4) * sceneLighting.LightDirections       .size());
-		s_Data.SceneLightRadiusStorageBuffer          ->SetData(sceneLighting.LightRadius           .data(), sizeof(float)     * sceneLighting.LightRadius           .size());
-		s_Data.SceneLightIntensitiesStorageBuffer     ->SetData(sceneLighting.LightIntensities      .data(), sizeof(float)     * sceneLighting.LightIntensities      .size());
-		s_Data.SceneLightCutOffsStorageBuffer         ->SetData(sceneLighting.LightCutOffs          .data(), sizeof(glm::vec2) * sceneLighting.LightCutOffs          .size());
-		s_Data.SceneLightAmbientStrengthStorageBuffer ->SetData(sceneLighting.LightAmbientStrengths .data(), sizeof(float)     * sceneLighting.LightAmbientStrengths .size());
-		s_Data.SceneLightDiffuseStrengthStorageBuffer ->SetData(sceneLighting.LightDiffuseStrengths .data(), sizeof(float)     * sceneLighting.LightDiffuseStrengths .size());
-		s_Data.SceneLightSpecularStrengthStorageBuffer->SetData(sceneLighting.LightSpecularStrengths.data(), sizeof(float)     * sceneLighting.LightSpecularStrengths.size());
+		s_Data.SceneLightPositionsStorageBuffer       ->SetData(sceneLighting.LightPositions        .data(), sizeof(std::vector<glm::vec3>::value_type) * sceneLighting.LightPositions        .size());
+		s_Data.SceneLightColorsStorageBuffer          ->SetData(sceneLighting.LightColors           .data(), sizeof(std::vector<glm::vec3>::value_type) * sceneLighting.LightColors           .size());
+		s_Data.SceneLightDirectionsStorageBuffer      ->SetData(sceneLighting.LightDirections       .data(), sizeof(std::vector<glm::vec4>::value_type) * sceneLighting.LightDirections       .size());
+		s_Data.SceneLightRadiusStorageBuffer          ->SetData(sceneLighting.LightRadius           .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightRadius           .size());
+		s_Data.SceneLightIntensitiesStorageBuffer     ->SetData(sceneLighting.LightIntensities      .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightIntensities      .size());
+		s_Data.SceneLightCutOffsStorageBuffer         ->SetData(sceneLighting.LightCutOffs          .data(), sizeof(std::vector<glm::vec2>::value_type) * sceneLighting.LightCutOffs          .size());
+		s_Data.SceneLightAmbientStrengthStorageBuffer ->SetData(sceneLighting.LightAmbientStrengths .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightAmbientStrengths .size());
+		s_Data.SceneLightDiffuseStrengthStorageBuffer ->SetData(sceneLighting.LightDiffuseStrengths .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightDiffuseStrengths .size());
+		s_Data.SceneLightSpecularStrengthStorageBuffer->SetData(sceneLighting.LightSpecularStrengths.data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightSpecularStrengths.size());
 	}
 
 	int Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)

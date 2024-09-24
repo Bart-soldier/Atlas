@@ -33,8 +33,6 @@ layout(std140, binding = 0) uniform Camera
 layout(std140, binding = 1) uniform AmbientLight
 {
 	uint  u_LightCount;
-	vec3  u_AmbientLightColor;
-	float u_AmbientLightIntensity;
 };
 
 layout(std430, binding = 2) buffer LightPositions
@@ -143,8 +141,12 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
 
 	vec3 vertexNormal = normalize(VertexInput.Normal);
 
+
+	//if(u_LightCount > 0)
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
+		//uint lightIndex = u_LightCount - 1;
+
 		vec3 lightColor = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
 
 		vec3 lightDirection;
