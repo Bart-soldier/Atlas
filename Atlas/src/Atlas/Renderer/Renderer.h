@@ -24,6 +24,7 @@ namespace Atlas
 			float AmbientStrength;
 			float DiffuseStrength;
 			float SpecularStrength;
+			float Padding; // DO NOT USE: For shader alignment
 		};
 
 		static void Init();
