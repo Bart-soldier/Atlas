@@ -326,11 +326,11 @@ namespace Atlas
 		s_Data.CameraBuffer.Position = cameraPosition;
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
 
-		if (s_Data.LightBuffer.LightCount != sceneLighting.LightCount)
+		if (s_Data.LightBuffer.LightCount != sceneLighting.LightCount && sceneLighting.LightCount != 0)
 		{
-			s_Data.LightBuffer.LightCount = sceneLighting.LightCount;
-			UpdateSceneLightBuffers(sceneLighting.LightCount);
+			UpdateSceneLightBufferSizes(sceneLighting.LightCount);
 		}
+		s_Data.LightBuffer.LightCount = sceneLighting.LightCount;
 		s_Data.LightBuffer.AmbientLightColor = sceneLighting.AmbientLightColor;
 		s_Data.LightBuffer.AmbientLightIntensity = sceneLighting.AmbientLightIntensity;
 		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(RendererData::LightData));
@@ -491,7 +491,7 @@ namespace Atlas
 		StartBatch();
 	}
 
-	void Renderer::UpdateSceneLightBuffers(uint32_t lightCount)
+	void Renderer::UpdateSceneLightBufferSizes(uint32_t lightCount)
 	{
 		s_Data.SceneLightPositionsStorageBuffer       ->SetSize(sizeof(glm::vec3) * lightCount);
 		s_Data.SceneLightColorsStorageBuffer          ->SetSize(sizeof(glm::vec3) * lightCount);

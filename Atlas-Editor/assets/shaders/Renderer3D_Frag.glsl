@@ -137,9 +137,6 @@ float CalculateLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirec
 
 vec4 CalculateLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 {
-	// Ambient, diffuse & specular lighting
-	// TODO: Fix ambient light settings not working (color corresponds to intensity and intensity is null)
-	//vec3  ambientColor  = u_AmbientLightColor * u_AmbientLightIntensity;
 	vec4  ambientColor  = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4  diffuseColor  = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4  specularColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -148,7 +145,7 @@ vec4 CalculateLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
-		vec3 lightColor     = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
+		vec3 lightColor = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
 
 		vec3 lightDirection;
 		if(u_LightDirections[lightIndex].w == 0)

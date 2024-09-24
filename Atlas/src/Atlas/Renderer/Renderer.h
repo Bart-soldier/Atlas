@@ -91,6 +91,6 @@ namespace Atlas
 		static void StartBatch();
 		static void NextBatch();
 
-		static void UpdateSceneLightBuffers(uint32_t lightCount);
+		static void UpdateSceneLightBufferSizes(uint32_t lightCount);
 	};
 }
