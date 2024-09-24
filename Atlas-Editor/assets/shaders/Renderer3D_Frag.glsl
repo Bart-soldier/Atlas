@@ -85,23 +85,23 @@ layout(std430, binding = 10) buffer LightSpecularStrengths
 layout(location = 0) out vec4 o_color;
 layout(location = 1) out int  o_entityID;
 
-vec4 CalculateAmbientLight(vec3 lightColor, float lightAmbientStrength)
+vec3 CalculateAmbientLight(vec3 lightColor, float lightAmbientStrength)
 {
-	return vec4(lightColor * lightAmbientStrength * VertexInput.AmbientColor, 1.0);
+	return lightColor * lightAmbientStrength * VertexInput.AmbientColor;
 }
 
-vec4 CalculateDiffuseLight(vec3 lightColor, float lightDiffuseStrength, vec3 lightDirection, vec3 vertexNormal)
+vec3 CalculateDiffuseLight(vec3 lightColor, float lightDiffuseStrength, vec3 lightDirection, vec3 vertexNormal)
 {
 	float diffuseImpact = max(dot(vertexNormal, lightDirection), 0.0);
-	return vec4(lightColor * lightDiffuseStrength * diffuseImpact * VertexInput.DiffuseColor, 1.0);
+	return lightColor * lightDiffuseStrength * diffuseImpact * VertexInput.DiffuseColor;
 }
 
-vec4 CalculateSpecularLight(vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal)
+vec3 CalculateSpecularLight(vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal)
 {
 	vec3 viewDirection       = normalize(u_CameraPosition - VertexInput.Position);
 	vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);
 	float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128); // TODO: Fix Shininess == 0
-	return vec4(lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor), 1.0);
+	return lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor);
 }
 
 float CalculateLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vertexPosition)
@@ -135,7 +135,7 @@ float CalculateLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirec
 	return cutOff;
 }
 
-vec4 CalculateLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
+vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
 {
 	vec4  ambientColor  = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4  diffuseColor  = vec4(0.0, 0.0, 0.0, 1.0);
@@ -160,15 +160,22 @@ vec4 CalculateLights(vec4 diffuseTextureColor, vec4 specularTextureColor)
 		float attenuation = CalculateLightAttenuation(u_LightRadius[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
 		float lightCutOff = CalculateLightCutOff(u_LightCutOffs[lightIndex], normalize(u_LightPositions[lightIndex] - VertexInput.Position), u_LightDirections[lightIndex].xyz);
 
-		ambientColor  += CalculateAmbientLight  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * diffuseTextureColor  * attenuation;
-		diffuseColor  += CalculateDiffuseLight  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * diffuseTextureColor  * attenuation * lightCutOff;
-		specularColor += CalculateSpecularLight (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * specularTextureColor * attenuation * lightCutOff;
+		vec4 ambientLight  = vec4(CalculateAmbientLight  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * attenuation              , 1.0);
+		vec4 diffuseLight  = vec4(CalculateDiffuseLight  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);
+		vec4 specularLight = vec4(CalculateSpecularLight (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);
+		ambientLight  *= diffuseTexture;
+		diffuseLight  *= diffuseTexture;
+		specularLight *= specularTexture;
+
+		ambientColor  += ambientLight;
+		diffuseColor  += diffuseLight;
+		specularColor += specularLight;
 	}
 
 	return ambientColor + diffuseColor + specularColor;
 }
 
-vec4 GetTextureColor(uint textureIndex)
+vec4 GetTexture(uint textureIndex)
 {
 	switch(textureIndex)
 	{
@@ -209,16 +216,16 @@ vec4 GetTextureColor(uint textureIndex)
 
 void main()
 {
-	vec4 diffuseTextureColor  = GetTextureColor(v_DiffuseTextureIndex);
-	vec4 specularTextureColor = GetTextureColor(v_SpecularTextureIndex);
+	vec4 diffuseTexture  = GetTexture(v_DiffuseTextureIndex);
+	vec4 specularTexture = GetTexture(v_SpecularTextureIndex);
 
 	// Alpha discard on diffuse
-	if (diffuseTextureColor.a == 0.0)
+	if (diffuseTexture.a == 0.0)
 	{
 		discard;
 	}
 
-	vec4 fragmentColor = CalculateLights(diffuseTextureColor, specularTextureColor);
+	vec4 fragmentColor = CalculateLights(diffuseTexture, specularTexture);
 
 	// Color buffer
 	o_color = fragmentColor;
