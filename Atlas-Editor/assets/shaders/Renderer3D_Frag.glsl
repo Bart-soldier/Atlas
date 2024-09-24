@@ -114,15 +114,8 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
 
 	vec3 vertexNormal = normalize(VertexInput.Normal);
 
-	//return vec4(u_Lights.length());
-//	if(u_Lights.length() == 0) return vec4(0.0);
-//	return vec4(u_Lights.length() / 3);
-
-	//if(u_LightCount > 0)
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
-		//uint lightIndex = u_LightCount - 1;
-
 		LightData light = u_Lights[lightIndex];
 
 		vec3 lightColor = light.Color.xyz * light.Intensity;
