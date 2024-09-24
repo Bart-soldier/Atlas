@@ -101,7 +101,7 @@ vec4 GetSpecularColor(vec3 lightColor, float lightSpecularStrength, vec3 lightDi
 
 float GetLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vertexPosition)
 {
-	float attenuation = 0.0;
+	float attenuation = 1.0;
 
 	if(lightRadius > 0)
 	{
