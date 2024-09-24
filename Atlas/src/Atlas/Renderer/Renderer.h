@@ -12,9 +12,6 @@ namespace Atlas
 {
 	struct SceneLighting
 	{
-		glm::vec3 AmbientLightColor = glm::vec3(1.0f);
-		float AmbientLightIntensity = 0.1f;
-
 		uint32_t LightCount = 0;
 		std::vector<glm::vec3> LightPositions;
 		std::vector<glm::vec3> LightColors;

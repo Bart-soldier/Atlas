@@ -37,11 +37,6 @@ namespace Atlas
 		std::string const GetName() { return m_Name; }
 		Entity GetPrimaryCameraEntity();
 
-		void SetAmbientLightColor(const glm::vec3 ambientLightColor) { m_SceneLighting.AmbientLightColor = ambientLightColor; }
-		const glm::vec3& GetAmbientLightColor() { return m_SceneLighting.AmbientLightColor; }
-		void SetAmbientLightIntensity(const float ambientLightIntensity) { m_SceneLighting.AmbientLightIntensity = ambientLightIntensity; }
-		const float& GetAmbientLightIntensity() { return m_SceneLighting.AmbientLightIntensity; }
-
 	private:
 		void UpdateSceneLighting();
 		void DrawScene();
