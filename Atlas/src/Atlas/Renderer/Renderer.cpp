@@ -124,30 +124,22 @@ namespace Atlas
 		struct CameraData
 		{
 			glm::mat4 ViewProjection;
-			glm::vec3 Position;
+			glm::vec4 Position;
 		};
 		CameraData CameraBuffer;
 		Ref<UniformBuffer> CameraUniformBuffer;
 
 		// Lights
-		struct LightData
+		struct LightCountData
 		{
 			uint32_t LightCount;
 		};
-		LightData LightBuffer;
-		Ref<UniformBuffer> LightUniformBuffer;
+		LightCountData LightCountBuffer;
+		Ref<UniformBuffer> LightCountUniformBuffer;
 
 		// Storage buffers
-		uint32_t SceneLightStorageBuffersElementCount = 0;
-		Ref<StorageBuffer> SceneLightPositionsStorageBuffer;
-		Ref<StorageBuffer> SceneLightColorsStorageBuffer;
-		Ref<StorageBuffer> SceneLightDirectionsStorageBuffer;
-		Ref<StorageBuffer> SceneLightRadiusStorageBuffer;
-		Ref<StorageBuffer> SceneLightIntensitiesStorageBuffer;
-		Ref<StorageBuffer> SceneLightCutOffsStorageBuffer;
-		Ref<StorageBuffer> SceneLightAmbientStrengthStorageBuffer;
-		Ref<StorageBuffer> SceneLightDiffuseStrengthStorageBuffer;
-		Ref<StorageBuffer> SceneLightSpecularStrengthStorageBuffer;
+		uint32_t LightStorageBufferCapacity = 0;
+		Ref<StorageBuffer> LightStorageBuffer;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -272,19 +264,11 @@ namespace Atlas
 		s_Data.MeshShader   = Shader::Create("assets/shaders/Renderer3D_Vert.glsl", "assets/shaders/Renderer3D_Frag.glsl");
 	
 		// Uniform buffers
-		s_Data.CameraUniformBuffer                     = UniformBuffer::Create(sizeof(RendererData::CameraData)                              , 0 );
-		s_Data.LightUniformBuffer                      = UniformBuffer::Create(sizeof(RendererData::LightData)                               , 1 );
+		s_Data.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData)    , 0);
+		s_Data.LightCountUniformBuffer = UniformBuffer::Create(sizeof(RendererData::LightCountData), 1);
 
 		// Storage buffers
-		s_Data.SceneLightPositionsStorageBuffer        = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightStorageBuffersElementCount, 2 );
-		s_Data.SceneLightColorsStorageBuffer           = StorageBuffer::Create(sizeof(glm::vec3) * s_Data.SceneLightStorageBuffersElementCount, 3 );
-		s_Data.SceneLightDirectionsStorageBuffer       = StorageBuffer::Create(sizeof(glm::vec4) * s_Data.SceneLightStorageBuffersElementCount, 4 );
-		s_Data.SceneLightRadiusStorageBuffer           = StorageBuffer::Create(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount, 5 );
-		s_Data.SceneLightIntensitiesStorageBuffer      = StorageBuffer::Create(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount, 6 );
-		s_Data.SceneLightCutOffsStorageBuffer          = StorageBuffer::Create(sizeof(glm::vec2) * s_Data.SceneLightStorageBuffersElementCount, 7 );
-		s_Data.SceneLightAmbientStrengthStorageBuffer  = StorageBuffer::Create(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount, 8 );
-		s_Data.SceneLightDiffuseStrengthStorageBuffer  = StorageBuffer::Create(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount, 9 );
-		s_Data.SceneLightSpecularStrengthStorageBuffer = StorageBuffer::Create(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount, 10);
+		s_Data.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_Data.LightStorageBufferCapacity, 2);
 	}
 
 	void Renderer::Shutdown()
@@ -301,45 +285,47 @@ namespace Atlas
 		delete[] s_Data.MeshIndexBufferBase;
 	}
 
-	void Renderer::BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const SceneLighting& sceneLighting)
+	void Renderer::BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformAndStorageBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), cameraTransform.Translation, sceneLighting);
+		SetUniformAndStorageBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f), lights);
 
 		StartBatch();
 	}
 
-	void Renderer::BeginScene(const EditorCamera& camera, const SceneLighting& sceneLighting)
+	void Renderer::BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformAndStorageBuffers(camera.GetViewProjection(), camera.GetPosition(), sceneLighting);
+		SetUniformAndStorageBuffers(camera.GetViewProjection(), glm::vec4(camera.GetPosition(), 1.0f), lights);
 
 		StartBatch();
 	}
 
-	void Renderer::SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec3& cameraPosition, const SceneLighting& sceneLighting)
+	void Renderer::SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights)
 	{
 		// Uniform buffers
 		s_Data.CameraBuffer.ViewProjection = cameraViewProjection;
 		s_Data.CameraBuffer.Position = cameraPosition;
 		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
 
-		UpdateSceneLightBufferSizes(sceneLighting.LightCount);
-		s_Data.LightBuffer.LightCount = sceneLighting.LightCount;
-		s_Data.LightUniformBuffer->SetData(&s_Data.LightBuffer, sizeof(RendererData::LightData));
+		s_Data.LightCountBuffer.LightCount = lights.size();
+		s_Data.LightCountUniformBuffer->SetData(&s_Data.LightCountBuffer, sizeof(RendererData::LightCountData));
 
-		// Storage buffers
-		s_Data.SceneLightPositionsStorageBuffer       ->SetData(sceneLighting.LightPositions        .data(), sizeof(std::vector<glm::vec3>::value_type) * sceneLighting.LightPositions        .size());
-		s_Data.SceneLightColorsStorageBuffer          ->SetData(sceneLighting.LightColors           .data(), sizeof(std::vector<glm::vec3>::value_type) * sceneLighting.LightColors           .size());
-		s_Data.SceneLightDirectionsStorageBuffer      ->SetData(sceneLighting.LightDirections       .data(), sizeof(std::vector<glm::vec4>::value_type) * sceneLighting.LightDirections       .size());
-		s_Data.SceneLightRadiusStorageBuffer          ->SetData(sceneLighting.LightRadius           .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightRadius           .size());
-		s_Data.SceneLightIntensitiesStorageBuffer     ->SetData(sceneLighting.LightIntensities      .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightIntensities      .size());
-		s_Data.SceneLightCutOffsStorageBuffer         ->SetData(sceneLighting.LightCutOffs          .data(), sizeof(std::vector<glm::vec2>::value_type) * sceneLighting.LightCutOffs          .size());
-		s_Data.SceneLightAmbientStrengthStorageBuffer ->SetData(sceneLighting.LightAmbientStrengths .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightAmbientStrengths .size());
-		s_Data.SceneLightDiffuseStrengthStorageBuffer ->SetData(sceneLighting.LightDiffuseStrengths .data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightDiffuseStrengths .size());
-		s_Data.SceneLightSpecularStrengthStorageBuffer->SetData(sceneLighting.LightSpecularStrengths.data(), sizeof(std::vector<float    >::value_type) * sceneLighting.LightSpecularStrengths.size());
+		EnsureLightStorageBufferCapacity(lights.size());
+		s_Data.LightStorageBuffer->SetData(lights.data(), sizeof(LightData) * lights.size());
+	}
+
+	void Renderer::EnsureLightStorageBufferCapacity(uint32_t size)
+	{
+		if (size <= s_Data.LightStorageBufferCapacity)
+		{
+			return;
+		}
+
+		s_Data.LightStorageBufferCapacity = size;
+		s_Data.LightStorageBuffer->SetSize(sizeof(LightData) * s_Data.LightStorageBufferCapacity);
 	}
 
 	int Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
@@ -483,25 +469,6 @@ namespace Atlas
 	{
 		Flush();
 		StartBatch();
-	}
-
-	void Renderer::UpdateSceneLightBufferSizes(uint32_t lightCount)
-	{
-		if (lightCount <= s_Data.SceneLightStorageBuffersElementCount)
-		{
-			return;
-		}
-
-		s_Data.SceneLightStorageBuffersElementCount = lightCount;
-		s_Data.SceneLightPositionsStorageBuffer       ->SetSize(sizeof(glm::vec3) * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightColorsStorageBuffer          ->SetSize(sizeof(glm::vec3) * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightDirectionsStorageBuffer      ->SetSize(sizeof(glm::vec4) * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightRadiusStorageBuffer          ->SetSize(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightIntensitiesStorageBuffer     ->SetSize(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightCutOffsStorageBuffer         ->SetSize(sizeof(glm::vec2) * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightAmbientStrengthStorageBuffer ->SetSize(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightDiffuseStrengthStorageBuffer ->SetSize(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount);
-		s_Data.SceneLightSpecularStrengthStorageBuffer->SetSize(sizeof(float)     * s_Data.SceneLightStorageBuffersElementCount);
 	}
 
 	RendererAPI::PolygonMode Renderer::GetPolygonMode()

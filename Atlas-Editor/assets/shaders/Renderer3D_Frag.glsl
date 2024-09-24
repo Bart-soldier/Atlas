@@ -17,6 +17,21 @@ struct VertexData
 	float Shininess;
 };
 
+struct LightData
+{
+	vec4 Position;
+	vec4 Color;
+	vec4 Direction; // w is a flag to indicate if light direction is spot direction
+
+	float Radius;
+	float Intensity;
+	vec2 CutOffs; // (inner, outer); negative value means cutoff is disabled
+
+	float AmbientStrength;
+	float DiffuseStrength;
+	float SpecularStrength;
+};
+
 layout (location = 0) in VertexData VertexInput;
 layout (location = 7) in flat uint  v_DiffuseTextureIndex;
 layout (location = 8) in flat uint  v_SpecularTextureIndex;
@@ -27,57 +42,17 @@ layout (binding = 0) uniform sampler2D u_Textures[32];
 layout(std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
-	vec3 u_CameraPosition;
+	vec4 u_CameraPosition;
 };
 
-layout(std140, binding = 1) uniform AmbientLight
+layout(std140, binding = 1) uniform LightCount
 {
-	uint  u_LightCount;
+	uint u_LightCount;
 };
 
-layout(std430, binding = 2) buffer LightPositions
+layout(std430, binding = 2) buffer Lights
 {
-	vec3 u_LightPositions[];
-};
-
-layout(std430, binding = 3) buffer LightColors
-{
-	vec3 u_LightColors[];
-};
-
-layout(std430, binding = 4) buffer LightDirections
-{
-	vec4 u_LightDirections[];
-};
-
-layout(std430, binding = 5) buffer LightRadius
-{
-	float u_LightRadius[];
-};
-
-layout(std430, binding = 6) buffer LightIntensities
-{
-	float u_LightIntensities[];
-};
-
-layout(std430, binding = 7) buffer LightCutOffs
-{
-	vec2 u_LightCutOffs[];
-};
-
-layout(std430, binding = 8) buffer LightAmbientStrengths
-{
-	float u_LightAmbientStrengths[];
-};
-
-layout(std430, binding = 9) buffer LightDiffuseStrengths
-{
-	float u_LightDiffuseStrengths[];
-};
-
-layout(std430, binding = 10) buffer LightSpecularStrengths
-{
-	float u_LightSpecularStrengths[];
+	LightData u_Lights[];
 };
 
 layout(location = 0) out vec4 o_color;
@@ -96,7 +71,7 @@ vec3 CalculateDiffuseLight(vec3 lightColor, float lightDiffuseStrength, vec3 lig
 
 vec3 CalculateSpecularLight(vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal)
 {
-	vec3 viewDirection       = normalize(u_CameraPosition - VertexInput.Position);
+	vec3 viewDirection       = normalize(u_CameraPosition.xyz - VertexInput.Position);
 	vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);
 	float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128); // TODO: Fix Shininess == 0
 	return lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor);
@@ -110,10 +85,8 @@ float CalculateLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vert
 	{
 		float dist  = length(lightPosition - vertexPosition);
 
-		// Cem Yuksel Nonsingular Point Light Attenuation
 		float temp  = dist * dist + lightRadius * lightRadius;
 		attenuation = 2.0 / (temp + dist * sqrt(temp));
-		//attenuation = 1.0 / temp;
 	}
 
 	return attenuation;
@@ -141,30 +114,35 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
 
 	vec3 vertexNormal = normalize(VertexInput.Normal);
 
+	//return vec4(u_Lights.length());
+//	if(u_Lights.length() == 0) return vec4(0.0);
+//	return vec4(u_Lights.length() / 3);
 
 	//if(u_LightCount > 0)
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
 		//uint lightIndex = u_LightCount - 1;
 
-		vec3 lightColor = u_LightColors[lightIndex] * u_LightIntensities[lightIndex];
+		LightData light = u_Lights[lightIndex];
+
+		vec3 lightColor = light.Color.xyz * light.Intensity;
 
 		vec3 lightDirection;
-		if(u_LightDirections[lightIndex].w == 0)
+		if(light.Direction.w == 0)
 		{
-			lightDirection = normalize(u_LightPositions[lightIndex] - VertexInput.Position);
+			lightDirection = normalize(light.Position.xyz - VertexInput.Position);
 		}
 		else
 		{
-			lightDirection = normalize(-u_LightDirections[lightIndex].xyz); // For directional light ; light direction is spot direction
+			lightDirection = normalize(-light.Direction.xyz); // For directional light ; light direction is spot direction
 		}
 		
-		float attenuation = CalculateLightAttenuation(u_LightRadius[lightIndex], u_LightPositions[lightIndex], VertexInput.Position);
-		float lightCutOff = CalculateLightCutOff(u_LightCutOffs[lightIndex], normalize(u_LightPositions[lightIndex] - VertexInput.Position), u_LightDirections[lightIndex].xyz);
+		float attenuation = CalculateLightAttenuation(light.Radius, light.Position.xyz, VertexInput.Position);
+		float lightCutOff = CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - VertexInput.Position), light.Position.xyz);
 
-		vec4 ambientLight  = vec4(CalculateAmbientLight  (lightColor, u_LightAmbientStrengths [lightIndex]                              ) * attenuation              , 1.0);
-		vec4 diffuseLight  = vec4(CalculateDiffuseLight  (lightColor, u_LightDiffuseStrengths [lightIndex], lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);
-		vec4 specularLight = vec4(CalculateSpecularLight (lightColor, u_LightSpecularStrengths[lightIndex], lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);
+		vec4 ambientLight  = vec4(CalculateAmbientLight  (lightColor, light.AmbientStrength                               ) * attenuation              , 1.0);
+		vec4 diffuseLight  = vec4(CalculateDiffuseLight  (lightColor, light.DiffuseStrength , lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);
+		vec4 specularLight = vec4(CalculateSpecularLight (lightColor, light.SpecularStrength, lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);
 		ambientLight  *= diffuseTexture;
 		diffuseLight  *= diffuseTexture;
 		specularLight *= specularTexture;

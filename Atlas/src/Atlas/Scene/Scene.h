@@ -38,7 +38,7 @@ namespace Atlas
 		Entity GetPrimaryCameraEntity();
 
 	private:
-		void UpdateSceneLighting();
+		void UpdateLights();
 		void DrawScene();
 
 		template<typename T>
@@ -55,8 +55,7 @@ namespace Atlas
 		entt::registry m_Registry;
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;
-
-		SceneLighting m_SceneLighting;
+		std::vector<Renderer::LightData> m_Lights;
 
 		friend class Entity;
 		friend class SceneSerializer;

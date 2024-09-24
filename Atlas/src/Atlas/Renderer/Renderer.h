@@ -10,28 +10,27 @@
 
 namespace Atlas
 {
-	struct SceneLighting
-	{
-		uint32_t LightCount = 0;
-		std::vector<glm::vec3> LightPositions;
-		std::vector<glm::vec3> LightColors;
-		std::vector<glm::vec4> LightDirections;
-		std::vector<float> LightRadius;
-		std::vector<float> LightIntensities;
-		std::vector<glm::vec2> LightCutOffs;
-		std::vector<float> LightAmbientStrengths;
-		std::vector<float> LightDiffuseStrengths;
-		std::vector<float> LightSpecularStrengths;
-	};
-
 	class Renderer
 	{
 	public:
+		struct LightData
+		{
+			glm::vec4 Position;
+			glm::vec4 Color;
+			glm::vec4 Direction; // w is a flag to indicate if light direction is spot direction
+			float Radius;
+			float Intensity;
+			glm::vec2 CutOffs; // (inner, outer); negative value means cutoff is disabled
+			float AmbientStrength;
+			float DiffuseStrength;
+			float SpecularStrength;
+		};
+
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const SceneLighting& sceneLighting = SceneLighting());
-		static void BeginScene(const EditorCamera& camera, const SceneLighting& sceneLighting = SceneLighting());
+		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
+		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
 		static void EndScene();
 		static void Flush();
 
@@ -82,12 +81,11 @@ namespace Atlas
 		static Statistics GetStats();
 
 	private:
-		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec3& cameraPosition, const SceneLighting& sceneLighting);
+		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights);
+		static void EnsureLightStorageBufferCapacity(uint32_t lightCount);
 		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
 		static void NextBatch();
-
-		static void UpdateSceneLightBufferSizes(uint32_t lightCount);
 	};
 }

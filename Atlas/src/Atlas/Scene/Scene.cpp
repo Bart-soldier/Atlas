@@ -73,8 +73,6 @@ namespace Atlas
 		auto& dstSceneRegistry = newScene->m_Registry;
 		std::unordered_map<UUID, entt::entity> enttMap;
 
-		newScene->m_SceneLighting = other->m_SceneLighting;
-
 		// Create entities in new scene
 		auto idView = srcSceneRegistry.view<IDComponent>();
 		for (auto e : idView)
@@ -141,9 +139,9 @@ namespace Atlas
 
 		if (mainCamera)
 		{
-			UpdateSceneLighting();
+			UpdateLights();
 
-			Renderer::BeginScene(*mainCamera, *cameraTransform, m_SceneLighting);
+			Renderer::BeginScene(*mainCamera, *cameraTransform, m_Lights);
 			DrawScene();
 			Renderer::EndScene();
 		}
@@ -151,9 +149,8 @@ namespace Atlas
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
 	{
-		UpdateSceneLighting();
-
-		Renderer::BeginScene(camera, m_SceneLighting);
+		UpdateLights();
+		Renderer::BeginScene(camera, m_Lights);
 		DrawScene();
 		Renderer::EndScene();
 	}
@@ -198,17 +195,9 @@ namespace Atlas
 		return {};
 	}
 
-	void Scene::UpdateSceneLighting()
+	void Scene::UpdateLights()
 	{
-		m_SceneLighting.LightPositions.clear();
-		m_SceneLighting.LightColors.clear();
-		m_SceneLighting.LightDirections.clear();
-		m_SceneLighting.LightRadius.clear();
-		m_SceneLighting.LightIntensities.clear();
-		m_SceneLighting.LightCutOffs.clear();
-		m_SceneLighting.LightAmbientStrengths.clear();
-		m_SceneLighting.LightDiffuseStrengths.clear();
-		m_SceneLighting.LightSpecularStrengths.clear();
+		m_Lights.clear();
 
 		auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 		for (auto entity : view)
@@ -227,15 +216,17 @@ namespace Atlas
 					break;
 			}
 
-			m_SceneLighting.LightPositions        .push_back(transform.Translation);
-			m_SceneLighting.LightColors           .push_back(light.Light.GetColor());
-			m_SceneLighting.LightDirections       .push_back(lightDirection);
-			m_SceneLighting.LightRadius           .push_back(light.Light.GetRadius());
-			m_SceneLighting.LightIntensities      .push_back(light.Light.GetIntensity());
-			m_SceneLighting.LightCutOffs          .push_back(light.Light.GetCutOff().x >= 0 ? glm::cos(glm::radians(light.Light.GetCutOff())) : light.Light.GetCutOff());
-			m_SceneLighting.LightAmbientStrengths .push_back(light.Light.GetAmbientStrength());
-			m_SceneLighting.LightDiffuseStrengths .push_back(light.Light.GetDiffuseStrength());
-			m_SceneLighting.LightSpecularStrengths.push_back(light.Light.GetSpecularStrength());
+			Renderer::LightData lightData;
+			lightData.Position         = glm::vec4(transform.Translation, 1.0f);
+			lightData.Color            = glm::vec4(light.Light.GetColor(), 1.0f);
+			lightData.Direction        = lightDirection;
+			lightData.Radius           = light.Light.GetRadius();
+			lightData.Intensity        = light.Light.GetIntensity();
+			lightData.CutOffs          = light.Light.GetCutOff().x >= 0 ? glm::cos(glm::radians(light.Light.GetCutOff())) : light.Light.GetCutOff();
+			lightData.AmbientStrength  = light.Light.GetAmbientStrength();
+			lightData.DiffuseStrength  = light.Light.GetDiffuseStrength();
+			lightData.SpecularStrength = light.Light.GetSpecularStrength();
+			m_Lights.push_back(lightData);
 		}
 	}
 
@@ -319,7 +310,6 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentAdded<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
-		m_SceneLighting.LightCount++;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -378,6 +368,5 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentRemoved<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
-		m_SceneLighting.LightCount--;
 	}
 }

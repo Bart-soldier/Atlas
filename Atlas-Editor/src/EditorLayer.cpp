@@ -121,7 +121,7 @@ namespace Atlas
 			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
 		}
 
-		OnOverlayRender();
+		//OnOverlayRender();
 
 		m_Framebuffer->Unbind();
 	}
@@ -351,12 +351,12 @@ namespace Atlas
 			}
 
 			// Overlay should not be affected by lights
-			Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>());
+			//Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>(), nullptr);
 		}
 		else
 		{
 			// Overlay should not be affected by lights
-			Renderer::BeginScene(m_EditorCamera);
+			//Renderer::BeginScene(m_EditorCamera);
 		}
 
 		// Draw selected entity outline 
