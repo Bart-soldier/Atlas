@@ -215,7 +215,7 @@ namespace Atlas
 		{
 			auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);	
 
-			glm::vec4 lightDirection = glm::vec4(0.0f); // w is a flag for lightDirection calculation
+			glm::vec4 lightDirection = glm::vec4(0.0f); // w is a flag to indicate if light direction is spot direction
 			switch (light.Light.GetCastType())
 			{
 				case Light::CastType::DirectionalLight:
