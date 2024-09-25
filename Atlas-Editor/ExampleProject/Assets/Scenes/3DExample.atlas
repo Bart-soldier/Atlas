@@ -1,36 +1,37 @@
 Scene: 3D Example
 Entities:
-  - Entity: 14436711700658081143
+  - Entity: 3177740029032122652
     TagComponent:
       Tag: Second spotlight
     TransformComponent:
-      Translation: [-1.10000002, 0, 0]
-      Rotation: [0, -1.57079637, 0]
+      Translation: [1, 0, 0]
+      Rotation: [0, 1.57079637, 0]
       Scale: [1, 1, 1]
     LightSourceComponent:
-      CastType: 1
+      CastType: 2
       Color: [1, 1, 1]
       Radius: 0.00999999978
       Intensity: 1
-      CutOff: [-12.5, -17.5]
+      CutOff: [12.5, 17.5]
       AmbientStrength: 0.100000001
       DiffuseStrength: 0.5
       SpecularStrength: 1
-  - Entity: 8973117593411618567
+  - Entity: 8975641200445455453
     TagComponent:
-      Tag: Cube
+      Tag: Spotlight
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
+      Translation: [2.5999999, 1.60000002, 1.60000002]
+      Rotation: [-0.610865235, 0.959931076, 0]
       Scale: [1, 1, 1]
-    MeshComponent:
-      Preset: 0
-      AmbientColor: [1, 1, 1]
-      DiffuseColor: [1, 1, 1]
-      SpecularColor: [1, 1, 1]
-      Shininess: 0.400000006
-      DiffuseTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container.png
-      SpecularTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\ContainerSpecular.png
+    LightSourceComponent:
+      CastType: 2
+      Color: [1, 1, 1]
+      Radius: 0.00999999978
+      Intensity: 10
+      CutOff: [12.5, 17.5]
+      AmbientStrength: 0.100000001
+      DiffuseStrength: 0.5
+      SpecularStrength: 1
   - Entity: 8499682893995048034
     TagComponent:
       Tag: Camera
@@ -49,19 +50,34 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 8975641200445455453
+  - Entity: 8973117593411618567
     TagComponent:
-      Tag: Spotlight
+      Tag: Cube
     TransformComponent:
-      Translation: [2.5999999, 1.60000002, 1.60000002]
-      Rotation: [-0.610865235, 0.959931076, 0]
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Preset: 0
+      AmbientColor: [1, 1, 1]
+      DiffuseColor: [1, 1, 1]
+      SpecularColor: [1, 1, 1]
+      Shininess: 0.400000006
+      DiffuseTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container.png
+      SpecularTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\ContainerSpecular.png
+  - Entity: 14436711700658081143
+    TagComponent:
+      Tag: Point light
+    TransformComponent:
+      Translation: [-1.10000002, 0, 0]
+      Rotation: [0, -1.57079637, 0]
       Scale: [1, 1, 1]
     LightSourceComponent:
-      CastType: 2
+      CastType: 1
       Color: [1, 1, 1]
       Radius: 0.00999999978
-      Intensity: 10
-      CutOff: [12.5, 17.5]
+      Intensity: 1
+      CutOff: [-12.5, -17.5]
       AmbientStrength: 0.100000001
       DiffuseStrength: 0.5
       SpecularStrength: 1
