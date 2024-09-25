@@ -20,3 +20,6 @@
 [submodule "Atlas/vendor/ImGuizmo"]
 	path = Atlas/vendor/ImGuizmo
 	url = ../../Bart-soldier/ImGuizmo.git
+[submodule "Atlas/vendor/assimp"]
+	path = Atlas/vendor/assimp
+	url = ../../Bart-soldier/assimp.git
