@@ -131,7 +131,7 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
 		}
 		
 		float attenuation = CalculateLightAttenuation(light.Radius, light.Position.xyz, VertexInput.Position);
-		float lightCutOff = CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - VertexInput.Position), light.Position.xyz);
+		float lightCutOff = CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - VertexInput.Position), light.Direction.xyz);
 
 		vec4 ambientLight  = vec4(CalculateAmbientLight  (lightColor, light.AmbientStrength                               ) * attenuation              , 1.0);
 		vec4 diffuseLight  = vec4(CalculateDiffuseLight  (lightColor, light.DiffuseStrength , lightDirection, vertexNormal) * attenuation * lightCutOff, 1.0);

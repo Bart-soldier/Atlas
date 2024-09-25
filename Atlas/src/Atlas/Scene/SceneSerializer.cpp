@@ -236,8 +236,12 @@ namespace Atlas
 			auto& lightSourceComponent = entity.GetComponent<LightSourceComponent>();
 			auto& light = lightSourceComponent.Light;
 
+			out << YAML::Key << "CastType" << YAML::Value << (int)light.GetCastType();
+
 			out << YAML::Key << "Color" << YAML::Value << light.GetColor();
+			out << YAML::Key << "Radius" << YAML::Value << light.GetRadius();
 			out << YAML::Key << "Intensity" << YAML::Value << light.GetIntensity();
+			out << YAML::Key << "CutOff" << YAML::Value << light.GetCutOff();
 
 			out << YAML::Key << "AmbientStrength" << YAML::Value << light.GetAmbientStrength();
 			out << YAML::Key << "DiffuseStrength" << YAML::Value << light.GetDiffuseStrength();
@@ -495,14 +499,29 @@ namespace Atlas
 				{
 					auto& src = deserializedEntity.AddComponent<LightSourceComponent>();
 
+					if (lightSourceComponent["CastType"])
+					{
+						src.Light.SetCastType((Light::CastType)lightSourceComponent["CastType"].as<int>());
+					}
+
 					if (lightSourceComponent["Color"])
 					{
 						src.Light.SetColor(lightSourceComponent["Color"].as<glm::vec3>());
 					}
 
+					if (lightSourceComponent["Radius"])
+					{
+						src.Light.SetRadius(lightSourceComponent["Radius"].as<float>());
+					}
+
 					if (lightSourceComponent["Intensity"])
 					{
 						src.Light.SetIntensity(lightSourceComponent["Intensity"].as<float>());
+					}
+
+					if (lightSourceComponent["CutOff"])
+					{
+						src.Light.SetCutOff(lightSourceComponent["CutOff"].as<glm::vec2>());
 					}
 
 					if (lightSourceComponent["AmbientStrength"])

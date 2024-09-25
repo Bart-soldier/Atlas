@@ -520,9 +520,18 @@ namespace Atlas
 			if (light.GetCastType() != Light::CastType::DirectionalLight)
 			{
 				float range = light.GetRadius();
-				if (ImGuiUtils::DragFloat("Radius", range, 0.01f, 0.01f, 0.0f))
+				if (ImGuiUtils::DragFloat("Radius", range, 0.01f, 0.01f, 0.0001f))
 				{
 					light.SetRadius(range);
+				}
+			}
+
+			if (light.GetCastType() == Light::CastType::Spotlight)
+			{
+				glm::vec2 cutOff = light.GetCutOff();
+				if (ImGuiUtils::DragFloat2("Cut-off", cutOff, 10.00f, 0.1f, 0.0001f))
+				{
+					light.SetCutOff(cutOff);
 				}
 			}
 		});
