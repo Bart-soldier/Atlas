@@ -305,6 +305,38 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
 	{
+		MeshComponent::Vertex vertex{};
+		vertex.Position  = glm::vec3(-0.5f, -0.5f, -0.5f);
+		vertex.Normal    = glm::vec3( 0.0f,  0.0f, -1.0f);
+		vertex.TexCoords = glm::vec2( 0.0f,  0.0f);
+		component.Vertices.push_back(vertex);
+		vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
+		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
+		vertex.TexCoords = glm::vec2(1.0f, 0.0f);
+		component.Vertices.push_back(vertex);
+		vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
+		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
+		vertex.TexCoords = glm::vec2(1.0f, 1.0f);
+		component.Vertices.push_back(vertex);
+		vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
+		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
+		vertex.TexCoords = glm::vec2(1.0f, 1.0f);
+		component.Vertices.push_back(vertex);
+		vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
+		vertex.TexCoords = glm::vec2(0.0f, 1.0f);
+		component.Vertices.push_back(vertex);
+		vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
+		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
+		vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+		component.Vertices.push_back(vertex);
+
+		component.Indices.push_back(0);
+		component.Indices.push_back(1);
+		component.Indices.push_back(2);
+		component.Indices.push_back(3);
+		component.Indices.push_back(4);
+		component.Indices.push_back(5);
 	}
 
 	template<>

@@ -245,7 +245,7 @@ namespace Atlas
 		s_Data.MeshVertexBufferBase = new MeshVertex[s_Data.MaxVertices];
 
 		// Mesh IBO / EBO
-		s_Data.MeshIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices);
+		s_Data.MeshIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices * sizeof(MeshIndex));
 		s_Data.MeshVertexArray->SetIndexBuffer(s_Data.MeshIndexBuffer);
 		s_Data.MeshIndexBufferBase = new MeshIndex[s_Data.MaxIndices];
 
@@ -425,12 +425,12 @@ namespace Atlas
 		if (s_Data.MeshIndexCount)
 		{
 			// VBO
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.MeshVertexBufferPtr - (uint8_t*)s_Data.MeshVertexBufferBase);
-			s_Data.MeshVertexBuffer->SetData(s_Data.MeshVertexBufferBase, dataSize);
+			uint32_t vertexDataSize = (uint32_t)((uint8_t*)s_Data.MeshVertexBufferPtr - (uint8_t*)s_Data.MeshVertexBufferBase);
+			s_Data.MeshVertexBuffer->SetData(s_Data.MeshVertexBufferBase, vertexDataSize);
 
 			// IBO / EBO
-			uint32_t count = (uint32_t)((uint8_t*)s_Data.MeshIndexBufferPtr - (uint8_t*)s_Data.MeshIndexBufferBase);
-			s_Data.MeshIndexBuffer->SetData(s_Data.MeshIndexBufferBase, count);
+			uint32_t indexDataSize = (uint32_t)((uint8_t*)s_Data.MeshIndexBufferPtr - (uint8_t*)s_Data.MeshIndexBufferBase);
+			s_Data.MeshIndexBuffer->SetData(s_Data.MeshIndexBufferBase, indexDataSize);
 
 			// Textures
 			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
@@ -793,7 +793,6 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		size_t vertexCount = src.VertexCount;
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
 		int diffuseTextureIndex  = EnsureTextureSlot(src.Material.GetDiffuseTexture());
@@ -804,13 +803,11 @@ namespace Atlas
 			NextBatch();
 		}
 
-		for (size_t i = 0; i < vertexCount; i++)
+		for (size_t i = 0; i < src.Vertices.size(); i++)
 		{
-			int currentIndex = i * 8;
-
-			s_Data.MeshVertexBufferPtr->Position             = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
-			s_Data.MeshVertexBufferPtr->Normal               = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
-			s_Data.MeshVertexBufferPtr->TexCoord             = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
+			s_Data.MeshVertexBufferPtr->Position             = transform * glm::vec4(src.Vertices[i].Position, 1.0f);
+			s_Data.MeshVertexBufferPtr->Normal               = normalMatrix * src.Vertices[i].Normal;
+			s_Data.MeshVertexBufferPtr->TexCoord             = src.Vertices[i].TexCoords;
 
 			s_Data.MeshVertexBufferPtr->AmbientColor         = src.Material.GetAmbientColor();
 			s_Data.MeshVertexBufferPtr->DiffuseColor         = src.Material.GetDiffuseColor();
@@ -825,13 +822,13 @@ namespace Atlas
 			s_Data.MeshVertexBufferPtr++;
 		}
 
-		for (uint32_t i = 0; i < src.IndexCount; i++)
+		for (uint32_t i = 0; i < src.Indices.size(); i++)
 		{
 			s_Data.MeshIndexBufferPtr->Index = i;
 			s_Data.MeshIndexBufferPtr++;
 		}
 
-		s_Data.MeshIndexCount += vertexCount;
+		s_Data.MeshIndexCount += src.Indices.size();
 
 		s_Data.Stats.MeshCount++;
 	}
