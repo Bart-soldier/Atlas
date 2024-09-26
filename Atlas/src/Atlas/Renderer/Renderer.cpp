@@ -789,30 +789,32 @@ namespace Atlas
 		DrawLine(lineVertices[3], lineVertices[0], color, entityID);
 	}
 
-	void Renderer::DrawMesh(const glm::mat4& transform, MeshComponent& src, int entityID)
+	void Renderer::DrawMesh(const glm::mat4& transform, MeshComponent& mesh, MaterialComponent* material, int entityID)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int diffuseTextureIndex  = EnsureTextureSlot(src.Material.GetDiffuseTexture());
-		int specularTextureIndex = EnsureTextureSlot(src.Material.GetSpecularTexture());
+		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material.GetDiffuseTexture());
+		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material.GetSpecularTexture());
 
 		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
-		for (size_t i = 0; i < src.Vertices.size(); i++)
-		{
-			s_Data.MeshVertexBufferPtr->Position             = transform * glm::vec4(src.Vertices[i].Position, 1.0f);
-			s_Data.MeshVertexBufferPtr->Normal               = normalMatrix * src.Vertices[i].Normal;
-			s_Data.MeshVertexBufferPtr->TexCoord             = src.Vertices[i].TexCoords;
+		std::vector<Mesh::Vertex> vertices = mesh.Mesh.GetVertices();
 
-			s_Data.MeshVertexBufferPtr->AmbientColor         = src.Material.GetAmbientColor();
-			s_Data.MeshVertexBufferPtr->DiffuseColor         = src.Material.GetDiffuseColor();
-			s_Data.MeshVertexBufferPtr->SpecularColor        = src.Material.GetSpecularColor();
-			s_Data.MeshVertexBufferPtr->Shininess            = src.Material.GetShininess();
+		for (size_t i = 0; i < mesh.Mesh.GetVertices().size(); i++)
+		{
+			s_Data.MeshVertexBufferPtr->Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_Data.MeshVertexBufferPtr->Normal               = normalMatrix * vertices[i].Normal;
+			s_Data.MeshVertexBufferPtr->TexCoord             = vertices[i].TexCoords;
+
+			s_Data.MeshVertexBufferPtr->AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material.GetAmbientColor();
+			s_Data.MeshVertexBufferPtr->DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material.GetDiffuseColor();
+			s_Data.MeshVertexBufferPtr->SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material.GetSpecularColor();
+			s_Data.MeshVertexBufferPtr->Shininess            = material == nullptr ? 0.25f           : material->Material.GetShininess();
 
 			s_Data.MeshVertexBufferPtr->DiffuseTextureIndex  = diffuseTextureIndex;
 			s_Data.MeshVertexBufferPtr->SpecularTextureIndex = specularTextureIndex;
@@ -822,13 +824,15 @@ namespace Atlas
 			s_Data.MeshVertexBufferPtr++;
 		}
 
-		for (uint32_t i = 0; i < src.Indices.size(); i++)
+		std::vector<uint32_t> indices = mesh.Mesh.GetIndices();
+
+		for (uint32_t i = 0; i < indices.size(); i++)
 		{
-			s_Data.MeshIndexBufferPtr->Index = i;
+			s_Data.MeshIndexBufferPtr->Index = indices[i];
 			s_Data.MeshIndexBufferPtr++;
 		}
 
-		s_Data.MeshIndexCount += src.Indices.size();
+		s_Data.MeshIndexCount += indices.size();
 
 		s_Data.Stats.MeshCount++;
 	}

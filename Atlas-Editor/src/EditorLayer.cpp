@@ -591,7 +591,8 @@ namespace Atlas
 
 		Entity squareEntity = newScene->CreateEntity("White Cube");
 		squareEntity.AddComponent<MeshComponent>();
-		squareEntity.GetComponent<MeshComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
+		squareEntity.AddComponent<MaterialComponent>();
+		squareEntity.GetComponent<MaterialComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
 
 		Entity cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity.AddComponent<CameraComponent>();

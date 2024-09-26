@@ -247,8 +247,9 @@ namespace Atlas
 			for (auto entity : view)
 			{
 				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+				MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
 
-				Renderer::DrawMesh(transform.GetTransform(), mesh, (int)entity);
+				Renderer::DrawMesh(transform.GetTransform(), mesh, material, (int)entity);
 			}
 		}
 
@@ -305,38 +306,62 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
 	{
-		MeshComponent::Vertex vertex{};
-		vertex.Position  = glm::vec3(-0.5f, -0.5f, -0.5f);
-		vertex.Normal    = glm::vec3( 0.0f,  0.0f, -1.0f);
-		vertex.TexCoords = glm::vec2( 0.0f,  0.0f);
-		component.Vertices.push_back(vertex);
-		vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
-		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
-		vertex.TexCoords = glm::vec2(1.0f, 0.0f);
-		component.Vertices.push_back(vertex);
-		vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
-		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
-		vertex.TexCoords = glm::vec2(1.0f, 1.0f);
-		component.Vertices.push_back(vertex);
-		vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
-		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
-		vertex.TexCoords = glm::vec2(1.0f, 1.0f);
-		component.Vertices.push_back(vertex);
-		vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
-		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
-		vertex.TexCoords = glm::vec2(0.0f, 1.0f);
-		component.Vertices.push_back(vertex);
-		vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-		vertex.Normal = glm::vec3(0.0f, 0.0f, -1.0f);
-		vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-		component.Vertices.push_back(vertex);
+		std::vector<Mesh::Vertex> vertices;
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f));
 
-		component.Indices.push_back(0);
-		component.Indices.push_back(1);
-		component.Indices.push_back(2);
-		component.Indices.push_back(3);
-		component.Indices.push_back(4);
-		component.Indices.push_back(5);
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f));
+
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f));
+		vertices.push_back(Mesh::Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0));
+
+		std::vector<uint32_t> indices;
+		for (int i = 0; i < vertices.size(); i++)
+		{
+			indices.push_back(i);
+		}
+
+		component.Mesh.SetVertices(vertices);
+		component.Mesh.SetIndices(indices);
+	}
+
+	template<>
+	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component)
+	{
 	}
 
 	template<>
@@ -394,6 +419,11 @@ namespace Atlas
 
 	template<>
 	void Scene::OnComponentRemoved<MeshComponent>(Entity entity, MeshComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentRemoved<MaterialComponent>(Entity entity, MaterialComponent& component)
 	{
 	}
 

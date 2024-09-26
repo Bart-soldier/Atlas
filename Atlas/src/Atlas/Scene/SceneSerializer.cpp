@@ -198,13 +198,13 @@ namespace Atlas
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
 
-		if (entity.HasComponent<MeshComponent>())
+		if (entity.HasComponent<MaterialComponent>())
 		{
-			out << YAML::Key << "MeshComponent";
+			out << YAML::Key << "MaterialComponent";
 			out << YAML::BeginMap; // MeshComponent
 
-			auto& meshComponent = entity.GetComponent<MeshComponent>();
-			auto& material = meshComponent.Material;
+			auto& materialComponent = entity.GetComponent<MaterialComponent>();
+			auto& material = materialComponent.Material;
 
 			out << YAML::Key << "Preset" << YAML::Value << (int)material.GetMaterialPreset();
 
@@ -449,10 +449,10 @@ namespace Atlas
 					}
 				}
 
-				auto meshComponent = entity["MeshComponent"];
+				auto meshComponent = entity["Material"];
 				if (meshComponent)
 				{
-					auto& src = deserializedEntity.AddComponent<MeshComponent>();
+					auto& src = deserializedEntity.AddComponent<MaterialComponent>();
 
 					if (meshComponent["Preset"])
 					{

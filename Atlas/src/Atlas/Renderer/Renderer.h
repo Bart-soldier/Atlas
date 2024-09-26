@@ -66,7 +66,7 @@ namespace Atlas
 		static void DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int entityID = -1);
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
-		static void DrawMesh(const glm::mat4& transform, MeshComponent& src, int entityID);
+		static void DrawMesh(const glm::mat4& transform, MeshComponent& mesh, MaterialComponent* material, int entityID);
 
 		// Stats
 		struct Statistics

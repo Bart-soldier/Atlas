@@ -7,6 +7,7 @@
 #include "Atlas/Renderer/SubTexture2D.h"
 #include "Atlas/Renderer/Light.h"
 #include "Atlas/Renderer/Material.h"
+#include "Atlas/Renderer/Mesh.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -114,23 +115,18 @@ namespace Atlas
 
 	struct MeshComponent
 	{
-		struct Vertex
-		{
-			glm::vec3 Position;
-			glm::vec3 Normal;
-			glm::vec2 TexCoords;
-		};
-
-		std::vector<Vertex> Vertices;
-		std::vector<uint32_t> Indices;
-
-		// TODO: Seperate mesh & material
-		Material Material;
+		Mesh Mesh;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
-			: Vertices(vertices), Indices(indices) {}
+	};
+
+	struct MaterialComponent
+	{
+		Material Material;
+
+		MaterialComponent() = default;
+		MaterialComponent(const MaterialComponent&) = default;
 	};
 
 	struct LightSourceComponent
@@ -148,6 +144,6 @@ namespace Atlas
 
 	using AllComponents =
 		ComponentGroup<TransformComponent, CameraComponent,
-		SpriteRendererComponent, MeshComponent,
+		SpriteRendererComponent, MeshComponent, MaterialComponent,
 		LightSourceComponent>;
 }

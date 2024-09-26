@@ -154,7 +154,9 @@ namespace Atlas
 		{
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
-			DisplayExclusiveAddComponentEntry<MeshComponent, SpriteRendererComponent>("Mesh", "Sprite Renderer");
+			DisplayAddComponentEntryIfNoOther<SpriteRendererComponent, MeshComponent>("Sprite Renderer");
+			DisplayAddComponentEntryIfNoOther<MeshComponent, SpriteRendererComponent>("Mesh");
+			DisplayAddComponentEntryIfOther<MaterialComponent, MeshComponent>("Material");
 			DisplayAddComponentEntry<LightSourceComponent>("Light Source");
 
 			ImGui::EndPopup();
@@ -329,6 +331,10 @@ namespace Atlas
 		});
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
+		{
+		});
+
+		DrawComponent<MaterialComponent>("Material", entity, [](auto& component)
 		{
 			auto& material = component.Material;
 
@@ -595,21 +601,20 @@ namespace Atlas
 	}
 
 	template<typename T, typename T2>
-	void SceneHierarchyPanel::DisplayExclusiveAddComponentEntry(const std::string& firstEntryName, const std::string& secondEntryName)
+	void SceneHierarchyPanel::DisplayAddComponentEntryIfOther(const std::string& entryName)
 	{
-		if (!m_SelectionContext.HasComponent<T>() && !m_SelectionContext.HasComponent<T2>())
+		if (m_SelectionContext.HasComponent<T2>())
 		{
-			if (ImGui::MenuItem(firstEntryName.c_str()))
-			{
-				m_SelectionContext.AddComponent<T>();
-				ImGui::CloseCurrentPopup();
-			}
+			DisplayAddComponentEntry<T>(entryName);
+		}
+	}
 
-			if (ImGui::MenuItem(secondEntryName.c_str()))
-			{
-				m_SelectionContext.AddComponent<T2>();
-				ImGui::CloseCurrentPopup();
-			}
+	template<typename T, typename T2>
+	void SceneHierarchyPanel::DisplayAddComponentEntryIfNoOther(const std::string& entryName)
+	{
+		if (!m_SelectionContext.HasComponent<T2>())
+		{
+			DisplayAddComponentEntry<T>(entryName);
 		}
 	}
 }
