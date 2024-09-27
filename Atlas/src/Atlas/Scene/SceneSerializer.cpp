@@ -198,10 +198,18 @@ namespace Atlas
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
 
+		if (entity.HasComponent<MeshComponent>())
+		{
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap; // MeshComponent
+
+			out << YAML::EndMap; // MeshComponent
+		}
+
 		if (entity.HasComponent<MaterialComponent>())
 		{
 			out << YAML::Key << "MaterialComponent";
-			out << YAML::BeginMap; // MeshComponent
+			out << YAML::BeginMap; // MaterialComponent
 
 			auto& materialComponent = entity.GetComponent<MaterialComponent>();
 			auto& material = materialComponent.Material;
@@ -225,7 +233,7 @@ namespace Atlas
 				out << YAML::Key << "SpecularTexturePath" << YAML::Value << specularTexture->GetPath().string();
 			}
 
-			out << YAML::EndMap; // MeshComponent
+			out << YAML::EndMap; // MaterialComponent
 		}
 
 		if (entity.HasComponent<LightSourceComponent>())
@@ -449,46 +457,52 @@ namespace Atlas
 					}
 				}
 
-				auto meshComponent = entity["Material"];
+				auto meshComponent = entity["MeshComponent"];
 				if (meshComponent)
+				{
+					auto& src = deserializedEntity.AddComponent<MeshComponent>();
+				}
+
+				auto materialComponent = entity["MaterialComponent"];
+				if (materialComponent)
 				{
 					auto& src = deserializedEntity.AddComponent<MaterialComponent>();
 
-					if (meshComponent["Preset"])
+					if (materialComponent["Preset"])
 					{
-						src.Material.SetMaterialPreset((Material::MaterialPresets)meshComponent["Preset"].as<int>());
+						src.Material.SetMaterialPreset((Material::MaterialPresets)materialComponent["Preset"].as<int>());
 					}
 
-					if (meshComponent["AmbientColor"])
+					if (materialComponent["AmbientColor"])
 					{
-						src.Material.SetAmbientColor(meshComponent["AmbientColor"].as<glm::vec3>());
+						src.Material.SetAmbientColor(materialComponent["AmbientColor"].as<glm::vec3>());
 					}
 
-					if (meshComponent["DiffuseColor"])
+					if (materialComponent["DiffuseColor"])
 					{
-						src.Material.SetDiffuseColor(meshComponent["DiffuseColor"].as<glm::vec3>());
+						src.Material.SetDiffuseColor(materialComponent["DiffuseColor"].as<glm::vec3>());
 					}
 
-					if (meshComponent["SpecularColor"])
+					if (materialComponent["SpecularColor"])
 					{
-						src.Material.SetSpecularColor(meshComponent["SpecularColor"].as<glm::vec3>());
+						src.Material.SetSpecularColor(materialComponent["SpecularColor"].as<glm::vec3>());
 					}
 
-					if (meshComponent["Shininess"])
+					if (materialComponent["Shininess"])
 					{
-						src.Material.SetShininess(meshComponent["Shininess"].as<float>());
+						src.Material.SetShininess(materialComponent["Shininess"].as<float>());
 					}
 
-					if (meshComponent["DiffuseTexturePath"])
+					if (materialComponent["DiffuseTexturePath"])
 					{
-						std::string texturePath = meshComponent["DiffuseTexturePath"].as<std::string>();
+						std::string texturePath = materialComponent["DiffuseTexturePath"].as<std::string>();
 						auto path = Project::GetAssetFileSystemPath(texturePath);
 						src.Material.SetDiffuseTexture(Texture2D::Create(path.string()));
 					}
 
-					if (meshComponent["SpecularTexturePath"])
+					if (materialComponent["SpecularTexturePath"])
 					{
-						std::string texturePath = meshComponent["SpecularTexturePath"].as<std::string>();
+						std::string texturePath = materialComponent["SpecularTexturePath"].as<std::string>();
 						auto path = Project::GetAssetFileSystemPath(texturePath);
 						src.Material.SetSpecularTexture(Texture2D::Create(path.string()));
 					}
