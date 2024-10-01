@@ -35,6 +35,8 @@ namespace Atlas
 		static void EndScene();
 		static void Flush();
 
+		static uint32_t GetLightStorageBufferCapacity();
+
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
 
@@ -83,7 +85,7 @@ namespace Atlas
 
 	private:
 		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights);
-		static void EnsureLightStorageBufferCapacity(uint32_t lightCount);
+		static void EnsureLightStorageBufferCapacity(uint32_t capacity);
 		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();

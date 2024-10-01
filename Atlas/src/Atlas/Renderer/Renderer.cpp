@@ -138,7 +138,7 @@ namespace Atlas
 		Ref<UniformBuffer> LightCountUniformBuffer;
 
 		// Storage buffers
-		uint32_t LightStorageBufferCapacity = 0;
+		uint32_t LightStorageBufferCapacity = 100;
 		Ref<StorageBuffer> LightStorageBuffer;
 
 		// Misc.
@@ -313,18 +313,18 @@ namespace Atlas
 		s_Data.LightCountBuffer.LightCount = lights.size();
 		s_Data.LightCountUniformBuffer->SetData(&s_Data.LightCountBuffer, sizeof(RendererData::LightCountData));
 
-		EnsureLightStorageBufferCapacity(lights.size());
+		EnsureLightStorageBufferCapacity(lights.capacity());
 		s_Data.LightStorageBuffer->SetData(lights.data(), sizeof(LightData) * lights.size());
 	}
 
-	void Renderer::EnsureLightStorageBufferCapacity(uint32_t size)
+	void Renderer::EnsureLightStorageBufferCapacity(uint32_t capacity)
 	{
-		if (size <= s_Data.LightStorageBufferCapacity)
+		if (capacity <= s_Data.LightStorageBufferCapacity)
 		{
 			return;
 		}
 
-		s_Data.LightStorageBufferCapacity = size;
+		s_Data.LightStorageBufferCapacity = capacity;
 		s_Data.LightStorageBuffer->SetSize(sizeof(LightData) * s_Data.LightStorageBufferCapacity);
 	}
 
@@ -469,6 +469,11 @@ namespace Atlas
 	{
 		Flush();
 		StartBatch();
+	}
+
+	uint32_t Renderer::GetLightStorageBufferCapacity()
+	{
+		return s_Data.LightStorageBufferCapacity;
 	}
 
 	RendererAPI::PolygonMode Renderer::GetPolygonMode()

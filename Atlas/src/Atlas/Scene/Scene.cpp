@@ -11,11 +11,13 @@ namespace Atlas
 	Scene::Scene()
 	{
 		m_Name = "Untitled Scene";
+		m_Lights.reserve(Renderer::GetLightStorageBufferCapacity());
 	}
 
 	Scene::Scene(std::string name)
 		: m_Name(name)
 	{
+		m_Lights.reserve(Renderer::GetLightStorageBufferCapacity());
 	}
 
 	Scene::~Scene()
