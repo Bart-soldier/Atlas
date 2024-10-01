@@ -696,10 +696,23 @@ namespace Atlas
 
 	void EditorLayer::LoadModel()
 	{
-		std::filesystem::path path = FileDialogs::SaveFile("Atlas Scene (*.atlas)\0*.atlas\0");
+		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj)\0*.obj\0");
 		if (!path.empty())
 		{
-			Model::LoadModel(path);
+			std::vector<Mesh> model = Model::LoadModel(path);
+
+			for (Mesh mesh : model)
+			{
+				Entity meshEntity = m_ActiveScene->CreateEntity();
+				//meshEntity.AddComponent<MeshComponent>(mesh);
+				meshEntity.AddComponent<MeshComponent>();
+				meshEntity.GetComponent<MeshComponent>().Mesh = mesh;
+
+				//Entity squareEntity = newScene->CreateEntity("White Cube");
+				//squareEntity.AddComponent<MeshComponent>();
+				//squareEntity.AddComponent<MaterialComponent>();
+				//squareEntity.GetComponent<MaterialComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
+			}
 		}
 	}
 

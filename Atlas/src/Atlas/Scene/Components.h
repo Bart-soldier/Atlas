@@ -119,6 +119,8 @@ namespace Atlas
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
+		MeshComponent(const Atlas::Mesh& mesh)
+			: Mesh(mesh) {}
 	};
 
 	struct MaterialComponent
@@ -127,6 +129,8 @@ namespace Atlas
 
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent&) = default;
+		MaterialComponent(const Atlas::Material& material)
+			: Material(material) {}
 	};
 
 	struct LightSourceComponent
@@ -135,6 +139,8 @@ namespace Atlas
 
 		LightSourceComponent() = default;
 		LightSourceComponent(const LightSourceComponent&) = default;
+		LightSourceComponent(const Atlas::Light& light)
+			: Light(light) {}
 	};
 
 	template<typename... Component>

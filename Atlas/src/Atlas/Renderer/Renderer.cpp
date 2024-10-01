@@ -108,6 +108,7 @@ namespace Atlas
 		Ref<IndexBuffer> MeshIndexBuffer;
 		Ref<Shader> MeshShader;
 		
+		uint32_t MeshVertexCount = 0;
 		uint32_t MeshIndexCount = 0;
 		MeshVertex* MeshVertexBufferBase = nullptr;
 		MeshVertex* MeshVertexBufferPtr = nullptr;
@@ -457,7 +458,8 @@ namespace Atlas
 		s_Data.LineIndexCount = 0;
 		s_Data.LineVertexBufferPtr = s_Data.LineVertexBufferBase;
 
-		s_Data.MeshIndexCount = 0;
+		s_Data.MeshVertexCount = 0;
+		s_Data.MeshIndexCount  = 0;
 		s_Data.MeshVertexBufferPtr = s_Data.MeshVertexBufferBase;
 		s_Data.MeshIndexBufferPtr = s_Data.MeshIndexBufferBase;
 
@@ -802,12 +804,15 @@ namespace Atlas
 		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material.GetDiffuseTexture());
 		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material.GetSpecularTexture());
 
-		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)
+		std::vector<Mesh::Vertex> vertices = mesh.Mesh.GetVertices();
+		std::vector<uint32_t> indices = mesh.Mesh.GetIndices();
+
+		if (s_Data.MeshVertexCount + vertices.size() >= RendererData::MaxVertices ||
+			s_Data.MeshIndexCount  + indices .size() >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
-		std::vector<Mesh::Vertex> vertices = mesh.Mesh.GetVertices();
 
 		for (size_t i = 0; i < mesh.Mesh.GetVertices().size(); i++)
 		{
@@ -828,15 +833,14 @@ namespace Atlas
 			s_Data.MeshVertexBufferPtr++;
 		}
 
-		std::vector<uint32_t> indices = mesh.Mesh.GetIndices();
-
 		for (uint32_t i = 0; i < indices.size(); i++)
 		{
 			s_Data.MeshIndexBufferPtr->Index = indices[i];
 			s_Data.MeshIndexBufferPtr++;
 		}
 
-		s_Data.MeshIndexCount += indices.size();
+		s_Data.MeshVertexCount += vertices.size();
+		s_Data.MeshIndexCount  += indices .size();
 
 		s_Data.Stats.MeshCount++;
 	}
