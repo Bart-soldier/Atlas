@@ -3,6 +3,8 @@
 
 #include "Atlas/Utils/PlatformUtils.h"
 
+#include "Atlas/Renderer/Model.h"
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <ImGuizmo.h>
@@ -227,6 +229,16 @@ namespace Atlas
 				if (ImGui::MenuItem("Exit"))
 				{
 					Application::Get().Close();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Model"))
+			{
+				if (ImGui::MenuItem("Load..."))
+				{
+					LoadModel();
 				}
 
 				ImGui::EndMenu();
@@ -680,6 +692,15 @@ namespace Atlas
 	{
 		SceneSerializer serializer(scene);
 		serializer.Serialize(path);
+	}
+
+	void EditorLayer::LoadModel()
+	{
+		std::filesystem::path path = FileDialogs::SaveFile("Atlas Scene (*.atlas)\0*.atlas\0");
+		if (!path.empty())
+		{
+			Model::LoadModel(path);
+		}
 	}
 
 	void EditorLayer::OnScenePlay()

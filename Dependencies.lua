@@ -11,10 +11,9 @@ IncludeDir["glm"] = "%{wks.location}/Atlas/vendor/glm"
 IncludeDir["stb_image"] = "%{wks.location}/Atlas/vendor/stb_image"
 IncludeDir["entt"] = "%{wks.location}/Atlas/vendor/entt/include"
 IncludeDir["yaml_cpp"] = "%{wks.location}/Atlas/vendor/yaml-cpp/include"
-IncludeDir["shaderc"] = "%{wks.location}/Atlas/vendor/shaderc/include"
 IncludeDir["SPIRV_Cross"] = "%{wks.location}/Atlas/vendor/SPIRV-Cross"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["assimp"] = "%{wks.location}/Atlas/vendor/assimp"
+IncludeDir["assimp"] = "%{wks.location}/Atlas/vendor/assimp/include"
 
 LibraryDir = {}
 

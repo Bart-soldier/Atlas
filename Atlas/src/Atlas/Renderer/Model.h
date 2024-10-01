@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Atlas/Renderer/Mesh.h"
+#include <filesystem>
+#include <assimp/scene.h>
 
 namespace Atlas
 {
 	class Model
 	{
 	public:
-		Model(const std::filesystem::path& path);
+		static void LoadModel(const std::filesystem::path& path);
 
 	private:
-		std::filesystem::path m_Path;
-		//std::vector
+		static void ProcessNode(const aiNode& node, const aiScene& scene);
 	};
 }

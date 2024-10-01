@@ -1,5 +1,4 @@
 #include "atlaspch.h"
-
 #include "Atlas/Renderer/Renderer.h"
 
 #include "Atlas/Renderer/VertexArray.h"
