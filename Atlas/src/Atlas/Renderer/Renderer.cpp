@@ -552,6 +552,8 @@ namespace Atlas
 		s_Data.QuadIndexCount += quadIndexCount;
 
 		s_Data.Stats.QuadCount++;
+		s_Data.Stats.TotalVertexCount += quadVertexCount;
+		s_Data.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- TEXTURE VERSION --------------- */
@@ -622,6 +624,8 @@ namespace Atlas
 		s_Data.QuadIndexCount += quadIndexCount;
 
 		s_Data.Stats.QuadCount++;
+		s_Data.Stats.TotalVertexCount += quadVertexCount;
+		s_Data.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- SUBTEXTURE VERSION --------------- */
@@ -688,8 +692,8 @@ namespace Atlas
 		s_Data.QuadIndexCount += quadIndexCount;
 
 		s_Data.Stats.QuadCount++;
-
-		s_Data.Stats.QuadCount++;
+		s_Data.Stats.TotalVertexCount += quadVertexCount;
+		s_Data.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- EDITOR-USE VERSION --------------- */
@@ -744,7 +748,9 @@ namespace Atlas
 
 		s_Data.CircleIndexCount += circleIndexCount;
 
-		s_Data.Stats.QuadCount++;
+		s_Data.Stats.CircleCount++;
+		s_Data.Stats.TotalVertexCount += circleVertexCount;
+		s_Data.Stats.TotalIndexCount  += circleIndexCount;
 	}
 
 	void Renderer::DrawLine(const glm::vec3& p0, glm::vec3& p1, const glm::vec4& color, int entityID)
@@ -771,6 +777,10 @@ namespace Atlas
 		s_Data.LineVertexCount++;
 
 		s_Data.LineIndexCount += lineIndexCount;
+
+		s_Data.Stats.LineCount++;
+		s_Data.Stats.TotalVertexCount += lineVertexCount;
+		s_Data.Stats.TotalIndexCount  += lineIndexCount;
 	}
 
 	void Renderer::DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int entityID)
@@ -821,7 +831,7 @@ namespace Atlas
 		}
 
 
-		for (size_t i = 0; i < mesh.Mesh.GetVertices().size(); i++)
+		for (size_t i = 0; i < vertices.size(); i++)
 		{
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
@@ -846,5 +856,7 @@ namespace Atlas
 		}
 
 		s_Data.Stats.MeshCount++;
+		s_Data.Stats.TotalVertexCount += vertices.size();
+		s_Data.Stats.TotalIndexCount  += indices.size();
 	}
 }

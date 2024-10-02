@@ -253,17 +253,21 @@ namespace Atlas
 
 		ImGui::Begin("Renderer Stats");
 
+		ImGui::Text("API: %s", RendererAPI::GetAPI() == RendererAPI::API::OpenGL ? "OpenGL" : "None");
+
 		std::string name = "None";
 		if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 
 		auto stats = Renderer::GetStats();
-		ImGui::Text("Renderer2D Stats:");
-		ImGui::Text("Draw Calls: %d", stats.DrawCalls);
+		ImGui::Text("\nDraw Calls: %d", stats.DrawCalls);
 		ImGui::Text("Quad Count: %d", stats.QuadCount);
-		ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
-		ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+		ImGui::Text("Circle Count: %d", stats.CircleCount);
+		ImGui::Text("Line Count: %d", stats.LineCount);
+		ImGui::Text("Mesh Count: %d", stats.MeshCount);
+		ImGui::Text("Vertices: %d", stats.TotalVertexCount);
+		ImGui::Text("Indices: %d", stats.TotalIndexCount);
 
 		ImGui::End();
 
