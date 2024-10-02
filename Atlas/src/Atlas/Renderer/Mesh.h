@@ -26,7 +26,6 @@ namespace Atlas
 		};
 
 		Mesh() { SetMeshPreset(MeshPresets::Square); }
-		Mesh(const Mesh&) = default;
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
 			: m_Vertices(vertices), m_Indices(indices) { SetMeshPreset(MeshPresets::Custom); }
 
@@ -35,8 +34,8 @@ namespace Atlas
 		void SetIndices(const std::vector<uint32_t>& indices) { m_Indices = indices; }
 		const std::vector<uint32_t>& GetIndices() { return m_Indices; }
 
-		MeshPresets GetMeshPreset() const { return m_MeshPreset; }
-		void SetMeshPreset(MeshPresets materialPreset);
+		void SetMeshPreset(const MeshPresets& materialPreset);
+		const MeshPresets& GetMeshPreset() { return m_MeshPreset; }
 
 	private:
 		MeshPresets m_MeshPreset;

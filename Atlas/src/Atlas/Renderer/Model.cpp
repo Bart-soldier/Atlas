@@ -10,6 +10,9 @@ namespace Atlas
 
 	const Model::ModelData& Model::LoadModel(const std::filesystem::path& path)
 	{
+		s_ModelData.Path = path;
+		s_ModelData.Path.remove_filename();
+
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 	
@@ -70,7 +73,20 @@ namespace Atlas
 			}
 		}
 
-		// TODO: Materials ?
+		//if (mesh.mMaterialIndex > 0)
+		//{
+		//	aiMaterial* material = scene.mMaterials[mesh.mMaterialIndex];
+		//	aiString path;
+		//	material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+		//	s_ModelData.DiffuseTextures.push_back(Texture2D::Create(s_ModelData.Path / path.C_Str()));
+		//	material->GetTexture(aiTextureType_SPECULAR, 0, &path);
+		//	s_ModelData.SpecularTextures.push_back(Texture2D::Create(s_ModelData.Path / path.C_Str()));
+		//}
+		//else
+		//{
+		//	s_ModelData.DiffuseTextures.push_back(nullptr);
+		//	s_ModelData.SpecularTextures.push_back(nullptr);
+		//}
 
 		return CreateRef<Mesh>(vertices, indices);
 	}

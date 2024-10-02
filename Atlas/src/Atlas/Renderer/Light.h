@@ -36,8 +36,8 @@ namespace Atlas
 		void SetSpecularStrength(const float& specularStrength) { m_SpecularStrength = specularStrength; }
 		const float& GetSpecularStrength() { return m_SpecularStrength; }
 
-		CastType GetCastType() const { return m_CastType; }
-		void SetCastType(CastType castType);
+		void SetCastType(const CastType& castType);
+		const CastType& GetCastType() { return m_CastType; }
 
 	protected:
 		CastType m_CastType = CastType::PointLight;

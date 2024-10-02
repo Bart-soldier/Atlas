@@ -705,15 +705,21 @@ namespace Atlas
 		{
 			const Model::ModelData& modelData = Model::LoadModel(path);
 
-			for (Ref<Mesh> mesh : modelData.Meshes)
+			for (uint32_t meshIndex = 0; meshIndex < modelData.Meshes.size(); meshIndex++)
 			{
 				Entity meshEntity = m_ActiveScene->CreateEntity(path.stem().string());
-				meshEntity.AddComponent<MeshComponent>(mesh);
+				meshEntity.AddComponent<MeshComponent>(modelData.Meshes[meshIndex]);
+				//meshEntity.AddComponent<MaterialComponent>();
 
-				//Entity squareEntity = newScene->CreateEntity("White Cube");
-				//squareEntity.AddComponent<MeshComponent>();
-				//squareEntity.AddComponent<MaterialComponent>();
-				//squareEntity.GetComponent<MaterialComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
+				//if (modelData.DiffuseTextures[meshIndex] != nullptr)
+				//{
+				//	meshEntity.GetComponent<MaterialComponent>().Material->SetDiffuseTexture(modelData.DiffuseTextures[meshIndex]);
+				//}
+
+				//if (modelData.SpecularTextures[meshIndex] != nullptr)
+				//{
+				//	meshEntity.GetComponent<MaterialComponent>().Material->SetSpecularTexture(modelData.SpecularTextures[meshIndex]);
+				//}
 			}
 		}
 	}

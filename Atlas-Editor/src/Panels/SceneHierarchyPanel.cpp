@@ -366,6 +366,7 @@ namespace Atlas
 
 			const char* materialPresetStrings[] = {
 				"Custom",
+				"Default",
 				"Emerald",
 				"Jade",
 				"Obsidian",
@@ -394,7 +395,7 @@ namespace Atlas
 			const char* currentMaterialPresetString = materialPresetStrings[(int)material->GetMaterialPreset()];
 			if (ImGuiUtils::BeginCombo("Presets", *currentMaterialPresetString))
 			{
-				for (int i = 0; i < 25; i++)
+				for (int i = 0; i < 26; i++)
 				{
 					bool isSelected = currentMaterialPresetString == materialPresetStrings[i];
 					if (ImGui::Selectable(materialPresetStrings[i], isSelected))

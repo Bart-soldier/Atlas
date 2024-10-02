@@ -3,7 +3,7 @@
 
 namespace Atlas
 {
-	void Mesh::SetMeshPreset(MeshPresets meshPresets)
+	void Mesh::SetMeshPreset(const MeshPresets& meshPresets)
 	{
 		if (m_MeshPreset == meshPresets)
 		{

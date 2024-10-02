@@ -14,7 +14,10 @@ namespace Atlas
 		struct ModelData
 		{
 			std::vector<Ref<Mesh>> Meshes;
-			//std::vector<Ref<Texture2D>>
+			std::vector<Ref<Texture2D>> DiffuseTextures;
+			std::vector<Ref<Texture2D>> SpecularTextures;
+
+			std::filesystem::path Path;
 		};
 
 		static const ModelData& LoadModel(const std::filesystem::path& path);
