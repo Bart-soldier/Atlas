@@ -115,31 +115,31 @@ namespace Atlas
 
 	struct MeshComponent
 	{
-		Mesh Mesh;
+		Ref<Mesh> Mesh;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const Atlas::Mesh& mesh)
+		MeshComponent(const Ref<Atlas::Mesh>& mesh)
 			: Mesh(mesh) {}
 	};
 
 	struct MaterialComponent
 	{
-		Material Material;
+		Ref<Material> Material;
 
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent&) = default;
-		MaterialComponent(const Atlas::Material& material)
+		MaterialComponent(const Ref<Atlas::Material>& material)
 			: Material(material) {}
 	};
 
 	struct LightSourceComponent
 	{
-		Light Light;
+		Ref<Light> Light;
 
 		LightSourceComponent() = default;
 		LightSourceComponent(const LightSourceComponent&) = default;
-		LightSourceComponent(const Atlas::Light& light)
+		LightSourceComponent(const Ref<Atlas::Light>& light)
 			: Light(light) {}
 	};
 

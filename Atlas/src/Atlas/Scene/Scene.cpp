@@ -207,7 +207,7 @@ namespace Atlas
 			auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);	
 
 			glm::vec4 lightDirection = glm::vec4(0.0f); // w is a flag to indicate if light direction is spot direction
-			switch (light.Light.GetCastType())
+			switch (light.Light->GetCastType())
 			{
 				case Light::CastType::DirectionalLight:
 					lightDirection = glm::vec4(transform.GetDirection());
@@ -220,14 +220,14 @@ namespace Atlas
 
 			Renderer::LightData lightData;
 			lightData.Position         = glm::vec4(transform.Translation, 1.0f);
-			lightData.Color            = glm::vec4(light.Light.GetColor(), 1.0f);
+			lightData.Color            = glm::vec4(light.Light->GetColor(), 1.0f);
 			lightData.Direction        = lightDirection;
-			lightData.Radius           = light.Light.GetRadius();
-			lightData.Intensity        = light.Light.GetIntensity();
-			lightData.CutOffs          = light.Light.GetCutOff().x >= 0 ? glm::cos(glm::radians(light.Light.GetCutOff())) : light.Light.GetCutOff();
-			lightData.AmbientStrength  = light.Light.GetAmbientStrength();
-			lightData.DiffuseStrength  = light.Light.GetDiffuseStrength();
-			lightData.SpecularStrength = light.Light.GetSpecularStrength();
+			lightData.Radius           = light.Light->GetRadius();
+			lightData.Intensity        = light.Light->GetIntensity();
+			lightData.CutOffs          = light.Light->GetCutOff().x >= 0 ? glm::cos(glm::radians(light.Light->GetCutOff())) : light.Light->GetCutOff();
+			lightData.AmbientStrength  = light.Light->GetAmbientStrength();
+			lightData.DiffuseStrength  = light.Light->GetDiffuseStrength();
+			lightData.SpecularStrength = light.Light->GetSpecularStrength();
 			m_Lights.push_back(lightData);
 		}
 	}
@@ -261,7 +261,7 @@ namespace Atlas
 			{
 				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
 
-				Renderer::DrawCircle(transform.GetTransform(), glm::vec4(light.Light.GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+				Renderer::DrawCircle(transform.GetTransform(), glm::vec4(light.Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
 			}
 		}
 	}
@@ -308,16 +308,28 @@ namespace Atlas
 	template<>
 	void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
 	{
+		if (component.Mesh == nullptr)
+		{
+			component.Mesh = CreateRef<Mesh>();
+		}
 	}
 
 	template<>
 	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component)
 	{
+		if (component.Material == nullptr)
+		{
+			component.Material = CreateRef<Material>();
+		}
 	}
 
 	template<>
 	void Scene::OnComponentAdded<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
+		if (component.Light == nullptr)
+		{
+			component.Light = CreateRef<Light>();
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////

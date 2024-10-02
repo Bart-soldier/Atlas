@@ -608,7 +608,7 @@ namespace Atlas
 		Entity squareEntity = newScene->CreateEntity("White Cube");
 		squareEntity.AddComponent<MeshComponent>();
 		squareEntity.AddComponent<MaterialComponent>();
-		squareEntity.GetComponent<MaterialComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
+		squareEntity.GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Gold);
 
 		Entity cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity.AddComponent<CameraComponent>();
@@ -703,9 +703,9 @@ namespace Atlas
 		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj)\0*.obj\0");
 		if (!path.empty())
 		{
-			std::vector<Mesh> model = Model::LoadModel(path);
+			const Model::ModelData& modelData = Model::LoadModel(path);
 
-			for (Mesh mesh : model)
+			for (Ref<Mesh> mesh : modelData.Meshes)
 			{
 				Entity meshEntity = m_ActiveScene->CreateEntity(path.stem().string());
 				meshEntity.AddComponent<MeshComponent>(mesh);

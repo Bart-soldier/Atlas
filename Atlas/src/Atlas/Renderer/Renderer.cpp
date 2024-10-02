@@ -815,17 +815,17 @@ namespace Atlas
 		DrawLine(lineVertices[3], lineVertices[0], color, entityID);
 	}
 
-	void Renderer::DrawMesh(const glm::mat4& transform, MeshComponent& mesh, MaterialComponent* material, int entityID)
+	void Renderer::DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material.GetDiffuseTexture());
-		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material.GetSpecularTexture());
+		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
+		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
 
-		std::vector<Mesh::Vertex> vertices = mesh.Mesh.GetVertices();
-		std::vector<uint32_t> indices = mesh.Mesh.GetIndices();
+		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
+		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
 
 		if (s_Data.MeshVertexCount + vertices.size() >= RendererData::MaxVertices ||
 			s_Data.MeshIndexCount  + indices .size() >= RendererData::MaxIndices)
@@ -844,10 +844,10 @@ namespace Atlas
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].TexCoord             = vertices[i].TexCoords;
 
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material.GetAmbientColor();
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material.GetDiffuseColor();
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material.GetSpecularColor();
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Shininess            = material == nullptr ? 0.25f           : material->Material.GetShininess();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Shininess            = material == nullptr ? 0.25f           : material->Material->GetShininess();
 
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseTextureIndex  = diffuseTextureIndex;
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularTextureIndex = specularTextureIndex;

@@ -6,14 +6,9 @@
 
 namespace Atlas
 {
-	struct ModelData
-	{
-		std::vector<Mesh> Meshes;
-	};
+	static Model::ModelData s_ModelData;
 
-	static ModelData s_ModelData;
-
-	std::vector<Mesh> Model::LoadModel(const std::filesystem::path& path)
+	const Model::ModelData& Model::LoadModel(const std::filesystem::path& path)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
@@ -23,14 +18,14 @@ namespace Atlas
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
 			ATLAS_CORE_ERROR("ERROR::ASSIMP::{0}", importer.GetErrorString());
-			return s_ModelData.Meshes;
+			return s_ModelData;
 		}
 
 		s_ModelData.Meshes.reserve(scene->mNumMeshes);
 
 		ProcessNode(*scene->mRootNode, *scene);
 
-		return s_ModelData.Meshes;
+		return s_ModelData;
 	}
 
 	void Model::ProcessNode(const aiNode& node, const aiScene& scene)
@@ -47,7 +42,7 @@ namespace Atlas
 		}
 	}
 
-	Mesh Model::ProcessMesh(const aiMesh& mesh, const aiScene& scene)
+	Ref<Mesh> Model::ProcessMesh(const aiMesh& mesh, const aiScene& scene)
 	{
 		uint32_t indicesPerFace = 3; // Faces will always be triangles due to aiProcess_Triangulate
 
@@ -77,6 +72,6 @@ namespace Atlas
 
 		// TODO: Materials ?
 
-		return Mesh(vertices, indices);
+		return CreateRef<Mesh>(vertices, indices);
 	}
 }
