@@ -71,9 +71,12 @@ namespace Atlas
 	struct RendererData
 	{
 		// Per draw call
-		static const uint32_t MaxQuads = 20000;
-		static const uint32_t MaxVertices = MaxQuads * 4; // TODO: Check renderer capabilities
-		static const uint32_t MaxIndices = MaxQuads * 6; // TODO: Check renderer capabilities
+		static const uint32_t MaxTriangles = 20000;
+		static const uint32_t MaxVertices     = MaxTriangles * 3; // TODO: Check renderer capabilities
+		static const uint32_t MaxIndices      = MaxTriangles * 3; // TODO: Check renderer capabilities
+		static const uint32_t MaxQuads = MaxTriangles / 2;
+		static const uint32_t MaxQuadVertices = MaxQuads * 4; // TODO: Check renderer capabilities
+		static const uint32_t MaxQuadIndices  = MaxQuads * 6; // TODO: Check renderer capabilities
 		static const uint32_t MaxTextureSlots = 32; // TODO: Check renderer capabilities
 
 		// 2D
@@ -154,7 +157,7 @@ namespace Atlas
 		s_Data.QuadVertexArray = VertexArray::Create();
 
 		// Quad VBO
-		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
+		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxQuadVertices * sizeof(QuadVertex));
 		s_Data.QuadVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
@@ -164,7 +167,7 @@ namespace Atlas
 			{ ShaderDataType::Int,    "a_EntityID"     }
 		});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
-		s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
+		s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxQuadVertices];
 
 		s_Data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
@@ -172,9 +175,9 @@ namespace Atlas
 		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		// Quad IBO / EBO
-		uint32_t* quadIndices = new uint32_t[s_Data.MaxIndices];
+		uint32_t* quadIndices = new uint32_t[s_Data.MaxQuadIndices];
 		uint32_t offset = 0;
-		for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
+		for (uint32_t i = 0; i < s_Data.MaxQuadIndices; i += 6)
 		{
 			quadIndices[i + 0] = offset + 0;
 			quadIndices[i + 1] = offset + 1;
@@ -186,7 +189,7 @@ namespace Atlas
 
 			offset += 4;
 		}
-		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxIndices * sizeof(uint32_t));
+		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxQuadIndices * sizeof(uint32_t));
 		s_Data.QuadVertexArray->SetIndexBuffer(quadIndexBuffer);
 		delete[] quadIndices;
 
@@ -194,7 +197,7 @@ namespace Atlas
 		s_Data.CircleVertexArray = VertexArray::Create();
 
 		// Circle VBO
-		s_Data.CircleVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(CircleVertex));
+		s_Data.CircleVertexBuffer = VertexBuffer::Create(s_Data.MaxQuadVertices * sizeof(CircleVertex));
 		s_Data.CircleVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_WorldPosition" },
 			{ ShaderDataType::Float3, "a_LocalPosition" },
@@ -204,7 +207,7 @@ namespace Atlas
 			{ ShaderDataType::Int,    "a_EntityID"      }
 			});
 		s_Data.CircleVertexArray->AddVertexBuffer(s_Data.CircleVertexBuffer);
-		s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxVertices];
+		s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxQuadVertices];
 
 		// Circle IBO / EBO
 		s_Data.CircleVertexArray->SetIndexBuffer(quadIndexBuffer);
