@@ -16,7 +16,7 @@ namespace Atlas
 	std::vector<Mesh> Model::LoadModel(const std::filesystem::path& path)
 	{
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
+		const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 	
 		s_ModelData.Meshes.clear();
 

@@ -332,6 +332,32 @@ namespace Atlas
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
 		{
+			auto& mesh = component.Mesh;
+
+			const char* meshPresetStrings[] = {
+				"Custom",
+				"Square",
+			};
+			const char* currentMeshPresetString = meshPresetStrings[(int)mesh.GetMeshPreset()];
+			if (ImGuiUtils::BeginCombo("Presets", *currentMeshPresetString))
+			{
+				for (int i = 0; i < 2; i++)
+				{
+					bool isSelected = currentMeshPresetString == meshPresetStrings[i];
+					if (ImGui::Selectable(meshPresetStrings[i], isSelected))
+					{
+						currentMeshPresetString = meshPresetStrings[i];
+						mesh.SetMeshPreset((Mesh::MeshPresets)i);
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGuiUtils::EndCombo();
+			}
 		});
 
 		DrawComponent<MaterialComponent>("Material", entity, [](auto& component)

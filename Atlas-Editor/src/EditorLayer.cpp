@@ -703,10 +703,8 @@ namespace Atlas
 
 			for (Mesh mesh : model)
 			{
-				Entity meshEntity = m_ActiveScene->CreateEntity();
-				//meshEntity.AddComponent<MeshComponent>(mesh);
-				meshEntity.AddComponent<MeshComponent>();
-				meshEntity.GetComponent<MeshComponent>().Mesh = mesh;
+				Entity meshEntity = m_ActiveScene->CreateEntity(path.stem().string());
+				meshEntity.AddComponent<MeshComponent>(mesh);
 
 				//Entity squareEntity = newScene->CreateEntity("White Cube");
 				//squareEntity.AddComponent<MeshComponent>();

@@ -7,6 +7,12 @@ namespace Atlas
 	class Mesh
 	{
 	public:
+		enum class MeshPresets
+		{
+			Custom = 0,
+			Square = 1,
+		};
+
 		struct Vertex
 		{
 			glm::vec3 Position;
@@ -19,17 +25,22 @@ namespace Atlas
 				: Position(position), Normal(normal), TexCoords(texCoords) {}
 		};
 
-		Mesh() = default;
+		Mesh() { SetMeshPreset(MeshPresets::Square); }
 		Mesh(const Mesh&) = default;
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
-			: m_Vertices(vertices), m_Indices(indices) {}
+			: m_Vertices(vertices), m_Indices(indices) { SetMeshPreset(MeshPresets::Custom); }
 
 		void SetVertices(const std::vector<Vertex>& vertices) { m_Vertices = vertices; }
 		const std::vector<Vertex>& GetVertices() { return m_Vertices; }
 		void SetIndices(const std::vector<uint32_t>& indices) { m_Indices = indices; }
 		const std::vector<uint32_t>& GetIndices() { return m_Indices; }
 
+		MeshPresets GetMeshPreset() const { return m_MeshPreset; }
+		void SetMeshPreset(MeshPresets materialPreset);
+
 	private:
+		MeshPresets m_MeshPreset;
+
 		std::vector<Vertex> m_Vertices;
 		std::vector<uint32_t> m_Indices;
 	};

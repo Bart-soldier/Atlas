@@ -63,7 +63,7 @@ namespace Atlas
 		MaterialPresets GetMaterialPreset() const { return m_MaterialPreset; }
 		void SetMaterialPreset(MaterialPresets materialPreset);
 
-	protected:
+	private:
 		MaterialPresets m_MaterialPreset = MaterialPresets::Custom;
 
 		glm::vec3 m_AmbientColor  = glm::vec3(1.0f);
