@@ -3,7 +3,7 @@
 
 namespace Atlas
 {
-	void Light::SetCastType(CastType castType)
+	void Light::SetCastType(const CastType& castType)
 	{
 		m_CastType = castType;
 

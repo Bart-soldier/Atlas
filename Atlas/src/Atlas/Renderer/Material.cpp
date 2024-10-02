@@ -18,7 +18,7 @@ namespace Atlas
 		m_SpecularColor = glm::vec3(1.0f);
 	}
 
-	void Material::SetMaterialPreset(MaterialPresets materialPreset)
+	void Material::SetMaterialPreset(const MaterialPresets& materialPreset)
 	{
 		if (m_MaterialPreset == materialPreset)
 		{
@@ -33,6 +33,12 @@ namespace Atlas
 			default:
 			case Atlas::Material::MaterialPresets::Custom:
 				return;
+			case Atlas::Material::MaterialPresets::Default:
+				m_AmbientColor  = glm::vec3(1.0f       , 1.0f       , 1.0f       );
+				m_DiffuseColor  = glm::vec3(1.0f       , 1.0f       , 1.0f       );
+				m_SpecularColor = glm::vec3(1.0f       , 1.0f       , 1.0f       );
+				m_Shininess    = 0.25f;
+				break;
 			case Atlas::Material::MaterialPresets::Emerald:
 				m_AmbientColor  = glm::vec3(0.0215f    , 0.1745f    , 0.0215f    );
 				m_DiffuseColor  = glm::vec3(0.07568f   , 0.61424f   , 0.07568f   );

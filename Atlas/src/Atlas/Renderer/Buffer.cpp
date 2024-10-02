@@ -37,7 +37,7 @@ namespace Atlas
 		return nullptr;
 	}
 
-	Ref<IndexBuffer> IndexBuffer::Create(uint32_t count)
+	Ref<IndexBuffer> IndexBuffer::Create(uint32_t size)
 	{
 		switch (RenderCommand::GetAPI())
 		{
@@ -45,14 +45,14 @@ namespace Atlas
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 			return nullptr;
 		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLIndexBuffer>(count);
+			return CreateRef<OpenGLIndexBuffer>(size);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
 		return nullptr;
 	}
 
-	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count)
+	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t size)
 	{
 		switch (RenderCommand::GetAPI())
 		{
@@ -60,7 +60,7 @@ namespace Atlas
 				ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 				return nullptr;
 			case RendererAPI::API::OpenGL:
-				return CreateRef<OpenGLIndexBuffer>(indices, count);
+				return CreateRef<OpenGLIndexBuffer>(indices, size);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");

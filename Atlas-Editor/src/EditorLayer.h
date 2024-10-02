@@ -46,8 +46,9 @@ namespace Atlas
 
 		void SaveScene();
 		void SaveSceneAs();
-
 		void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
+
+		void LoadModel();
 
 		// Events
 		bool OnWindowMoved(WindowMovedEvent& e) { m_ViewportInvalidated = true; return false; }

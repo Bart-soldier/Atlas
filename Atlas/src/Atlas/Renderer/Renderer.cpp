@@ -1,5 +1,4 @@
 #include "atlaspch.h"
-
 #include "Atlas/Renderer/Renderer.h"
 
 #include "Atlas/Renderer/VertexArray.h"
@@ -72,9 +71,12 @@ namespace Atlas
 	struct RendererData
 	{
 		// Per draw call
-		static const uint32_t MaxQuads = 20000;
-		static const uint32_t MaxVertices = MaxQuads * 4; // TODO: Check renderer capabilities
-		static const uint32_t MaxIndices = MaxQuads * 6; // TODO: Check renderer capabilities
+		static const uint32_t MaxTriangles = 20000;
+		static const uint32_t MaxVertices     = MaxTriangles * 3; // TODO: Check renderer capabilities
+		static const uint32_t MaxIndices      = MaxTriangles * 3; // TODO: Check renderer capabilities
+		static const uint32_t MaxQuads = MaxTriangles / 2;
+		static const uint32_t MaxQuadVertices = MaxQuads * 4; // TODO: Check renderer capabilities
+		static const uint32_t MaxQuadIndices  = MaxQuads * 6; // TODO: Check renderer capabilities
 		static const uint32_t MaxTextureSlots = 32; // TODO: Check renderer capabilities
 
 		// 2D
@@ -91,17 +93,17 @@ namespace Atlas
 		Ref<VertexBuffer> LineVertexBuffer;
 		Ref<Shader> LineShader;
 
+		uint32_t QuadVertexCount = 0;
 		uint32_t QuadIndexCount = 0;
 		QuadVertex* QuadVertexBufferBase = nullptr;
-		QuadVertex* QuadVertexBufferPtr = nullptr;
 
+		uint32_t CircleVertexCount = 0;
 		uint32_t CircleIndexCount = 0;
 		CircleVertex* CircleVertexBufferBase = nullptr;
-		CircleVertex* CircleVertexBufferPtr = nullptr;
 
+		uint32_t LineVertexCount = 0;
 		uint32_t LineIndexCount = 0;
 		LineVertex* LineVertexBufferBase = nullptr;
-		LineVertex* LineVertexBufferPtr = nullptr;
 
 		// 3D
 		Ref<VertexArray> MeshVertexArray;
@@ -109,11 +111,10 @@ namespace Atlas
 		Ref<IndexBuffer> MeshIndexBuffer;
 		Ref<Shader> MeshShader;
 		
+		uint32_t MeshVertexCount = 0;
 		uint32_t MeshIndexCount = 0;
 		MeshVertex* MeshVertexBufferBase = nullptr;
-		MeshVertex* MeshVertexBufferPtr = nullptr;
 		MeshIndex* MeshIndexBufferBase = nullptr;
-		MeshIndex* MeshIndexBufferPtr = nullptr;
 
 		// Textures
 		Ref<Texture2D> WhiteTexture;
@@ -138,7 +139,7 @@ namespace Atlas
 		Ref<UniformBuffer> LightCountUniformBuffer;
 
 		// Storage buffers
-		uint32_t LightStorageBufferCapacity = 0;
+		uint32_t LightStorageBufferCapacity = 100;
 		Ref<StorageBuffer> LightStorageBuffer;
 
 		// Misc.
@@ -156,7 +157,7 @@ namespace Atlas
 		s_Data.QuadVertexArray = VertexArray::Create();
 
 		// Quad VBO
-		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
+		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxQuadVertices * sizeof(QuadVertex));
 		s_Data.QuadVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
@@ -166,7 +167,7 @@ namespace Atlas
 			{ ShaderDataType::Int,    "a_EntityID"     }
 		});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
-		s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
+		s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxQuadVertices];
 
 		s_Data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
 		s_Data.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
@@ -174,9 +175,9 @@ namespace Atlas
 		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		// Quad IBO / EBO
-		uint32_t* quadIndices = new uint32_t[s_Data.MaxIndices];
+		uint32_t* quadIndices = new uint32_t[s_Data.MaxQuadIndices];
 		uint32_t offset = 0;
-		for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
+		for (uint32_t i = 0; i < s_Data.MaxQuadIndices; i += 6)
 		{
 			quadIndices[i + 0] = offset + 0;
 			quadIndices[i + 1] = offset + 1;
@@ -188,7 +189,7 @@ namespace Atlas
 
 			offset += 4;
 		}
-		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxIndices);
+		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxQuadIndices * sizeof(uint32_t));
 		s_Data.QuadVertexArray->SetIndexBuffer(quadIndexBuffer);
 		delete[] quadIndices;
 
@@ -196,7 +197,7 @@ namespace Atlas
 		s_Data.CircleVertexArray = VertexArray::Create();
 
 		// Circle VBO
-		s_Data.CircleVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(CircleVertex));
+		s_Data.CircleVertexBuffer = VertexBuffer::Create(s_Data.MaxQuadVertices * sizeof(CircleVertex));
 		s_Data.CircleVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_WorldPosition" },
 			{ ShaderDataType::Float3, "a_LocalPosition" },
@@ -206,7 +207,7 @@ namespace Atlas
 			{ ShaderDataType::Int,    "a_EntityID"      }
 			});
 		s_Data.CircleVertexArray->AddVertexBuffer(s_Data.CircleVertexBuffer);
-		s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxVertices];
+		s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxQuadVertices];
 
 		// Circle IBO / EBO
 		s_Data.CircleVertexArray->SetIndexBuffer(quadIndexBuffer);
@@ -245,7 +246,7 @@ namespace Atlas
 		s_Data.MeshVertexBufferBase = new MeshVertex[s_Data.MaxVertices];
 
 		// Mesh IBO / EBO
-		s_Data.MeshIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices);
+		s_Data.MeshIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices * sizeof(MeshIndex));
 		s_Data.MeshVertexArray->SetIndexBuffer(s_Data.MeshIndexBuffer);
 		s_Data.MeshIndexBufferBase = new MeshIndex[s_Data.MaxIndices];
 
@@ -313,18 +314,18 @@ namespace Atlas
 		s_Data.LightCountBuffer.LightCount = lights.size();
 		s_Data.LightCountUniformBuffer->SetData(&s_Data.LightCountBuffer, sizeof(RendererData::LightCountData));
 
-		EnsureLightStorageBufferCapacity(lights.size());
+		EnsureLightStorageBufferCapacity(lights.capacity());
 		s_Data.LightStorageBuffer->SetData(lights.data(), sizeof(LightData) * lights.size());
 	}
 
-	void Renderer::EnsureLightStorageBufferCapacity(uint32_t size)
+	void Renderer::EnsureLightStorageBufferCapacity(uint32_t capacity)
 	{
-		if (size <= s_Data.LightStorageBufferCapacity)
+		if (capacity <= s_Data.LightStorageBufferCapacity)
 		{
 			return;
 		}
 
-		s_Data.LightStorageBufferCapacity = size;
+		s_Data.LightStorageBufferCapacity = capacity;
 		s_Data.LightStorageBuffer->SetSize(sizeof(LightData) * s_Data.LightStorageBufferCapacity);
 	}
 
@@ -375,8 +376,7 @@ namespace Atlas
 		if (s_Data.QuadIndexCount)
 		{
 			// VBO
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
-			s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
+			s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, sizeof(QuadVertex) * s_Data.QuadVertexCount);
 
 			// Textures
 			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
@@ -395,8 +395,7 @@ namespace Atlas
 		if (s_Data.CircleIndexCount)
 		{
 			// VBO
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase);
-			s_Data.CircleVertexBuffer->SetData(s_Data.CircleVertexBufferBase, dataSize);
+			s_Data.CircleVertexBuffer->SetData(s_Data.CircleVertexBufferBase, sizeof(CircleVertex) * s_Data.CircleVertexCount);
 
 			// Shader
 			s_Data.CircleShader->Bind();
@@ -409,8 +408,7 @@ namespace Atlas
 		if (s_Data.LineIndexCount)
 		{
 			// VBO
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase);
-			s_Data.LineVertexBuffer->SetData(s_Data.LineVertexBufferBase, dataSize);
+			s_Data.LineVertexBuffer->SetData(s_Data.LineVertexBufferBase, sizeof(LineVertex) * s_Data.LineVertexCount);
 
 			// Shader
 			s_Data.LineShader->Bind();
@@ -425,12 +423,10 @@ namespace Atlas
 		if (s_Data.MeshIndexCount)
 		{
 			// VBO
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.MeshVertexBufferPtr - (uint8_t*)s_Data.MeshVertexBufferBase);
-			s_Data.MeshVertexBuffer->SetData(s_Data.MeshVertexBufferBase, dataSize);
+			s_Data.MeshVertexBuffer->SetData(s_Data.MeshVertexBufferBase, sizeof(MeshVertex) * s_Data.MeshVertexCount);
 
 			// IBO / EBO
-			uint32_t count = (uint32_t)((uint8_t*)s_Data.MeshIndexBufferPtr - (uint8_t*)s_Data.MeshIndexBufferBase);
-			s_Data.MeshIndexBuffer->SetData(s_Data.MeshIndexBufferBase, count);
+			s_Data.MeshIndexBuffer->SetData(s_Data.MeshIndexBufferBase, sizeof(MeshIndex) * s_Data.MeshIndexCount);
 
 			// Textures
 			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
@@ -449,18 +445,17 @@ namespace Atlas
 
 	void Renderer::StartBatch()
 	{
+		s_Data.QuadVertexCount = 0;
 		s_Data.QuadIndexCount = 0;
-		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
 
+		s_Data.CircleVertexCount = 0;
 		s_Data.CircleIndexCount = 0;
-		s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
 
+		s_Data.LineVertexCount = 0;
 		s_Data.LineIndexCount = 0;
-		s_Data.LineVertexBufferPtr = s_Data.LineVertexBufferBase;
 
-		s_Data.MeshIndexCount = 0;
-		s_Data.MeshVertexBufferPtr = s_Data.MeshVertexBufferBase;
-		s_Data.MeshIndexBufferPtr = s_Data.MeshIndexBufferBase;
+		s_Data.MeshVertexCount = 0;
+		s_Data.MeshIndexCount  = 0;
 
 		s_Data.TextureSlotIndex = 1;
 	}
@@ -469,6 +464,11 @@ namespace Atlas
 	{
 		Flush();
 		StartBatch();
+	}
+
+	uint32_t Renderer::GetLightStorageBufferCapacity()
+	{
+		return s_Data.LightStorageBufferCapacity;
 	}
 
 	RendererAPI::PolygonMode Renderer::GetPolygonMode()
@@ -530,29 +530,33 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
+		constexpr size_t quadIndexCount  = 6;
 		const int textureIndex = 0; // White Texture
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
-		if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
+		if (s_Data.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
+			s_Data.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
-			s_Data.QuadVertexBufferPtr->Color = color;
-			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferPtr->EntityID = entityID;
-			s_Data.QuadVertexBufferPtr++;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Position     = transform * s_Data.QuadVertexPositions[i];
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Color        = color;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexCoord     = textureCoords[i];
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexIndex     = textureIndex;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TilingFactor = tilingFactor;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].EntityID     = entityID;
+			s_Data.QuadVertexCount++;
 		}
 
-		s_Data.QuadIndexCount += 6;
+		s_Data.QuadIndexCount += quadIndexCount;
 
 		s_Data.Stats.QuadCount++;
+		s_Data.Stats.TotalVertexCount += quadVertexCount;
+		s_Data.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- TEXTURE VERSION --------------- */
@@ -593,6 +597,7 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
+		constexpr size_t quadIndexCount  = 6;
 		constexpr glm::vec2 textureCoords[] = {
 			{ 0.0f, 0.0f },
 			{ 1.0f, 0.0f },
@@ -600,7 +605,8 @@ namespace Atlas
 			{ 0.0f, 1.0f }
 		};
 
-		if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
+		if (s_Data.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
+			s_Data.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -609,18 +615,20 @@ namespace Atlas
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
-			s_Data.QuadVertexBufferPtr->Color = tintColor;
-			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferPtr->EntityID = entityID;
-			s_Data.QuadVertexBufferPtr++;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Position     = transform * s_Data.QuadVertexPositions[i];
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Color        = tintColor;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexCoord     = textureCoords[i];
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexIndex     = textureIndex;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TilingFactor = tilingFactor;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].EntityID     = entityID;
+			s_Data.QuadVertexCount++;
 		}
 
-		s_Data.QuadIndexCount += 6;
+		s_Data.QuadIndexCount += quadIndexCount;
 
 		s_Data.Stats.QuadCount++;
+		s_Data.Stats.TotalVertexCount += quadVertexCount;
+		s_Data.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- SUBTEXTURE VERSION --------------- */
@@ -661,10 +669,12 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		constexpr size_t quadVertexCount = 4;
+		constexpr size_t quadIndexCount  = 6;
 		const glm::vec2* textureCoords = subTexture->GetTexCoords();
 		const Ref<Texture2D> texture = subTexture->GetTexture();
 
-		if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
+		if (s_Data.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
+			s_Data.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -673,18 +683,20 @@ namespace Atlas
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
-			s_Data.QuadVertexBufferPtr->Color = tintColor;
-			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
-			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferPtr->EntityID = entityID;
-			s_Data.QuadVertexBufferPtr++;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Position     = transform * s_Data.QuadVertexPositions[i];
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Color        = tintColor;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexCoord     = textureCoords[i];
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexIndex     = textureIndex;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TilingFactor = tilingFactor;
+			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].EntityID     = entityID;
+			s_Data.QuadVertexCount++;
 		}
 
-		s_Data.QuadIndexCount += 6;
+		s_Data.QuadIndexCount += quadIndexCount;
 
 		s_Data.Stats.QuadCount++;
+		s_Data.Stats.TotalVertexCount += quadVertexCount;
+		s_Data.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- EDITOR-USE VERSION --------------- */
@@ -717,47 +729,61 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		if (s_Data.CircleIndexCount >= RendererData::MaxIndices)
+		constexpr size_t circleVertexCount = 4;
+		constexpr size_t circleIndexCount  = 6;
+
+		if (s_Data.CircleVertexCount + circleVertexCount >= RendererData::MaxVertices ||
+			s_Data.CircleIndexCount  + circleIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
-		for (size_t i = 0; i < 4; i++)
+		for (size_t i = 0; i < circleVertexCount; i++)
 		{
-			s_Data.CircleVertexBufferPtr->WorldPosition = transform * s_Data.QuadVertexPositions[i];
-			s_Data.CircleVertexBufferPtr->LocalPosition = s_Data.QuadVertexPositions[i] * 2.0f;
-			s_Data.CircleVertexBufferPtr->Color = color;
-			s_Data.CircleVertexBufferPtr->Thickness = thickness;
-			s_Data.CircleVertexBufferPtr->Fade = fade;
-			s_Data.CircleVertexBufferPtr->EntityID = entityID;
-			s_Data.CircleVertexBufferPtr++;
+			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].WorldPosition = transform * s_Data.QuadVertexPositions[i];
+			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].LocalPosition = s_Data.QuadVertexPositions[i] * 2.0f;
+			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].Color         = color;
+			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].Thickness     = thickness;
+			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].Fade          = fade;
+			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].EntityID      = entityID;
+			s_Data.CircleVertexCount++;
 		}
 
-		s_Data.CircleIndexCount += 6;
+		s_Data.CircleIndexCount += circleIndexCount;
 
-		s_Data.Stats.QuadCount++;
+		s_Data.Stats.CircleCount++;
+		s_Data.Stats.TotalVertexCount += circleVertexCount;
+		s_Data.Stats.TotalIndexCount  += circleIndexCount;
 	}
 
 	void Renderer::DrawLine(const glm::vec3& p0, glm::vec3& p1, const glm::vec4& color, int entityID)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		if (s_Data.LineIndexCount >= RendererData::MaxIndices)
+		constexpr size_t lineVertexCount = 2;
+		constexpr size_t lineIndexCount  = 2;
+
+		if (s_Data.LineVertexCount + lineVertexCount >= RendererData::MaxVertices ||
+			s_Data.LineIndexCount  + lineIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
-		s_Data.LineVertexBufferPtr->Position = p0;
-		s_Data.LineVertexBufferPtr->Color = color;
-		s_Data.LineVertexBufferPtr->EntityID = entityID;
-		s_Data.LineVertexBufferPtr++;
+		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Position = p0;
+		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Color    = color;
+		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].EntityID = entityID;
+		s_Data.LineVertexCount++;
 
-		s_Data.LineVertexBufferPtr->Position = p1;
-		s_Data.LineVertexBufferPtr->Color = color;
-		s_Data.LineVertexBufferPtr->EntityID = entityID;
-		s_Data.LineVertexBufferPtr++;
+		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Position = p1;
+		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Color    = color;
+		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].EntityID = entityID;
+		s_Data.LineVertexCount++;
 
-		s_Data.LineIndexCount += 2;
+		s_Data.LineIndexCount += lineIndexCount;
+
+		s_Data.Stats.LineCount++;
+		s_Data.Stats.TotalVertexCount += lineVertexCount;
+		s_Data.Stats.TotalIndexCount  += lineIndexCount;
 	}
 
 	void Renderer::DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int entityID)
@@ -789,50 +815,50 @@ namespace Atlas
 		DrawLine(lineVertices[3], lineVertices[0], color, entityID);
 	}
 
-	void Renderer::DrawMesh(const glm::mat4& transform, MeshComponent& src, int entityID)
+	void Renderer::DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		size_t vertexCount = src.VertexCount;
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int diffuseTextureIndex  = EnsureTextureSlot(src.Material.GetDiffuseTexture());
-		int specularTextureIndex = EnsureTextureSlot(src.Material.GetSpecularTexture());
+		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
+		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
 
-		if (s_Data.MeshIndexCount >= RendererData::MaxIndices)
+		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
+		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
+
+		if (s_Data.MeshVertexCount + vertices.size() >= RendererData::MaxVertices ||
+			s_Data.MeshIndexCount  + indices .size() >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
-		for (size_t i = 0; i < vertexCount; i++)
+		for (uint32_t i = 0; i < indices.size(); i++)
 		{
-			int currentIndex = i * 8;
+			s_Data.MeshIndexBufferBase[s_Data.MeshIndexCount++].Index = s_Data.MeshVertexCount + indices[i];
+		}
 
-			s_Data.MeshVertexBufferPtr->Position             = transform * glm::vec4({ src.Vertices[currentIndex], src.Vertices[currentIndex + 1], src.Vertices[currentIndex + 2], 1.0f });
-			s_Data.MeshVertexBufferPtr->Normal               = normalMatrix * glm::vec3({ src.Vertices[currentIndex + 3], src.Vertices[currentIndex + 4], src.Vertices[currentIndex + 5] });
-			s_Data.MeshVertexBufferPtr->TexCoord             = glm::vec2({ src.Vertices[currentIndex + 6], src.Vertices[currentIndex + 7] });
+		for (size_t i = 0; i < vertices.size(); i++)
+		{
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].TexCoord             = vertices[i].TexCoords;
 
-			s_Data.MeshVertexBufferPtr->AmbientColor         = src.Material.GetAmbientColor();
-			s_Data.MeshVertexBufferPtr->DiffuseColor         = src.Material.GetDiffuseColor();
-			s_Data.MeshVertexBufferPtr->SpecularColor        = src.Material.GetSpecularColor();
-			s_Data.MeshVertexBufferPtr->Shininess            = src.Material.GetShininess();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Shininess            = material == nullptr ? 0.25f           : material->Material->GetShininess();
 
-			s_Data.MeshVertexBufferPtr->DiffuseTextureIndex  = diffuseTextureIndex;
-			s_Data.MeshVertexBufferPtr->SpecularTextureIndex = specularTextureIndex;
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseTextureIndex  = diffuseTextureIndex;
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularTextureIndex = specularTextureIndex;
 			
-			s_Data.MeshVertexBufferPtr->EntityID             = entityID;
+			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].EntityID             = entityID;
 
-			s_Data.MeshVertexBufferPtr++;
+			s_Data.MeshVertexCount++;
 		}
-
-		for (uint32_t i = 0; i < src.IndexCount; i++)
-		{
-			s_Data.MeshIndexBufferPtr->Index = i;
-			s_Data.MeshIndexBufferPtr++;
-		}
-
-		s_Data.MeshIndexCount += vertexCount;
 
 		s_Data.Stats.MeshCount++;
+		s_Data.Stats.TotalVertexCount += vertices.size();
+		s_Data.Stats.TotalIndexCount  += indices.size();
 	}
 }

@@ -35,6 +35,8 @@ namespace Atlas
 		static void EndScene();
 		static void Flush();
 
+		static uint32_t GetLightStorageBufferCapacity();
+
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
 
@@ -66,24 +68,25 @@ namespace Atlas
 		static void DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int entityID = -1);
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
-		static void DrawMesh(const glm::mat4& transform, MeshComponent& src, int entityID);
+		static void DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID);
 
 		// Stats
 		struct Statistics
 		{
 			uint32_t DrawCalls = 0;
 			uint32_t QuadCount = 0;
+			uint32_t CircleCount = 0;
+			uint32_t LineCount = 0;
 			uint32_t MeshCount = 0;
-
-			uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
-			uint32_t GetTotalIndexCount() const { return QuadCount * 6; }
+			uint32_t TotalVertexCount = 0;
+			uint32_t TotalIndexCount = 0;
 		};
 		static void ResetStats();
 		static Statistics GetStats();
 
 	private:
 		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights);
-		static void EnsureLightStorageBufferCapacity(uint32_t lightCount);
+		static void EnsureLightStorageBufferCapacity(uint32_t capacity);
 		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();

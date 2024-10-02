@@ -12,33 +12,35 @@ namespace Atlas
 		enum class MaterialPresets
 		{
 			Custom         =  0,
-			Emerald        =  1,
-			Jade           =  2,
-			Obsidian       =  3,
-			Pearl          =  4,
-			Ruby           =  5,
-			Turquoise      =  6,
-			Brass          =  7,
-			Bronze         =  8,
-			Chrome         =  9,
-			Copper         = 10,
-			Gold           = 11,
-			Silver         = 12,
-			Plastic_Black  = 13,
-			Plastic_Cyan   = 14,
-			Plastic_Green  = 15,
-			Plastic_Red    = 16,
-			Plastic_White  = 17,
-			Plastic_Yellow = 18,
-			Rubber_Black   = 19,
-			Rubber_Cyan    = 20,
-			Rubber_Green   = 21,
-			Rubber_Red     = 22,
-			Rubber_White   = 23,
-			Rubber_Yellow  = 24,
+			Default        =  1,
+			Emerald        =  2,
+			Jade           =  3,
+			Obsidian       =  4,
+			Pearl          =  5,
+			Ruby           =  6,
+			Turquoise      =  7,
+			Brass          =  8,
+			Bronze         =  9,
+			Chrome         = 10,
+			Copper         = 11,
+			Gold           = 12,
+			Silver         = 13,
+			Plastic_Black  = 14,
+			Plastic_Cyan   = 15,
+			Plastic_Green  = 16,
+			Plastic_Red    = 17,
+			Plastic_White  = 18,
+			Plastic_Yellow = 19,
+			Rubber_Black   = 20,
+			Rubber_Cyan    = 21,
+			Rubber_Green   = 22,
+			Rubber_Red     = 23,
+			Rubber_White   = 24,
+			Rubber_Yellow  = 25,
 		};
 
-		Material() = default;
+		Material() { SetMaterialPreset(MaterialPresets::Default); }
+		Material(const MaterialPresets& materialPreset) { SetMaterialPreset(materialPreset); }
 		Material(const glm::vec4& color, const glm::vec3& ambientColor, const glm::vec3& diffuseColor, const glm::vec3& specularColor, const float& shininess)
 			: m_AmbientColor(ambientColor), m_DiffuseColor(diffuseColor), m_SpecularColor(specularColor), m_Shininess(shininess) {}
 
@@ -60,18 +62,18 @@ namespace Atlas
 		void SetShininess(const float& shininess) { m_Shininess = shininess; m_MaterialPreset = MaterialPresets::Custom; }
 		const float& GetShininess() { return m_Shininess; }
 
-		MaterialPresets GetMaterialPreset() const { return m_MaterialPreset; }
-		void SetMaterialPreset(MaterialPresets materialPreset);
+		void SetMaterialPreset(const MaterialPresets& materialPreset);
+		const MaterialPresets& GetMaterialPreset() { return m_MaterialPreset; }
 
-	protected:
+	private:
 		MaterialPresets m_MaterialPreset = MaterialPresets::Custom;
 
-		glm::vec3 m_AmbientColor  = glm::vec3(1.0f);
-		glm::vec3 m_DiffuseColor  = glm::vec3(1.0f);
-		glm::vec3 m_SpecularColor = glm::vec3(1.0f);
-		float m_Shininess         = 0.25f;
+		glm::vec3 m_AmbientColor;
+		glm::vec3 m_DiffuseColor;
+		glm::vec3 m_SpecularColor;
+		float m_Shininess;
 
-		Ref<Texture2D> m_DiffuseTexture  = nullptr;
-		Ref<Texture2D> m_SpecularTexture = nullptr;
+		Ref<Texture2D> m_DiffuseTexture;
+		Ref<Texture2D> m_SpecularTexture;
 	};
 }

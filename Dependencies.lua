@@ -11,13 +11,15 @@ IncludeDir["glm"] = "%{wks.location}/Atlas/vendor/glm"
 IncludeDir["stb_image"] = "%{wks.location}/Atlas/vendor/stb_image"
 IncludeDir["entt"] = "%{wks.location}/Atlas/vendor/entt/include"
 IncludeDir["yaml_cpp"] = "%{wks.location}/Atlas/vendor/yaml-cpp/include"
-IncludeDir["shaderc"] = "%{wks.location}/Atlas/vendor/shaderc/include"
 IncludeDir["SPIRV_Cross"] = "%{wks.location}/Atlas/vendor/SPIRV-Cross"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+IncludeDir["assimp"] = "%{wks.location}/Atlas/vendor/assimp/include"
 
 LibraryDir = {}
 
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
+LibraryDir["assimp"] = "%{wks.location}/Atlas/vendor/assimp/lib"
+LibraryDir["assimp_zlib"] = "%{wks.location}/Atlas/vendor/assimp/contrib/zlib"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
@@ -31,3 +33,6 @@ Library["SPIRV_Tools_Debug"] = "%{LibraryDir.VulkanSDK}/SPIRV-Toolsd.lib"
 Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
 Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
 Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
+
+Library["assimp_Debug"] = "%{LibraryDir.assimp}/Debug/assimp-vc143-mtd.lib"
+Library["assimp_zlib_Debug"] = "%{LibraryDir.assimp_zlib}/Debug/zlibstaticd.lib"

@@ -154,7 +154,9 @@ namespace Atlas
 		{
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
-			DisplayExclusiveAddComponentEntry<MeshComponent, SpriteRendererComponent>("Mesh", "Sprite Renderer");
+			DisplayAddComponentEntryIfNoOther<SpriteRendererComponent, MeshComponent>("Sprite Renderer");
+			DisplayAddComponentEntryIfNoOther<MeshComponent, SpriteRendererComponent>("Mesh");
+			DisplayAddComponentEntryIfOther<MaterialComponent, MeshComponent>("Material");
 			DisplayAddComponentEntry<LightSourceComponent>("Light Source");
 
 			ImGui::EndPopup();
@@ -330,10 +332,41 @@ namespace Atlas
 
 		DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
 		{
+			auto& mesh = component.Mesh;
+
+			const char* meshPresetStrings[] = {
+				"Custom",
+				"Square",
+			};
+			const char* currentMeshPresetString = meshPresetStrings[(int)mesh->GetMeshPreset()];
+			if (ImGuiUtils::BeginCombo("Presets", *currentMeshPresetString))
+			{
+				for (int i = 0; i < 2; i++)
+				{
+					bool isSelected = currentMeshPresetString == meshPresetStrings[i];
+					if (ImGui::Selectable(meshPresetStrings[i], isSelected))
+					{
+						currentMeshPresetString = meshPresetStrings[i];
+						mesh->SetMeshPreset((Mesh::MeshPresets)i);
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGuiUtils::EndCombo();
+			}
+		});
+
+		DrawComponent<MaterialComponent>("Material", entity, [](auto& component)
+		{
 			auto& material = component.Material;
 
 			const char* materialPresetStrings[] = {
 				"Custom",
+				"Default",
 				"Emerald",
 				"Jade",
 				"Obsidian",
@@ -359,16 +392,16 @@ namespace Atlas
 				"White Rubber",
 				"Yellow Rubber"
 			};
-			const char* currentMaterialPresetString = materialPresetStrings[(int)material.GetMaterialPreset()];
+			const char* currentMaterialPresetString = materialPresetStrings[(int)material->GetMaterialPreset()];
 			if (ImGuiUtils::BeginCombo("Presets", *currentMaterialPresetString))
 			{
-				for (int i = 0; i < 25; i++)
+				for (int i = 0; i < 26; i++)
 				{
 					bool isSelected = currentMaterialPresetString == materialPresetStrings[i];
 					if (ImGui::Selectable(materialPresetStrings[i], isSelected))
 					{
 						currentMaterialPresetString = materialPresetStrings[i];
-						material.SetMaterialPreset((Material::MaterialPresets)i);
+						material->SetMaterialPreset((Material::MaterialPresets)i);
 					}
 
 					if (isSelected)
@@ -381,7 +414,7 @@ namespace Atlas
 			}
 
 			// Diffuse component
-			ImGuiUtils::BeginTextureViewer("Diffuse Texture", material.GetDiffuseTexture(), 150.0, 150.0, true);
+			ImGuiUtils::BeginTextureViewer("Diffuse Texture", material->GetDiffuseTexture(), 150.0, 150.0, true);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -393,34 +426,34 @@ namespace Atlas
 					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 					if (texture->IsLoaded())
 					{
-						material.SetDiffuseTexture(texture);
+						material->SetDiffuseTexture(texture);
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGuiUtils::EndTextureViewer(material.GetDiffuseTexture()))
+			if (ImGuiUtils::EndTextureViewer(material->GetDiffuseTexture()))
 			{
-				material.SetDiffuseTexture(nullptr);
+				material->SetDiffuseTexture(nullptr);
 			}
 
-			if (material.GetDiffuseTexture() == nullptr)
+			if (material->GetDiffuseTexture() == nullptr)
 			{
-				glm::vec3 ambientColor = material.GetAmbientColor();
+				glm::vec3 ambientColor = material->GetAmbientColor();
 				if (ImGuiUtils::ColorEdit3("Ambient Color", *glm::value_ptr(ambientColor)))
 				{
-					material.SetAmbientColor(ambientColor);
+					material->SetAmbientColor(ambientColor);
 				}
 
-				glm::vec3 diffuseColor = material.GetDiffuseColor();
+				glm::vec3 diffuseColor = material->GetDiffuseColor();
 				if (ImGuiUtils::ColorEdit3("Diffuse Color", *glm::value_ptr(diffuseColor)))
 				{
-					material.SetDiffuseColor(diffuseColor);
+					material->SetDiffuseColor(diffuseColor);
 				}
 			}
 
 			// Specular component
-			ImGuiUtils::BeginTextureViewer("Specular Texture", material.GetSpecularTexture(), 150.0, 150.0, true);
+			ImGuiUtils::BeginTextureViewer("Specular Texture", material->GetSpecularTexture(), 150.0, 150.0, true);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -432,30 +465,30 @@ namespace Atlas
 					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 					if (texture->IsLoaded())
 					{
-						material.SetSpecularTexture(texture);
+						material->SetSpecularTexture(texture);
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGuiUtils::EndTextureViewer(material.GetSpecularTexture()))
+			if (ImGuiUtils::EndTextureViewer(material->GetSpecularTexture()))
 			{
-				material.SetSpecularTexture(nullptr);
+				material->SetSpecularTexture(nullptr);
 			}
 
-			if (material.GetSpecularTexture() == nullptr)
+			if (material->GetSpecularTexture() == nullptr)
 			{
-				glm::vec3 specularColor = material.GetSpecularColor();
+				glm::vec3 specularColor = material->GetSpecularColor();
 				if (ImGuiUtils::ColorEdit3("Specular Color", *glm::value_ptr(specularColor)))
 				{
-					material.SetSpecularColor(specularColor);
+					material->SetSpecularColor(specularColor);
 				}
 			}
 
-			float shininess = material.GetShininess();
+			float shininess = material->GetShininess();
 			if (ImGuiUtils::DragFloat("Shininess", shininess, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				material.SetShininess(shininess);
+				material->SetShininess(shininess);
 			}
 		});
 
@@ -463,40 +496,40 @@ namespace Atlas
 		{
 			auto& light = component.Light;
 
-			glm::vec3 color = light.GetColor();
+			glm::vec3 color = light->GetColor();
 			if (ImGuiUtils::ColorEdit3("Color", *glm::value_ptr(color)))
 			{
-				light.SetColor(color);
+				light->SetColor(color);
 			}
 
-			float intensity = light.GetIntensity();
+			float intensity = light->GetIntensity();
 			if (ImGuiUtils::DragFloat("Intensity", intensity, 1.0f, 1.0f, 0.0f))
 			{
-				light.SetIntensity(intensity);
+				light->SetIntensity(intensity);
 			}
 
-			float ambientStrength = light.GetAmbientStrength();
+			float ambientStrength = light->GetAmbientStrength();
 			if (ImGuiUtils::DragFloat("Ambient Strength", ambientStrength, 0.1f, 0.001f, 0.0f, 1.0f))
 			{
-				light.SetAmbientStrength(ambientStrength);
+				light->SetAmbientStrength(ambientStrength);
 			}
 
-			float diffuseStrength = light.GetDiffuseStrength();
+			float diffuseStrength = light->GetDiffuseStrength();
 			if (ImGuiUtils::DragFloat("Diffuse Strength", diffuseStrength, 0.5f, 0.001f, 0.0f, 1.0f))
 			{
-				light.SetDiffuseStrength(diffuseStrength);
+				light->SetDiffuseStrength(diffuseStrength);
 			}
 
-			float specularStrength = light.GetSpecularStrength();
+			float specularStrength = light->GetSpecularStrength();
 			if (ImGuiUtils::DragFloat("Specular Strength", specularStrength, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
-				light.SetSpecularStrength(specularStrength);
+				light->SetSpecularStrength(specularStrength);
 			}
 
 			ImGui::Separator();
 
 			const char* castTypeStrings[] = { "Directional Light", "Point Light", "Spotlight"};
-			const char* currentCastTypeString = castTypeStrings[(int)light.GetCastType()];
+			const char* currentCastTypeString = castTypeStrings[(int)light->GetCastType()];
 			if (ImGuiUtils::BeginCombo("Cast Type", *currentCastTypeString))
 			{
 				for (int i = 0; i < 3; i++)
@@ -505,7 +538,7 @@ namespace Atlas
 					if (ImGui::Selectable(castTypeStrings[i], isSelected))
 					{
 						currentCastTypeString = castTypeStrings[i];
-						light.SetCastType((Light::CastType)i);
+						light->SetCastType((Light::CastType)i);
 					}
 
 					if (isSelected)
@@ -517,21 +550,21 @@ namespace Atlas
 				ImGuiUtils::EndCombo();
 			}
 
-			if (light.GetCastType() != Light::CastType::DirectionalLight)
+			if (light->GetCastType() != Light::CastType::DirectionalLight)
 			{
-				float range = light.GetRadius();
+				float range = light->GetRadius();
 				if (ImGuiUtils::DragFloat("Radius", range, 0.01f, 0.01f, 0.0001f))
 				{
-					light.SetRadius(range);
+					light->SetRadius(range);
 				}
 			}
 
-			if (light.GetCastType() == Light::CastType::Spotlight)
+			if (light->GetCastType() == Light::CastType::Spotlight)
 			{
-				glm::vec2 cutOff = light.GetCutOff();
+				glm::vec2 cutOff = light->GetCutOff();
 				if (ImGuiUtils::DragFloat2("Cut-off", cutOff, 10.00f, 0.1f, 0.0001f))
 				{
-					light.SetCutOff(cutOff);
+					light->SetCutOff(cutOff);
 				}
 			}
 		});
@@ -595,21 +628,20 @@ namespace Atlas
 	}
 
 	template<typename T, typename T2>
-	void SceneHierarchyPanel::DisplayExclusiveAddComponentEntry(const std::string& firstEntryName, const std::string& secondEntryName)
+	void SceneHierarchyPanel::DisplayAddComponentEntryIfOther(const std::string& entryName)
 	{
-		if (!m_SelectionContext.HasComponent<T>() && !m_SelectionContext.HasComponent<T2>())
+		if (m_SelectionContext.HasComponent<T2>())
 		{
-			if (ImGui::MenuItem(firstEntryName.c_str()))
-			{
-				m_SelectionContext.AddComponent<T>();
-				ImGui::CloseCurrentPopup();
-			}
+			DisplayAddComponentEntry<T>(entryName);
+		}
+	}
 
-			if (ImGui::MenuItem(secondEntryName.c_str()))
-			{
-				m_SelectionContext.AddComponent<T2>();
-				ImGui::CloseCurrentPopup();
-			}
+	template<typename T, typename T2>
+	void SceneHierarchyPanel::DisplayAddComponentEntryIfNoOther(const std::string& entryName)
+	{
+		if (!m_SelectionContext.HasComponent<T2>())
+		{
+			DisplayAddComponentEntry<T>(entryName);
 		}
 	}
 }

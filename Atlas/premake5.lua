@@ -42,7 +42,8 @@ project "Atlas"
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.VulkanSDK}"
+		"%{IncludeDir.VulkanSDK}",
+		"%{IncludeDir.assimp}"
 	}
 
 	links
@@ -73,7 +74,9 @@ project "Atlas"
 		{
 			"%{Library.ShaderC_Debug}",
 			"%{Library.SPIRV_Cross_Debug}",
-			"%{Library.SPIRV_Cross_GLSL_Debug}"
+			"%{Library.SPIRV_Cross_GLSL_Debug}",
+			"%{Library.assimp_Debug}",
+			"%{Library.assimp_zlib_Debug}"
 		}
 
 	filter "configurations:Release"

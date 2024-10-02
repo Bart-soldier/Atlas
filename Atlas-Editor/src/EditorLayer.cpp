@@ -3,6 +3,8 @@
 
 #include "Atlas/Utils/PlatformUtils.h"
 
+#include "Atlas/Renderer/Model.h"
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <ImGuizmo.h>
@@ -232,6 +234,16 @@ namespace Atlas
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Model"))
+			{
+				if (ImGui::MenuItem("Load..."))
+				{
+					LoadModel();
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenuBar();
 		}
 
@@ -241,17 +253,21 @@ namespace Atlas
 
 		ImGui::Begin("Renderer Stats");
 
+		ImGui::Text("API: %s", RendererAPI::GetAPI() == RendererAPI::API::OpenGL ? "OpenGL" : "None");
+
 		std::string name = "None";
 		if (m_HoveredEntity)
 			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 
 		auto stats = Renderer::GetStats();
-		ImGui::Text("Renderer2D Stats:");
-		ImGui::Text("Draw Calls: %d", stats.DrawCalls);
+		ImGui::Text("\nDraw Calls: %d", stats.DrawCalls);
 		ImGui::Text("Quad Count: %d", stats.QuadCount);
-		ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
-		ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+		ImGui::Text("Circle Count: %d", stats.CircleCount);
+		ImGui::Text("Line Count: %d", stats.LineCount);
+		ImGui::Text("Mesh Count: %d", stats.MeshCount);
+		ImGui::Text("Vertices: %d", stats.TotalVertexCount);
+		ImGui::Text("Indices: %d", stats.TotalIndexCount);
 
 		ImGui::End();
 
@@ -591,7 +607,8 @@ namespace Atlas
 
 		Entity squareEntity = newScene->CreateEntity("White Cube");
 		squareEntity.AddComponent<MeshComponent>();
-		squareEntity.GetComponent<MeshComponent>().Material.SetMaterialPreset(Material::MaterialPresets::Gold);
+		squareEntity.AddComponent<MaterialComponent>();
+		squareEntity.GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Gold);
 
 		Entity cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity.AddComponent<CameraComponent>();
@@ -679,6 +696,32 @@ namespace Atlas
 	{
 		SceneSerializer serializer(scene);
 		serializer.Serialize(path);
+	}
+
+	void EditorLayer::LoadModel()
+	{
+		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj)\0*.obj\0");
+		if (!path.empty())
+		{
+			const Model::ModelData& modelData = Model::LoadModel(path);
+
+			for (uint32_t meshIndex = 0; meshIndex < modelData.Meshes.size(); meshIndex++)
+			{
+				Entity meshEntity = m_ActiveScene->CreateEntity(path.stem().string());
+				meshEntity.AddComponent<MeshComponent>(modelData.Meshes[meshIndex]);
+				//meshEntity.AddComponent<MaterialComponent>();
+
+				//if (modelData.DiffuseTextures[meshIndex] != nullptr)
+				//{
+				//	meshEntity.GetComponent<MaterialComponent>().Material->SetDiffuseTexture(modelData.DiffuseTextures[meshIndex]);
+				//}
+
+				//if (modelData.SpecularTextures[meshIndex] != nullptr)
+				//{
+				//	meshEntity.GetComponent<MaterialComponent>().Material->SetSpecularTexture(modelData.SpecularTextures[meshIndex]);
+				//}
+			}
+		}
 	}
 
 	void EditorLayer::OnScenePlay()
