@@ -21,6 +21,8 @@ namespace Atlas
 		virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; }
 
 	private:
+		void Initialize(const void* data, uint32_t size);
+
 		uint32_t m_RendererID;
 		BufferLayout m_Layout;
 	};
@@ -37,9 +39,12 @@ namespace Atlas
 
 		virtual void SetData(const void* data, uint32_t size) override;
 
-		virtual uint32_t GetCount() const override { return m_Count; }
+		virtual uint32_t GetMaxCount() const override { return m_MaxCount; }
+
 	private:
+		void Initialize(const void* data, uint32_t size);
+
 		uint32_t m_RendererID;
-		uint32_t m_Count;
+		uint32_t m_MaxCount;
 	};
 }

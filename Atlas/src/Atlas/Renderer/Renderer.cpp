@@ -186,7 +186,7 @@ namespace Atlas
 
 			offset += 4;
 		}
-		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxIndices);
+		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxIndices * sizeof(uint32_t));
 		s_Data.QuadVertexArray->SetIndexBuffer(quadIndexBuffer);
 		delete[] quadIndices;
 
@@ -830,6 +830,10 @@ namespace Atlas
 			NextBatch();
 		}
 
+		for (uint32_t i = 0; i < indices.size(); i++)
+		{
+			s_Data.MeshIndexBufferBase[s_Data.MeshIndexCount++].Index = s_Data.MeshVertexCount + indices[i];
+		}
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
@@ -848,11 +852,6 @@ namespace Atlas
 			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].EntityID             = entityID;
 
 			s_Data.MeshVertexCount++;
-		}
-
-		for (uint32_t i = 0; i < indices.size(); i++)
-		{
-			s_Data.MeshIndexBufferBase[s_Data.MeshIndexCount++].Index = indices[i];
 		}
 
 		s_Data.Stats.MeshCount++;
