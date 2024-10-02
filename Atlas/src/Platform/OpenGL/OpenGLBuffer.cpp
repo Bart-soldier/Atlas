@@ -50,8 +50,8 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 		glNamedBufferData(m_RendererID, size, data, data == nullptr ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-		glBindBufferBase(GL_ARRAY_BUFFER, 0, m_RendererID);
 	}
 
 	void OpenGLVertexBuffer::SetData(const void* data, uint32_t size)
@@ -108,8 +108,8 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 		glNamedBufferData(m_RendererID, size, data, data == nullptr ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-		glBindBufferBase(GL_ELEMENT_ARRAY_BUFFER, 0, m_RendererID);
 	}
 
 	void OpenGLIndexBuffer::SetData(const void* data, uint32_t size)
