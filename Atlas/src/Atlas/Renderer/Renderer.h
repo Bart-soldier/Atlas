@@ -30,6 +30,9 @@ namespace Atlas
 		static void Init();
 		static void Shutdown();
 
+		static void EnableStencilWriting();
+		static void DisableStencilWriting();
+
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
 		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
 		static void EndScene();
@@ -82,6 +85,7 @@ namespace Atlas
 			uint32_t CircleCount = 0;
 			uint32_t LineCount = 0;
 			uint32_t MeshCount = 0;
+			uint32_t SelectionCount = 0;
 			uint32_t TotalVertexCount = 0;
 			uint32_t TotalIndexCount = 0;
 		};

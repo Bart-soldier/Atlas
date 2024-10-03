@@ -239,7 +239,7 @@ namespace Atlas
 
 	void Scene::DrawScene(Entity excludedEntity)
 	{
-		RenderCommand::SetStencilMask(0x00);
+		Renderer::DisableStencilWriting();
 
 		{
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
@@ -295,8 +295,7 @@ namespace Atlas
 			return;
 		}
 
-		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::Always, 1, 0xFF);
-		RenderCommand::SetStencilMask(0xFF);
+		Renderer::EnableStencilWriting();
 
 		glm::mat4 transform = m_Registry.get<TransformComponent>(entity).GetTransform();
 

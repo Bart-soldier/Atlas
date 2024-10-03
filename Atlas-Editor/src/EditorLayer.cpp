@@ -266,6 +266,7 @@ namespace Atlas
 		ImGui::Text("Mesh Count: %d", stats.MeshCount);
 		ImGui::Text("Vertices: %d", stats.TotalVertexCount);
 		ImGui::Text("Indices: %d", stats.TotalIndexCount);
+		ImGui::Text("Selection Count: %d", stats.SelectionCount);
 
 		ImGui::End();
 
