@@ -157,9 +157,12 @@ namespace Atlas
 		DrawScene(selectedEntity);
 		Renderer::EndScene();
 
-		Renderer::BeginScene(camera, m_Lights);
-		DrawSelectedEntity(selectedEntity);
-		Renderer::EndScene();
+		if (selectedEntity)
+		{
+			Renderer::BeginScene(camera, m_Lights);
+			DrawSelectedEntityAndOutline(selectedEntity);
+			Renderer::EndScene();
+		}
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -288,13 +291,8 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawSelectedEntity(Entity entity)
+	void Scene::DrawSelectedEntityAndOutline(Entity entity)
 	{
-		if (!entity)
-		{
-			return;
-		}
-
 		Renderer::EnableStencilWriting();
 
 		glm::mat4 transform = m_Registry.get<TransformComponent>(entity).GetTransform();
@@ -314,8 +312,9 @@ namespace Atlas
 			Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, entity);
 		}
 
-		// TODO: transform scale ?
-		transform = glm::scale(transform, glm::vec3(1.1f));
+		glm::vec3 scale = m_Registry.get<TransformComponent>(entity).Scale;
+		float outlineSize = 0.1f;
+		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z));
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
