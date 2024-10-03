@@ -60,6 +60,8 @@ namespace Atlas
 
 		operator uint32_t() const { return (uint32_t)m_EntityHandle; }
 
+		operator int() const { return (int)m_EntityHandle; }
+
 		UUID GetUUID() { return GetComponent<IDComponent>().ID; }
 		const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 

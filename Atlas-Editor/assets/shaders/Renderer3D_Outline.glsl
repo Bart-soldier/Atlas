@@ -42,6 +42,6 @@ void main()
 		discard;
 	}
 
-	o_Color = v_Color;
+	o_Color    = v_Color;
 	o_EntityID = v_EntityID;
 }

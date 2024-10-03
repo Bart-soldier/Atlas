@@ -301,17 +301,17 @@ namespace Atlas
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
-			Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), (int)entity);
+			Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), entity);
 		}
 		else if (entity.HasComponent<MeshComponent>())
 		{
 			MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
 
-			Renderer::DrawMesh(transform, m_Registry.get<MeshComponent>(entity), material, (int)entity);
+			Renderer::DrawMesh(transform, m_Registry.get<MeshComponent>(entity), material, entity);
 		}
 		else if (entity.HasComponent<LightSourceComponent>())
 		{
-			Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+			Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, entity);
 		}
 
 		// TODO: transform scale ?
@@ -319,15 +319,15 @@ namespace Atlas
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
-			//Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), (int)entity);
+			//Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), entity);
 		}
 		else if (entity.HasComponent<MeshComponent>())
 		{
-			Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f), (int)entity); // TODO: Link to palette (selection green)
+			Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f), entity); // TODO: Link to palette (selection green)
 		}
 		else if (entity.HasComponent<LightSourceComponent>())
 		{
-			//Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+			//Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, entity);
 		}
 	}
 
