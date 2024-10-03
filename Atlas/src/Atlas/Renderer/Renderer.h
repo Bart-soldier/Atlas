@@ -70,6 +70,10 @@ namespace Atlas
 
 		static void DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID);
 
+		//static void DrawSpriteOutline(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
+		//static void DrawCircleOutline(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.005f, int entityID = -1);
+		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
+
 		// Stats
 		struct Statistics
 		{

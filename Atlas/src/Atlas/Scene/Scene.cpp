@@ -144,16 +144,21 @@ namespace Atlas
 			UpdateLights();
 
 			Renderer::BeginScene(*mainCamera, *cameraTransform, m_Lights);
-			DrawScene();
+			DrawScene({});
 			Renderer::EndScene();
 		}
 	}
 
-	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
+	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity selectedEntity)
 	{
 		UpdateLights();
+
 		Renderer::BeginScene(camera, m_Lights);
-		DrawScene();
+		DrawScene(selectedEntity);
+		Renderer::EndScene();
+
+		Renderer::BeginScene(camera, m_Lights);
+		DrawSelectedEntity(selectedEntity);
 		Renderer::EndScene();
 	}
 
@@ -232,12 +237,19 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawScene()
+	void Scene::DrawScene(Entity excludedEntity)
 	{
+		RenderCommand::SetStencilMask(0x00);
+
 		{
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 			for (auto entity : group)
 			{
+				if (entity == excludedEntity)
+				{
+					continue;
+				}
+
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
 				Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
@@ -248,6 +260,11 @@ namespace Atlas
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto entity : view)
 			{
+				if (entity == excludedEntity)
+				{
+					continue;
+				}
+
 				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
 				MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
 
@@ -259,10 +276,59 @@ namespace Atlas
 			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 			for (auto entity : view)
 			{
+				if (entity == excludedEntity)
+				{
+					continue;
+				}
+
 				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
 
 				Renderer::DrawCircle(transform.GetTransform(), glm::vec4(light.Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
 			}
+		}
+	}
+
+	void Scene::DrawSelectedEntity(Entity entity)
+	{
+		if (!entity)
+		{
+			return;
+		}
+
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::Always, 1, 0xFF);
+		RenderCommand::SetStencilMask(0xFF);
+
+		glm::mat4 transform = m_Registry.get<TransformComponent>(entity).GetTransform();
+
+		if (entity.HasComponent<SpriteRendererComponent>())
+		{
+			Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), (int)entity);
+		}
+		else if (entity.HasComponent<MeshComponent>())
+		{
+			MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
+
+			Renderer::DrawMesh(transform, m_Registry.get<MeshComponent>(entity), material, (int)entity);
+		}
+		else if (entity.HasComponent<LightSourceComponent>())
+		{
+			Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+		}
+
+		// TODO: transform scale ?
+		transform = glm::scale(transform, glm::vec3(1.1f));
+
+		if (entity.HasComponent<SpriteRendererComponent>())
+		{
+			//Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), (int)entity);
+		}
+		else if (entity.HasComponent<MeshComponent>())
+		{
+			Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f), (int)entity); // TODO: Link to palette (selection green)
+		}
+		else if (entity.HasComponent<LightSourceComponent>())
+		{
+			//Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
 		}
 	}
 

@@ -17,6 +17,26 @@ namespace Atlas
 			s_RendererAPI->SetViewport(x, y, width, height);
 		}
 
+		static void EnableDepthTest()
+		{
+			s_RendererAPI->EnableDepthTest();
+		}
+
+		static void DisableDepthTest()
+		{
+			s_RendererAPI->DisableDepthTest();
+		}
+
+		static void SetStencilMask(const uint32_t& mask)
+		{
+			s_RendererAPI->SetStencilMask(mask);
+		}
+
+		static void SetStencilFunction(const RendererAPI::TestFunction& function, const int& reference, const uint32_t& mask)
+		{
+			s_RendererAPI->SetStencilFunction(function, reference, mask);
+		}
+
 		static void SetClearColor(const glm::vec4& color)
 		{
 			s_RendererAPI->SetClearColor(color);

@@ -102,7 +102,7 @@ namespace Atlas
 
 				if (m_ActiveScene)
 				{
-					m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+					m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, m_SceneHierarchyPanel.GetSelectedEntity());
 				}
 				break;
 			}
@@ -122,8 +122,6 @@ namespace Atlas
 			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
 			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
 		}
-
-		//OnOverlayRender();
 
 		m_Framebuffer->Unbind();
 	}
@@ -354,34 +352,6 @@ namespace Atlas
 		UI_Toolbar();
 
 		ImGui::End();
-	}
-
-	void EditorLayer::OnOverlayRender()
-	{
-		if (m_SceneState == SceneState::Play)
-		{
-			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
-			if (!camera)
-			{
-				return;
-			}
-
-			// Overlay should not be affected by lights
-			//Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>(), nullptr);
-		}
-		else
-		{
-			// Overlay should not be affected by lights
-			//Renderer::BeginScene(m_EditorCamera);
-		}
-
-		// Draw selected entity outline 
-		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
-			const TransformComponent& transform = selectedEntity.GetComponent<TransformComponent>();
-			Renderer::DrawRect(transform.GetTransform(), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f)); // TODO: Link to palette (selection green)
-		}
-
-		Renderer::EndScene();
 	}
 
 	void EditorLayer::OnEvent(Event& e)

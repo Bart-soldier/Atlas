@@ -23,8 +23,6 @@ namespace Atlas
 		void OnEvent(Event& e) override;
 
 	private:
-		void OnOverlayRender();
-
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 

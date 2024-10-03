@@ -29,7 +29,7 @@ namespace Atlas
 		void OnRuntimeStop();
 
 		void OnUpdateRuntime(Timestep ts);
-		void OnUpdateEditor(Timestep ts, EditorCamera& camera);
+		void OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity selectedEntity);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
 		Entity DuplicateEntity(Entity entity);
@@ -39,7 +39,8 @@ namespace Atlas
 
 	private:
 		void UpdateLights();
-		void DrawScene();
+		void DrawScene(Entity excludedEntity);
+		void DrawSelectedEntity(Entity entity);
 
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
