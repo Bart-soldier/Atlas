@@ -481,11 +481,8 @@ namespace Atlas
 			s_Data.Stats.DrawCalls++;
 		}
 
-		if (s_Data.OutlineVertexCount)
+		if (s_Data.OutlineIndexCount)
 		{
-			DisableStencilWriting();
-			RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
-
 			// VBO
 			s_Data.OutlineVertexBuffer->SetData(s_Data.OutlineVertexBufferBase, sizeof(SimpleVertex) * s_Data.OutlineVertexCount);
 
@@ -498,8 +495,6 @@ namespace Atlas
 			// Draw
 			RenderCommand::DrawIndexed(s_Data.OutlineVertexArray, s_Data.OutlineIndexCount);
 			s_Data.Stats.DrawCalls++;
-
-			EnableStencilWriting();
 		}
 	}
 

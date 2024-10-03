@@ -160,8 +160,14 @@ namespace Atlas
 		if (selectedEntity)
 		{
 			Renderer::BeginScene(camera, m_Lights);
-			DrawSelectedEntityAndOutline(selectedEntity);
+			DrawSelectedEntity(selectedEntity);
+			Renderer::NextBatch();
+
+			Renderer::DisableStencilWriting();
+			RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
+			DrawSelectedEntityOutline(selectedEntity);
 			Renderer::EndScene();
+			Renderer::EnableStencilWriting();
 		}
 	}
 
@@ -291,7 +297,7 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawSelectedEntityAndOutline(Entity entity)
+	void Scene::DrawSelectedEntity(Entity entity)
 	{
 		Renderer::EnableStencilWriting();
 
@@ -311,22 +317,27 @@ namespace Atlas
 		{
 			Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, entity);
 		}
+	}
 
+	void Scene::DrawSelectedEntityOutline(Entity entity)
+	{
+		glm::mat4 transform = m_Registry.get<TransformComponent>(entity).GetTransform();
 		glm::vec3 scale = m_Registry.get<TransformComponent>(entity).Scale;
 		float outlineSize = 0.1f;
 		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z));
+		glm::vec4 selectionColor = { 0.400f, 0.733f, 0.417f, 1.0f }; // TODO: Link to palette (selection green)
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
-			//Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), entity);
+			Renderer::DrawQuad(transform, selectionColor, entity);
 		}
 		else if (entity.HasComponent<MeshComponent>())
 		{
-			Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f), entity); // TODO: Link to palette (selection green)
+			Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity), selectionColor, entity); 
 		}
 		else if (entity.HasComponent<LightSourceComponent>())
 		{
-			//Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, entity);
+			Renderer::DrawCircle(transform, selectionColor, 0.1f, 0.0f, entity);
 		}
 	}
 

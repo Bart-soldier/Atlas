@@ -40,7 +40,8 @@ namespace Atlas
 	private:
 		void UpdateLights();
 		void DrawScene(Entity excludedEntity);
-		void DrawSelectedEntityAndOutline(Entity entity);
+		void DrawSelectedEntity(Entity entity);
+		void DrawSelectedEntityOutline(Entity entity);
 
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);

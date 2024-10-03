@@ -36,7 +36,7 @@ namespace Atlas
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
 		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
 		static void EndScene();
-		static void Flush();
+		static void NextBatch();
 
 		static uint32_t GetLightStorageBufferCapacity();
 
@@ -72,9 +72,6 @@ namespace Atlas
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
 		static void DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID);
-
-		//static void DrawSpriteOutline(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
-		//static void DrawCircleOutline(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.005f, int entityID = -1);
 		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
 
 		// Stats
@@ -98,6 +95,6 @@ namespace Atlas
 		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
-		static void NextBatch();
+		static void Flush();
 	};
 }
