@@ -17,12 +17,12 @@ namespace Atlas
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
 		m_Context = context;
-		m_SelectionContext = {};
+		m_SelectedEntity = nullptr;
 	}
 
-	void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
+	void SceneHierarchyPanel::SetSelectedEntity(Ref<Entity> entity)
 	{
-		m_SelectionContext = entity;
+		m_SelectedEntity = entity;
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
@@ -40,15 +40,17 @@ namespace Atlas
 				name = std::string(buffer);
 			}
 
-			for (auto entityID : m_Context->m_Registry.view<entt::entity>())
+			for (auto& [handle, entity] : m_Context->m_EntityHandleMap)
 			{
-				Entity entity{ entityID, m_Context.get() };
-				DrawEntityNode(entity);
+				if (entity->GetParent() == nullptr)
+				{
+					DrawEntityNode(entity);
+				}
 			}
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			{
-				m_SelectionContext = {};
+				m_SelectedEntity = {};
 			}
 
 			// Right-click on blank space
@@ -66,30 +68,35 @@ namespace Atlas
 		ImGui::End();
 
 		ImGui::Begin("Properties");
-		if (m_SelectionContext)
+		if (m_SelectedEntity)
 		{
-			DrawComponents(m_SelectionContext);
+			DrawComponents(*m_SelectedEntity);
 		}
 
 		ImGui::End();
 	}
 
-	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
+	void SceneHierarchyPanel::DrawEntityNode(Ref<Entity> entity)
 	{
-		auto& tag = entity.GetComponent<TagComponent>().Tag;
+		auto& tag = entity->GetComponent<TagComponent>().Tag;
 
-		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)*entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 		{
-			m_SelectionContext = entity;
+			m_SelectedEntity = entity;
 		}
 
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
+			if (ImGui::MenuItem("Create Entity"))
+			{
+				m_Context->CreateEntity("Untitled Entity", entity);
+			}
+
 			if (ImGui::MenuItem("Delete Entity"))
 			{
 				entityDeleted = true;
@@ -100,22 +107,28 @@ namespace Atlas
 
 		if (opened)
 		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
-			if (opened)
+			for (Ref<Entity> child : entity->GetChildren())
 			{
-				ImGui::TreePop();
+				DrawEntityNode(child);
 			}
+
 			ImGui::TreePop();
+			//ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+			//
+			//bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
+			//if (opened)
+			//{
+			//	ImGui::TreePop();
+			//}
+			//ImGui::TreePop();
 		}
 
 		if (entityDeleted)
 		{
 			m_Context->DestroyEntity(entity);
-			if (m_SelectionContext == entity)
+			if (m_SelectedEntity == entity)
 			{
-				m_SelectionContext = {};
+				m_SelectedEntity = {};
 			}
 		}
 	}
@@ -617,11 +630,11 @@ namespace Atlas
 	template<typename T>
 	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
 	{
-		if (!m_SelectionContext.HasComponent<T>())
+		if (!m_SelectedEntity->HasComponent<T>())
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
-				m_SelectionContext.AddComponent<T>();
+				m_SelectedEntity->AddComponent<T>();
 				ImGui::CloseCurrentPopup();
 			}
 		}
@@ -630,7 +643,7 @@ namespace Atlas
 	template<typename T, typename T2>
 	void SceneHierarchyPanel::DisplayAddComponentEntryIfOther(const std::string& entryName)
 	{
-		if (m_SelectionContext.HasComponent<T2>())
+		if (m_SelectedEntity->HasComponent<T2>())
 		{
 			DisplayAddComponentEntry<T>(entryName);
 		}
@@ -639,7 +652,7 @@ namespace Atlas
 	template<typename T, typename T2>
 	void SceneHierarchyPanel::DisplayAddComponentEntryIfNoOther(const std::string& entryName)
 	{
-		if (!m_SelectionContext.HasComponent<T2>())
+		if (!m_SelectedEntity->HasComponent<T2>())
 		{
 			DisplayAddComponentEntry<T>(entryName);
 		}

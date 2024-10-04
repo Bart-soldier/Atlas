@@ -326,13 +326,13 @@ namespace Atlas
 
 				ATLAS_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-				Entity deserializedEntity = m_Scene->CreateEntity(uuid, name);
+				Ref<Entity> deserializedEntity = m_Scene->CreateEntity(uuid, name);
 
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent)
 				{
 					// Entities always have transforms
-					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
+					auto& tc = deserializedEntity->GetComponent<TransformComponent>();
 
 					if (transformComponent["Translation"])
 					{
@@ -353,7 +353,7 @@ namespace Atlas
 				auto cameraComponent = entity["CameraComponent"];
 				if (cameraComponent)
 				{
-					auto& cc = deserializedEntity.AddComponent<CameraComponent>();
+					auto& cc = deserializedEntity->AddComponent<CameraComponent>();
 
 					auto& cameraProps = cameraComponent["Camera"];
 
@@ -406,7 +406,7 @@ namespace Atlas
 				auto spriteRendererComponent = entity["SpriteRendererComponent"];
 				if (spriteRendererComponent)
 				{
-					auto& src = deserializedEntity.AddComponent<SpriteRendererComponent>();
+					auto& src = deserializedEntity->AddComponent<SpriteRendererComponent>();
 					src.Type = (SpriteRendererComponent::RenderType)spriteRendererComponent["Type"].as<int>();
 					src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 					if (spriteRendererComponent["TexturePath"])
@@ -460,13 +460,13 @@ namespace Atlas
 				auto meshComponent = entity["MeshComponent"];
 				if (meshComponent)
 				{
-					auto& src = deserializedEntity.AddComponent<MeshComponent>();
+					auto& src = deserializedEntity->AddComponent<MeshComponent>();
 				}
 
 				auto materialComponent = entity["MaterialComponent"];
 				if (materialComponent)
 				{
-					auto& src = deserializedEntity.AddComponent<MaterialComponent>();
+					auto& src = deserializedEntity->AddComponent<MaterialComponent>();
 
 					if (materialComponent["Preset"])
 					{
@@ -511,7 +511,7 @@ namespace Atlas
 				auto lightSourceComponent = entity["LightSourceComponent"];
 				if (lightSourceComponent)
 				{
-					auto& src = deserializedEntity.AddComponent<LightSourceComponent>();
+					auto& src = deserializedEntity->AddComponent<LightSourceComponent>();
 
 					if (lightSourceComponent["CastType"])
 					{

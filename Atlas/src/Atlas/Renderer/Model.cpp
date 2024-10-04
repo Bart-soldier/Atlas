@@ -17,38 +17,43 @@ namespace Atlas
 			return;
 		}
 
-		ProcessNode(activeScene, path, *modelScene->mRootNode, *modelScene);
+		ProcessNode(activeScene, *modelScene->mRootNode, *modelScene);
 
 		importer.FreeScene();
 
 		return;
 	}
 
-	void Model::ProcessNode(Ref<Scene> activeScene, const std::filesystem::path& path, const aiNode& node, const aiScene& modelScene)
+	void Model::ProcessNode(Ref<Scene> activeScene, const aiNode& node, const aiScene& modelScene, Ref<Entity> parent)
 	{
-		for (uint32_t meshIndex = 0; meshIndex < node.mNumMeshes; meshIndex++)
-		{
-			aiMesh* mesh = modelScene.mMeshes[node.mMeshes[meshIndex]];
+		Ref<Entity> nodeParent;
 
-			Entity meshEntity = activeScene->CreateEntity(GetName(path, *mesh));
-			meshEntity.AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+		if (node.mNumMeshes != 1)
+		{
+			nodeParent = activeScene->CreateEntity(node.mName.C_Str(), parent);
+
+			for (uint32_t meshIndex = 0; meshIndex < node.mNumMeshes; meshIndex++)
+			{
+				aiMesh* mesh = modelScene.mMeshes[node.mMeshes[meshIndex]];
+
+				Ref<Entity> meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), nodeParent);
+				meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+			}
+		}
+		else
+		{
+			aiMesh* mesh = modelScene.mMeshes[node.mMeshes[0]];
+
+			Ref<Entity> meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), parent);
+			meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+
+			nodeParent = meshEntity;
 		}
 
 		for (uint32_t childIndex = 0; childIndex < node.mNumChildren; childIndex++)
 		{
-			ProcessNode(activeScene, path, *node.mChildren[childIndex], modelScene);
+			ProcessNode(activeScene, *node.mChildren[childIndex], modelScene, nodeParent);
 		}
-	}
-
-	std::string Model::GetName(const std::filesystem::path& path, const aiMesh& mesh)
-	{
-		std::string name = mesh.mName.C_Str();
-		if (name == "defaultobject")
-		{
-			name = path.stem().string();
-		}
-
-		return name;
 	}
 
 	Ref<Mesh> Model::CreateMesh(const aiMesh& mesh, const aiScene& modelScene)

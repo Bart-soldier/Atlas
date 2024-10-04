@@ -12,7 +12,7 @@ namespace Atlas
 	{
 	public:
 		Entity() = default;
-		Entity(entt::entity handle, Scene* scene);
+		Entity(entt::entity handle, Scene* scene, Ref<Entity> parent = nullptr);
 		Entity(const Entity& other) = default;
 
 		template<typename T, typename... Args>
@@ -75,8 +75,18 @@ namespace Atlas
 			return !(*this == other);
 		}
 
+		Ref<Entity> GetParent();
+		void SetParent(Ref<Entity> parent);
+
+		const std::vector<Ref<Entity>>& GetChildren();
+		void AddChild(Ref<Entity> child);
+		void RemoveChild(Ref<Entity> child);
+
 	private:
 		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
+
+		Ref<Entity> m_Parent;
+		std::vector<Ref<Entity>> m_Children;
 	};
 }
