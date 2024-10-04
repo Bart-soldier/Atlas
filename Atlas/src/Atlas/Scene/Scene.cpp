@@ -13,19 +13,19 @@ namespace Atlas
 	////////////////////////////////////////////////////////////////////////////////////////
 
 	template<typename T>
-	void Scene::DrawComponent(const glm::mat4& transform, const T& component, entt::entity entity)
+	void Scene::DrawComponent(Entity entity, const glm::mat4& transform, const T& component)
 	{
 		static_assert(sizeof(T) == 0);
 	}
 
 	template<>
-	void Scene::DrawComponent<SpriteRendererComponent>(const glm::mat4& transform, const SpriteRendererComponent& component, entt::entity entity)
+	void Scene::DrawComponent<SpriteRendererComponent>(Entity entity, const glm::mat4& transform, const SpriteRendererComponent& component)
 	{
 		Renderer::DrawSprite(transform, component, (int)entity);
 	}
 
 	template<>
-	void Scene::DrawComponent<MeshComponent>(const glm::mat4& transform, const MeshComponent& component, entt::entity entity)
+	void Scene::DrawComponent<MeshComponent>(Entity entity, const glm::mat4& transform, const MeshComponent& component)
 	{
 		MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
 
@@ -33,7 +33,7 @@ namespace Atlas
 	}
 
 	template<>
-	void Scene::DrawComponent<LightSourceComponent>(const glm::mat4& transform, const LightSourceComponent& component, entt::entity entity)
+	void Scene::DrawComponent<LightSourceComponent>(Entity entity, const glm::mat4& transform, const LightSourceComponent& component)
 	{
 		Renderer::DrawCircle(transform, glm::vec4(component.Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
 	}
@@ -311,7 +311,7 @@ namespace Atlas
 				{
 					if (entity != selectedEntity)
 					{
-						DrawComponent<SpriteRendererComponent>(transform.GetTransform(), sprite, entity);
+						DrawComponent<SpriteRendererComponent>(GetEntity(entity), transform.GetTransform(), sprite);
 					}
 				}
 			}
@@ -328,7 +328,7 @@ namespace Atlas
 
 				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
 
-				DrawComponent<MeshComponent>(transform.GetTransform(), mesh, entity);
+				DrawComponent<MeshComponent>(GetEntity(entity), transform.GetTransform(), mesh);
 			}
 		}
 
@@ -342,7 +342,7 @@ namespace Atlas
 				}
 
 				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
-				DrawComponent<LightSourceComponent>(transform.GetTransform(), light, entity);
+				DrawComponent<LightSourceComponent>(GetEntity(entity), transform.GetTransform(), light);
 			}
 		}
 
@@ -377,15 +377,15 @@ namespace Atlas
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
-			DrawComponent<SpriteRendererComponent>(transform, m_Registry.get<SpriteRendererComponent>(entity), entity);
+			DrawComponent<SpriteRendererComponent>(GetEntity(entity), transform, m_Registry.get<SpriteRendererComponent>(entity));
 		}
 		else if (entity.HasComponent<MeshComponent>())
 		{
-			DrawComponent<MeshComponent>(transform, m_Registry.get<MeshComponent>(entity), entity);
+			DrawComponent<MeshComponent>(GetEntity(entity), transform, m_Registry.get<MeshComponent>(entity));
 		}
 		else if (entity.HasComponent<LightSourceComponent>())
 		{
-			DrawComponent<LightSourceComponent>(transform, m_Registry.get<LightSourceComponent>(entity), entity);
+			DrawComponent<LightSourceComponent>(GetEntity(entity), transform, m_Registry.get<LightSourceComponent>(entity));
 		}
 	}
 

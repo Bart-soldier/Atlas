@@ -45,7 +45,7 @@ namespace Atlas
 		void DrawSelectedEntityAndOutline(Entity entity);
 
 		template<typename T>
-		void DrawComponent(const glm::mat4& transform, const T& component, entt::entity entity);
+		void DrawComponent(Entity entity, const glm::mat4& transform, const T& component);
 
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
