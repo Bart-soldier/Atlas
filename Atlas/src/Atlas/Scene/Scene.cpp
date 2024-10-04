@@ -8,6 +8,40 @@
 
 namespace Atlas
 {
+	////////////////////////////////////////////////////////////////////////////////////////
+	// DrawComponent ///////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////
+
+	template<typename T>
+	void Scene::DrawComponent(const glm::mat4& transform, const T& component, entt::entity entity)
+	{
+		static_assert(sizeof(T) == 0);
+	}
+
+	template<>
+	void Scene::DrawComponent<SpriteRendererComponent>(const glm::mat4& transform, const SpriteRendererComponent& component, entt::entity entity)
+	{
+		Renderer::DrawSprite(transform, component, (int)entity);
+	}
+
+	template<>
+	void Scene::DrawComponent<MeshComponent>(const glm::mat4& transform, const MeshComponent& component, entt::entity entity)
+	{
+		MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
+
+		Renderer::DrawMesh(transform, component, material, (int)entity);
+	}
+
+	template<>
+	void Scene::DrawComponent<LightSourceComponent>(const glm::mat4& transform, const LightSourceComponent& component, entt::entity entity)
+	{
+		Renderer::DrawCircle(transform, glm::vec4(component.Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	// Scene class /////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////
+
 	Scene::Scene()
 	{
 		m_Name = "Untitled Scene";
@@ -90,27 +124,6 @@ namespace Atlas
 		return newScene;
 	}
 
-	Entity Scene::CreateEntity(const std::string& name)
-	{
-		return CreateEntity(UUID(), name);
-	}
-
-	Entity Scene::CreateEntity(UUID uuid, const std::string& name)
-	{
-		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<IDComponent>(uuid);
-		entity.AddComponent<TransformComponent>();
-		auto& tag = entity.AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Entity" : name;
-		return entity;
-	}
-
-	void Scene::DestroyEntity(Entity entity)
-	{
-		OnComponentRemoved(entity, AllComponents{});
-		m_Registry.destroy(entity);
-	}
-
 	void Scene::OnRuntimeStart()
 	{
 	}
@@ -144,7 +157,7 @@ namespace Atlas
 			UpdateLights();
 
 			Renderer::BeginScene(*mainCamera, *cameraTransform, m_Lights);
-			DrawScene({});
+			DrawScene(cameraTransform->Translation, {});
 			Renderer::EndScene();
 		}
 	}
@@ -152,23 +165,9 @@ namespace Atlas
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity selectedEntity)
 	{
 		UpdateLights();
-
 		Renderer::BeginScene(camera, m_Lights);
-		DrawScene(selectedEntity);
+		DrawScene(camera.GetPosition(), selectedEntity);
 		Renderer::EndScene();
-
-		if (selectedEntity)
-		{
-			Renderer::BeginScene(camera, m_Lights);
-			DrawSelectedEntity(selectedEntity);
-			Renderer::NextBatch();
-
-			Renderer::DisableStencilWriting();
-			RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
-			DrawSelectedEntityOutline(selectedEntity);
-			Renderer::EndScene();
-			Renderer::EnableStencilWriting();
-		}
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -188,6 +187,24 @@ namespace Atlas
 		}
 	}
 
+	Entity Scene::CreateEntity(const std::string& name)
+	{
+		return CreateEntity(UUID(), name);
+	}
+
+	Entity Scene::CreateEntity(UUID uuid, const std::string& name)
+	{
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<IDComponent>(uuid);
+		entity.AddComponent<TransformComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
+		tag.Tag = name.empty() ? "Entity" : name;
+
+		m_EntityMap[uuid] = entity;
+
+		return entity;
+	}
+
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		// Copy name because we're going to modify component data structure
@@ -195,6 +212,28 @@ namespace Atlas
 		Entity newEntity = CreateEntity(name);
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
 		return newEntity;
+	}
+
+	void Scene::DestroyEntity(Entity entity)
+	{
+		OnComponentRemoved(entity, AllComponents{});
+		m_EntityMap.erase(entity.GetUUID());
+		m_Registry.destroy(entity);
+	}
+
+	Entity Scene::GetEntity(UUID uuid)
+	{
+		if (m_EntityMap.find(uuid) != m_EntityMap.end())
+		{
+			return { m_EntityMap.at(uuid), this };
+		}
+
+		return {};
+	}
+
+	Entity Scene::GetEntity(entt::entity entityHandle)
+	{
+		return { entityHandle, this };
 	}
 
 	Entity Scene::GetPrimaryCameraEntity()
@@ -246,22 +285,35 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawScene(Entity excludedEntity)
+	void Scene::DrawScene(const glm::vec3& cameraPosition, Entity selectedEntity)
 	{
 		Renderer::DisableStencilWriting();
+
+		std::map<float, entt::entity> transparentEntities;
+		bool isSelectedEntityTransparent = false;
 
 		{
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
 			for (auto entity : group)
 			{
-				if (entity == excludedEntity)
-				{
-					continue;
-				}
-
 				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
-				Renderer::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+				if (sprite.Color.a < 1.0f)
+				{
+					transparentEntities[glm::length(cameraPosition - transform.Translation)] = entity;
+
+					if (entity == selectedEntity)
+					{
+						isSelectedEntityTransparent = true;
+					}
+				}
+				else
+				{
+					if (entity != selectedEntity)
+					{
+						DrawComponent<SpriteRendererComponent>(transform.GetTransform(), sprite, entity);
+					}
+				}
 			}
 		}
 ;
@@ -269,15 +321,14 @@ namespace Atlas
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto entity : view)
 			{
-				if (entity == excludedEntity)
+				if (entity == selectedEntity)
 				{
 					continue;
 				}
 
 				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-				MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
 
-				Renderer::DrawMesh(transform.GetTransform(), mesh, material, (int)entity);
+				DrawComponent<MeshComponent>(transform.GetTransform(), mesh, entity);
 			}
 		}
 
@@ -285,42 +336,70 @@ namespace Atlas
 			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 			for (auto entity : view)
 			{
-				if (entity == excludedEntity)
+				if (entity == selectedEntity)
 				{
 					continue;
 				}
 
 				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
-
-				Renderer::DrawCircle(transform.GetTransform(), glm::vec4(light.Light->GetColor(), 1.0f), 0.1f, 0.0f, (int)entity);
+				DrawComponent<LightSourceComponent>(transform.GetTransform(), light, entity);
 			}
 		}
+
+		if (selectedEntity && !isSelectedEntityTransparent)
+		{
+			DrawSelectedEntityAndOutline(selectedEntity);
+		}
+
+		if (transparentEntities.size())
+		{
+			Renderer::NextBatch();
+
+			for (std::map<float, entt::entity>::reverse_iterator it = transparentEntities.rbegin(); it != transparentEntities.rend(); ++it)
+			{
+				if (isSelectedEntityTransparent && it->second == selectedEntity)
+				{
+					DrawSelectedEntityAndOutline(selectedEntity);
+				}
+				else
+				{
+					DrawEntity(GetEntity(it->second));
+				}
+			}
+		}
+
+		Renderer::EnableStencilWriting();
 	}
 
-	void Scene::DrawSelectedEntity(Entity entity)
+	void Scene::DrawEntity(Entity entity)
 	{
-		Renderer::EnableStencilWriting();
-
 		glm::mat4 transform = m_Registry.get<TransformComponent>(entity).GetTransform();
 
 		if (entity.HasComponent<SpriteRendererComponent>())
 		{
-			Renderer::DrawSprite(transform, m_Registry.get<SpriteRendererComponent>(entity), entity);
+			DrawComponent<SpriteRendererComponent>(transform, m_Registry.get<SpriteRendererComponent>(entity), entity);
 		}
 		else if (entity.HasComponent<MeshComponent>())
 		{
-			MaterialComponent* material = m_Registry.try_get<MaterialComponent>(entity);
-
-			Renderer::DrawMesh(transform, m_Registry.get<MeshComponent>(entity), material, entity);
+			DrawComponent<MeshComponent>(transform, m_Registry.get<MeshComponent>(entity), entity);
 		}
 		else if (entity.HasComponent<LightSourceComponent>())
 		{
-			Renderer::DrawCircle(transform, glm::vec4(m_Registry.get<LightSourceComponent>(entity).Light->GetColor(), 1.0f), 0.1f, 0.0f, entity);
+			DrawComponent<LightSourceComponent>(transform, m_Registry.get<LightSourceComponent>(entity), entity);
 		}
 	}
 
-	void Scene::DrawSelectedEntityOutline(Entity entity)
+	void Scene::DrawSelectedEntityAndOutline(Entity entity)
 	{
+		Renderer::NextBatch();
+
+		Renderer::EnableStencilWriting();
+		DrawEntity(entity);
+		Renderer::NextBatch();
+
+		Renderer::DisableStencilWriting();
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
+
 		glm::mat4 transform = m_Registry.get<TransformComponent>(entity).GetTransform();
 		glm::vec3 scale = m_Registry.get<TransformComponent>(entity).Scale;
 		float outlineSize = 0.1f;
@@ -339,6 +418,8 @@ namespace Atlas
 		{
 			Renderer::DrawCircle(transform, selectionColor, 0.1f, 0.0f, entity);
 		}
+
+		Renderer::NextBatch();
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -347,17 +428,6 @@ namespace Atlas
 
 	template<typename T>
 	void Scene::OnComponentAdded(Entity entity, T& component)
-	{
-		static_assert(sizeof(T) == 0);
-	}
-
-	template<>
-	void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
 	{
 	}
 
@@ -368,16 +438,6 @@ namespace Atlas
 		{
 			component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 		}
-	}
-
-	template<>
-	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
-	{
 	}
 
 	template<>
@@ -426,47 +486,6 @@ namespace Atlas
 
 	template<typename T>
 	void Scene::OnComponentRemoved(Entity entity, T& component)
-	{
-		static_assert(sizeof(T) == 0);
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<IDComponent>(Entity entity, IDComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<TagComponent>(Entity entity, TagComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<CameraComponent>(Entity entity, CameraComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<TransformComponent>(Entity entity, TransformComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<MeshComponent>(Entity entity, MeshComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<MaterialComponent>(Entity entity, MaterialComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentRemoved<LightSourceComponent>(Entity entity, LightSourceComponent& component)
 	{
 	}
 }

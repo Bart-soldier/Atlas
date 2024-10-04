@@ -21,10 +21,6 @@ namespace Atlas
 
 		static Ref<Scene> Copy(Ref<Scene> other);
 
-		Entity CreateEntity(const std::string& name = std::string());
-		Entity CreateEntity(UUID uuid, const std::string& name = std::string());
-		void DestroyEntity(Entity entity);
-
 		void OnRuntimeStart();
 		void OnRuntimeStop();
 
@@ -32,16 +28,24 @@ namespace Atlas
 		void OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity selectedEntity);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
+		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateEntity(UUID uuid, const std::string& name = std::string());
 		Entity DuplicateEntity(Entity entity);
+		void DestroyEntity(Entity entity);
+		Entity GetEntity(UUID uuid);
+		Entity GetEntity(entt::entity entityHandle);
 
 		std::string const GetName() { return m_Name; }
 		Entity GetPrimaryCameraEntity();
 
 	private:
 		void UpdateLights();
-		void DrawScene(Entity excludedEntity);
-		void DrawSelectedEntity(Entity entity);
-		void DrawSelectedEntityOutline(Entity entity);
+		void DrawScene(const glm::vec3& cameraPosition, Entity selectedEntity);
+		void DrawEntity(Entity entity);
+		void DrawSelectedEntityAndOutline(Entity entity);
+
+		template<typename T>
+		void DrawComponent(const glm::mat4& transform, const T& component, entt::entity entity);
 
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
@@ -55,6 +59,8 @@ namespace Atlas
 		std::string m_Name;
 
 		entt::registry m_Registry;
+		std::unordered_map<UUID, entt::entity> m_EntityMap;
+
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;
 		std::vector<Renderer::LightData> m_Lights;

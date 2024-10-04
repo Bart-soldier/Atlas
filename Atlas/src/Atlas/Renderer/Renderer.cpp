@@ -759,7 +759,7 @@ namespace Atlas
 
 	/* --------------- EDITOR-USE VERSION --------------- */
 
-	void Renderer::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
+	void Renderer::DrawSprite(const glm::mat4& transform, const SpriteRendererComponent& src, int entityID)
 	{
 		switch (src.Type)
 		{
