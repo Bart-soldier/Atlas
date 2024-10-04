@@ -674,24 +674,7 @@ namespace Atlas
 		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj)\0*.obj\0");
 		if (!path.empty())
 		{
-			const Model::ModelData& modelData = Model::LoadModel(path);
-
-			for (uint32_t meshIndex = 0; meshIndex < modelData.Meshes.size(); meshIndex++)
-			{
-				Entity meshEntity = m_ActiveScene->CreateEntity(path.stem().string());
-				meshEntity.AddComponent<MeshComponent>(modelData.Meshes[meshIndex]);
-				//meshEntity.AddComponent<MaterialComponent>();
-
-				//if (modelData.DiffuseTextures[meshIndex] != nullptr)
-				//{
-				//	meshEntity.GetComponent<MaterialComponent>().Material->SetDiffuseTexture(modelData.DiffuseTextures[meshIndex]);
-				//}
-
-				//if (modelData.SpecularTextures[meshIndex] != nullptr)
-				//{
-				//	meshEntity.GetComponent<MaterialComponent>().Material->SetSpecularTexture(modelData.SpecularTextures[meshIndex]);
-				//}
-			}
+			Model::LoadModel(m_ActiveScene, path);
 		}
 	}
 

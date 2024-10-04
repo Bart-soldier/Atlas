@@ -287,6 +287,7 @@ namespace Atlas
 		s_Data.CircleShader  = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
 		s_Data.LineShader    = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
 		s_Data.MeshShader    = Shader::Create("assets/shaders/Renderer3D_Vert.glsl", "assets/shaders/Renderer3D_Frag.glsl");
+		//s_Data.MeshShader    = Shader::Create("assets/shaders/Renderer3D_Vert.glsl", "assets/shaders/Renderer3D_FragFlat.glsl");
 		s_Data.MeshOutlineShader = Shader::Create("assets/shaders/Renderer3D_Outline.glsl");
 	
 		// Uniform buffers
