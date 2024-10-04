@@ -112,15 +112,15 @@ namespace Atlas
 		uint32_t* MeshIndexBufferBase = nullptr;
 
 		// Outline
-		Ref<VertexArray> OutlineVertexArray;
-		Ref<VertexBuffer> OutlineVertexBuffer;
-		Ref<IndexBuffer> OutlineIndexBuffer;
-		Ref<Shader> OutlineShader;
+		Ref<VertexArray> MeshOutlineVertexArray;
+		Ref<VertexBuffer> MeshOutlineVertexBuffer;
+		Ref<IndexBuffer> MeshOutlineIndexBuffer;
+		Ref<Shader> MeshOutlineShader;
 
-		uint32_t OutlineVertexCount = 0;
-		uint32_t OutlineIndexCount = 0;
-		SimpleVertex* OutlineVertexBufferBase = nullptr;
-		uint32_t* OutlineIndexBufferBase = nullptr;
+		uint32_t MeshOutlineVertexCount = 0;
+		uint32_t MeshOutlineIndexCount = 0;
+		SimpleVertex* MeshOutlineVertexBufferBase = nullptr;
+		uint32_t* MeshOutlineIndexBufferBase = nullptr;
 
 		// Textures
 		Ref<Texture2D> WhiteTexture;
@@ -257,22 +257,22 @@ namespace Atlas
 		s_Data.MeshIndexBufferBase = new uint32_t[s_Data.MaxIndices];
 
 		// Outline VAO
-		s_Data.OutlineVertexArray = VertexArray::Create();
+		s_Data.MeshOutlineVertexArray = VertexArray::Create();
 
 		// Outline VBO
-		s_Data.OutlineVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(SimpleVertex));
-		s_Data.OutlineVertexBuffer->SetLayout({
+		s_Data.MeshOutlineVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(SimpleVertex));
+		s_Data.MeshOutlineVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float4, "a_Color"    },
 			{ ShaderDataType::Int,    "a_EntityID" }
 			});
-		s_Data.OutlineVertexArray->AddVertexBuffer(s_Data.OutlineVertexBuffer);
-		s_Data.OutlineVertexBufferBase = new SimpleVertex[s_Data.MaxVertices];
+		s_Data.MeshOutlineVertexArray->AddVertexBuffer(s_Data.MeshOutlineVertexBuffer);
+		s_Data.MeshOutlineVertexBufferBase = new SimpleVertex[s_Data.MaxVertices];
 
 		// Outline IBO / EBO
-		s_Data.OutlineIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices * sizeof(uint32_t));
-		s_Data.OutlineVertexArray->SetIndexBuffer(s_Data.OutlineIndexBuffer);
-		s_Data.OutlineIndexBufferBase = new uint32_t[s_Data.MaxIndices];
+		s_Data.MeshOutlineIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices * sizeof(uint32_t));
+		s_Data.MeshOutlineVertexArray->SetIndexBuffer(s_Data.MeshOutlineIndexBuffer);
+		s_Data.MeshOutlineIndexBufferBase = new uint32_t[s_Data.MaxIndices];
 
 		// Textures
 		TextureSpecification whiteTextureSpecification = TextureSpecification();
@@ -287,7 +287,7 @@ namespace Atlas
 		s_Data.CircleShader  = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
 		s_Data.LineShader    = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
 		s_Data.MeshShader    = Shader::Create("assets/shaders/Renderer3D_Vert.glsl", "assets/shaders/Renderer3D_Frag.glsl");
-		s_Data.OutlineShader = Shader::Create("assets/shaders/Renderer3D_Outline.glsl");
+		s_Data.MeshOutlineShader = Shader::Create("assets/shaders/Renderer3D_Outline.glsl");
 	
 		// Uniform buffers
 		s_Data.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData)    , 0);
@@ -310,8 +310,8 @@ namespace Atlas
 		delete[] s_Data.MeshVertexBufferBase;
 		delete[] s_Data.MeshIndexBufferBase;
 
-		delete[] s_Data.OutlineVertexBufferBase;
-		delete[] s_Data.OutlineIndexBufferBase;
+		delete[] s_Data.MeshOutlineVertexBufferBase;
+		delete[] s_Data.MeshOutlineIndexBufferBase;
 	}
 
 	void Renderer::EnableStencilWriting()
@@ -461,6 +461,8 @@ namespace Atlas
 
 		if (s_Data.MeshIndexCount)
 		{
+			RenderCommand::EnableBackCulling();
+
 			// VBO
 			s_Data.MeshVertexBuffer->SetData(s_Data.MeshVertexBufferBase, sizeof(MeshVertex) * s_Data.MeshVertexCount);
 
@@ -479,22 +481,28 @@ namespace Atlas
 			// Draw
 			RenderCommand::DrawIndexed(s_Data.MeshVertexArray, s_Data.MeshIndexCount);
 			s_Data.Stats.DrawCalls++;
+
+			RenderCommand::DisableBackCulling();
 		}
 
-		if (s_Data.OutlineIndexCount)
+		if (s_Data.MeshOutlineIndexCount)
 		{
+			RenderCommand::EnableBackCulling();
+
 			// VBO
-			s_Data.OutlineVertexBuffer->SetData(s_Data.OutlineVertexBufferBase, sizeof(SimpleVertex) * s_Data.OutlineVertexCount);
+			s_Data.MeshOutlineVertexBuffer->SetData(s_Data.MeshOutlineVertexBufferBase, sizeof(SimpleVertex) * s_Data.MeshOutlineVertexCount);
 
 			// IBO / EBO
-			s_Data.OutlineIndexBuffer->SetData(s_Data.OutlineIndexBufferBase, sizeof(uint32_t) * s_Data.OutlineIndexCount);
+			s_Data.MeshOutlineIndexBuffer->SetData(s_Data.MeshOutlineIndexBufferBase, sizeof(uint32_t) * s_Data.MeshOutlineIndexCount);
 
 			// Shader
-			s_Data.OutlineShader->Bind();
+			s_Data.MeshOutlineShader->Bind();
 
 			// Draw
-			RenderCommand::DrawIndexed(s_Data.OutlineVertexArray, s_Data.OutlineIndexCount);
+			RenderCommand::DrawIndexed(s_Data.MeshOutlineVertexArray, s_Data.MeshOutlineIndexCount);
 			s_Data.Stats.DrawCalls++;
+
+			RenderCommand::DisableBackCulling();
 		}
 	}
 
@@ -512,8 +520,8 @@ namespace Atlas
 		s_Data.MeshVertexCount = 0;
 		s_Data.MeshIndexCount  = 0;
 
-		s_Data.OutlineVertexCount = 0;
-		s_Data.OutlineIndexCount = 0;
+		s_Data.MeshOutlineVertexCount = 0;
+		s_Data.MeshOutlineIndexCount = 0;
 
 		s_Data.TextureSlotIndex = 1;
 	}
@@ -927,24 +935,24 @@ namespace Atlas
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
 
-		if (s_Data.OutlineVertexCount + vertices.size() >= RendererData::MaxVertices ||
-			s_Data.OutlineIndexCount  + indices .size() >= RendererData::MaxIndices)
+		if (s_Data.MeshOutlineVertexCount + vertices.size() >= RendererData::MaxVertices ||
+			s_Data.MeshOutlineIndexCount  + indices .size() >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
 		for (uint32_t i = 0; i < indices.size(); i++)
 		{
-			s_Data.OutlineIndexBufferBase[s_Data.OutlineIndexCount++] = s_Data.OutlineVertexCount + indices[i];
+			s_Data.MeshOutlineIndexBufferBase[s_Data.MeshOutlineIndexCount++] = s_Data.MeshOutlineVertexCount + indices[i];
 		}
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			s_Data.OutlineVertexBufferBase[s_Data.OutlineVertexCount].Position = transform * glm::vec4(vertices[i].Position, 1.0f);
-			s_Data.OutlineVertexBufferBase[s_Data.OutlineVertexCount].Color    = color;
-			s_Data.OutlineVertexBufferBase[s_Data.OutlineVertexCount].EntityID = entityID;
+			s_Data.MeshOutlineVertexBufferBase[s_Data.MeshOutlineVertexCount].Position = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_Data.MeshOutlineVertexBufferBase[s_Data.MeshOutlineVertexCount].Color    = color;
+			s_Data.MeshOutlineVertexBufferBase[s_Data.MeshOutlineVertexCount].EntityID = entityID;
 
-			s_Data.OutlineVertexCount++;
+			s_Data.MeshOutlineVertexCount++;
 		}
 
 		s_Data.Stats.SelectionCount++;

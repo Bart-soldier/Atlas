@@ -37,6 +37,16 @@ namespace Atlas
 			s_RendererAPI->SetStencilFunction(function, reference, mask);
 		}
 
+		static void EnableBackCulling()
+		{
+			s_RendererAPI->EnableBackCulling();
+		}
+
+		static void DisableBackCulling()
+		{
+			s_RendererAPI->DisableBackCulling();
+		}
+
 		static void SetClearColor(const glm::vec4& color)
 		{
 			s_RendererAPI->SetClearColor(color);

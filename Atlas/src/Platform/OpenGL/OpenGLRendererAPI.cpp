@@ -107,6 +107,7 @@ namespace Atlas
 	void OpenGLRendererAPI::EnableDepthTest()
 	{
 		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_BACK);
 	}
 
 	void OpenGLRendererAPI::DisableDepthTest()
@@ -122,6 +123,16 @@ namespace Atlas
 	void OpenGLRendererAPI::SetStencilFunction(const TestFunction& function, const int& reference, const uint32_t& mask)
 	{
 		glStencilFunc(Utils::TestFunctionToGLenum(function), reference, mask);
+	}
+
+	void OpenGLRendererAPI::EnableBackCulling()
+	{
+		glEnable(GL_CULL_FACE);
+	}
+
+	void OpenGLRendererAPI::DisableBackCulling()
+	{
+		glDisable(GL_CULL_FACE);
 	}
 
 	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color)

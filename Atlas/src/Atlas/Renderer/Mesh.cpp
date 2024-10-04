@@ -30,11 +30,11 @@ namespace Atlas
 				m_Vertices.push_back({  0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f }); // 2: Bottom-right
 				m_Vertices.push_back({ -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f }); // 3: Top-left
 				m_Indices.push_back(0);
+				m_Indices.push_back(1);
 				m_Indices.push_back(2);
-				m_Indices.push_back(1);
 				m_Indices.push_back(3);
-				m_Indices.push_back(0);
 				m_Indices.push_back(1);
+				m_Indices.push_back(0);
 
 				// Front face
 				m_Vertices.push_back({ -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }); // 4: Bottom-left
@@ -66,11 +66,11 @@ namespace Atlas
 				m_Vertices.push_back({ 0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f }); // 14: Bottom-right
 				m_Vertices.push_back({ 0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f }); // 15: Top-left
 				m_Indices.push_back(12);
+				m_Indices.push_back(13);
 				m_Indices.push_back(14);
-				m_Indices.push_back(13);
 				m_Indices.push_back(15);
-				m_Indices.push_back(12);
 				m_Indices.push_back(13);
+				m_Indices.push_back(12);
 
 				// Bottom face
 				m_Vertices.push_back({  0.5f, -0.5f,  0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f }); // 16: Bottom-left
@@ -90,11 +90,11 @@ namespace Atlas
 				m_Vertices.push_back({ -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f }); // 22: Bottom-right
 				m_Vertices.push_back({  0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f }); // 23: Top-left
 				m_Indices.push_back(20);
+				m_Indices.push_back(21);
 				m_Indices.push_back(22);
-				m_Indices.push_back(21);
 				m_Indices.push_back(23);
-				m_Indices.push_back(20);
 				m_Indices.push_back(21);
+				m_Indices.push_back(20);
 
 				break;
 		}

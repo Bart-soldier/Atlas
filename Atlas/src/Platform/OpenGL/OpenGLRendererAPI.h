@@ -15,6 +15,9 @@ namespace Atlas
 		virtual void SetStencilMask(const uint32_t& mask) override;
 		virtual void SetStencilFunction(const TestFunction& function, const int& reference, const uint32_t& mask) override;
 
+		virtual void EnableBackCulling() override;
+		virtual void DisableBackCulling() override;
+
 		virtual void SetClearColor(const glm::vec4& color) override;
 		virtual void Clear() override;
 
