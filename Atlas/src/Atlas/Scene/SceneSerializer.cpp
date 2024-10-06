@@ -326,7 +326,7 @@ namespace Atlas
 
 				ATLAS_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-				Ref<Entity> deserializedEntity = m_Scene->CreateEntity(uuid, name);
+				Entity* deserializedEntity = m_Scene->CreateEntity(uuid, name);
 
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent)

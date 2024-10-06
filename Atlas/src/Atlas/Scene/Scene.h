@@ -25,43 +25,44 @@ namespace Atlas
 		void OnRuntimeStop();
 
 		void OnUpdateRuntime(Timestep ts);
-		void OnUpdateEditor(Timestep ts, EditorCamera& camera, Ref<Entity> selectedEntity);
+		void OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity* selectedEntity);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
-		Ref<Entity> CreateEntity(const std::string& name = std::string(), Ref<Entity> parent = nullptr);
-		Ref<Entity> CreateEntity(UUID uuid, const std::string& name = std::string(), Ref<Entity> parent = nullptr);
-		Ref<Entity> DuplicateEntity(Ref<Entity> entity, Ref<Entity> parent = nullptr);
-		void DestroyEntity(Ref<Entity> entity);
-		Ref<Entity> GetEntity(UUID uuid);
-		Ref<Entity> GetEntity(entt::entity entityHandle);
+		Entity* CreateEntity(const std::string& name = std::string(), Entity* parent = nullptr);
+		Entity* CreateEntity(UUID uuid, const std::string& name = std::string(), Entity* parent = nullptr);
+		Entity* DuplicateEntity(Entity* entity, Entity* parent = nullptr);
+		void DestroyEntity(Entity* entity, bool isRoot = true);
+		void DestroyAllEntities();
+		Entity* GetEntity(UUID uuid);
+		Entity* GetEntity(entt::entity entityHandle);
 
 		std::string const GetName() { return m_Name; }
-		Entity GetPrimaryCameraEntity();
+		Entity* GetPrimaryCameraEntity();
 
 	private:
 		void UpdateLights();
-		void DrawScene(const glm::vec3& cameraPosition, Ref<Entity> selectedEntity);
-		void DrawEntity(Ref<Entity> entity);
-		void DrawSelectedEntityAndOutline(Ref<Entity> entity);
-		glm::mat4 GetEntityTransform(Ref<Entity> entity);
+		void DrawScene(const glm::vec3& cameraPosition, Entity* selectedEntity);
+		void DrawEntity(Entity* entity);
+		void DrawSelectedEntityAndOutline(Entity* entity);
+		glm::mat4 GetEntityTransform(Entity* entity);
 
 		template<typename T>
-		void DrawComponent(Ref<Entity> entity, const glm::mat4& transform, const T& component);
+		void DrawComponent(Entity* entity, const glm::mat4& transform, const T& component);
 
 		template<typename T>
-		void OnComponentAdded(Entity entity, T& component);
+		void OnComponentAdded(Entity* entity, T& component);
 
 		template<typename... Component>
-		void OnComponentRemoved(Entity entity, ComponentGroup<Component...>);
+		void OnComponentRemoved(Entity* entity, ComponentGroup<Component...>);
 
 		template<typename T>
-		void OnComponentRemoved(Entity entity, T& component);
+		void OnComponentRemoved(Entity* entity, T& component);
 
 		std::string m_Name;
 
 		entt::registry m_Registry;
-		std::unordered_map<UUID, Ref<Entity>> m_EntityUUIDMap;
-		std::unordered_map<entt::entity, Ref<Entity>> m_EntityHandleMap;
+		std::unordered_map<UUID, Entity*> m_EntityUUIDMap;
+		std::unordered_map<entt::entity, Entity*> m_EntityHandleMap;
 
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;

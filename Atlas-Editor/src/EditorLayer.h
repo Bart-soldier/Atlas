@@ -66,9 +66,8 @@ namespace Atlas
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
 		EditorCamera m_EditorCamera;
 		int m_GizmoType = -1;
-		Ref<Entity> m_HoveredEntity;
+		Entity* m_HoveredEntity = nullptr;
 		bool m_ViewportInvalidated = false;
-		bool m_DeleteSelectedEntity = false;
 
 		enum class SceneState
 		{

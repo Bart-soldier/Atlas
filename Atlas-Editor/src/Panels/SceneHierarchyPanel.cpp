@@ -20,7 +20,7 @@ namespace Atlas
 		m_SelectedEntity = nullptr;
 	}
 
-	void SceneHierarchyPanel::SetSelectedEntity(Ref<Entity> entity)
+	void SceneHierarchyPanel::SetSelectedEntity(Entity* entity)
 	{
 		m_SelectedEntity = entity;
 	}
@@ -76,14 +76,14 @@ namespace Atlas
 		ImGui::End();
 	}
 
-	void SceneHierarchyPanel::DrawEntityNode(Ref<Entity> entity)
+	void SceneHierarchyPanel::DrawEntityNode(Entity* entity)
 	{
 		auto& tag = entity->GetComponent<TagComponent>().Tag;
 
 		ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)*entity, flags, tag.c_str());
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity->GetHandle(), flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 		{
 			m_SelectedEntity = entity;
@@ -107,20 +107,12 @@ namespace Atlas
 
 		if (opened)
 		{
-			for (Ref<Entity> child : entity->GetChildren())
+			for (Entity* child : entity->GetChildren())
 			{
 				DrawEntityNode(child);
 			}
 
 			ImGui::TreePop();
-			//ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			//
-			//bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
-			//if (opened)
-			//{
-			//	ImGui::TreePop();
-			//}
-			//ImGui::TreePop();
 		}
 
 		if (entityDeleted)
@@ -128,7 +120,7 @@ namespace Atlas
 			m_Context->DestroyEntity(entity);
 			if (m_SelectedEntity == entity)
 			{
-				m_SelectedEntity = {};
+				m_SelectedEntity = nullptr;
 			}
 		}
 	}

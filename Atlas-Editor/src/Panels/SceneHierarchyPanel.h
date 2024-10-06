@@ -16,8 +16,8 @@ namespace Atlas
 
 		void SetContext(const Ref<Scene>& context);
 
-		Ref<Entity> GetSelectedEntity() const { return m_SelectedEntity; }
-		void SetSelectedEntity(Ref<Entity> entity);
+		Entity* GetSelectedEntity() const { return m_SelectedEntity; }
+		void SetSelectedEntity(Entity* entity);
 
 		void OnImGuiRender();
 
@@ -30,13 +30,13 @@ namespace Atlas
 		template<typename T, typename T2>
 		void DisplayAddComponentEntryIfNoOther(const std::string& entryName);
 
-		void DrawEntityNode(Ref<Entity> entity);
+		void DrawEntityNode(Entity* entity);
 		void DrawComponents(Entity entity);
 
 		template<typename T, typename UIFunction>
 		static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction);
 
 		Ref<Scene> m_Context;
-		Ref<Entity> m_SelectedEntity;
+		Entity* m_SelectedEntity;
 	};
 }

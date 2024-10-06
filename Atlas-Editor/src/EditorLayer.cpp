@@ -254,7 +254,7 @@ namespace Atlas
 		ImGui::Text("API: %s", RendererAPI::GetAPI() == RendererAPI::API::OpenGL ? "OpenGL" : "None");
 
 		std::string name = "None";
-		if (m_HoveredEntity)
+		if (m_HoveredEntity && m_HoveredEntity->HasComponent<TagComponent>())
 			name = m_HoveredEntity->GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 
@@ -304,7 +304,7 @@ namespace Atlas
 		}
 
 		// Gizmos
-		Ref<Entity> selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity && m_GizmoType != -1)
 		{
 			ImGuizmo::SetOrthographic((int)m_EditorCamera.GetProjectionType());
@@ -353,13 +353,6 @@ namespace Atlas
 		UI_Toolbar();
 
 		ImGui::End();
-
-		if (m_DeleteSelectedEntity && selectedEntity)
-		{
-			m_SceneHierarchyPanel.SetSelectedEntity(nullptr);
-			m_ActiveScene->DestroyEntity(selectedEntity);
-			m_DeleteSelectedEntity = false;
-		}
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -446,10 +439,15 @@ namespace Atlas
 			{
 				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
-					Ref<Entity> selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 					if (selectedEntity)
 					{
-						m_DeleteSelectedEntity = true;
+						m_SceneHierarchyPanel.SetSelectedEntity(nullptr);
+						m_ActiveScene->DestroyEntity(selectedEntity);
+						if (selectedEntity == m_HoveredEntity)
+						{
+							m_HoveredEntity = nullptr;
+						}
 					}
 				}
 				break;
@@ -565,10 +563,10 @@ namespace Atlas
 		Ref<Scene> newScene = CreateRef<Scene>("Starter Scene");
 		SetEditorScene(newScene);
 
-		Ref<Entity> squareEntity = newScene->CreateEntity("White Square");
+		Entity* squareEntity = newScene->CreateEntity("White Square");
 		squareEntity->AddComponent<SpriteRendererComponent>();
 
-		Ref<Entity> cameraEntity = newScene->CreateEntity("Camera");
+		Entity* cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity->AddComponent<CameraComponent>();
 		CameraComponent* cameraComponent = &cameraEntity->GetComponent<CameraComponent>();
 		cameraComponent->Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
@@ -582,19 +580,19 @@ namespace Atlas
 		Ref<Scene> newScene = CreateRef<Scene>("Starter Scene");
 		SetEditorScene(newScene);
 
-		Ref<Entity> squareEntity = newScene->CreateEntity("White Cube");
+		Entity* squareEntity = newScene->CreateEntity("White Cube");
 		squareEntity->AddComponent<MeshComponent>();
 		squareEntity->AddComponent<MaterialComponent>();
 		squareEntity->GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Gold);
 
-		Ref<Entity> cameraEntity = newScene->CreateEntity("Camera");
+		Entity* cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity->AddComponent<CameraComponent>();
 		cameraEntity->GetComponent<CameraComponent>().Camera.SetProjectionType(Camera::ProjectionType::Perspective);
 		TransformComponent* cameraTransform = &cameraEntity->GetComponent<TransformComponent>();
 		cameraTransform->Translation = glm::vec3(3.5f, 2.1f, 3.5f);
 		cameraTransform->Rotation = glm::radians(glm::vec3(-25.0f, 45.0f, 0.0f));
 
-		Ref<Entity> lightEntity = newScene->CreateEntity("Point Light");
+		Entity* lightEntity = newScene->CreateEntity("Point Light");
 		lightEntity->GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
 		lightEntity->AddComponent<LightSourceComponent>();
 
@@ -713,10 +711,10 @@ namespace Atlas
 			return;
 		}
 
-		Ref<Entity> selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity)
 		{
-			Ref<Entity> newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
+			Entity* newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
 			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}
 	}

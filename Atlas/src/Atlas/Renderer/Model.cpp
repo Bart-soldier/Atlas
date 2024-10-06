@@ -24,9 +24,9 @@ namespace Atlas
 		return;
 	}
 
-	void Model::ProcessNode(Ref<Scene> activeScene, const aiNode& node, const aiScene& modelScene, Ref<Entity> parent)
+	void Model::ProcessNode(Ref<Scene> activeScene, const aiNode& node, const aiScene& modelScene, Entity* parent)
 	{
-		Ref<Entity> nodeParent;
+		Entity* nodeParent;
 
 		if (node.mNumMeshes != 1)
 		{
@@ -36,7 +36,7 @@ namespace Atlas
 			{
 				aiMesh* mesh = modelScene.mMeshes[node.mMeshes[meshIndex]];
 
-				Ref<Entity> meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), nodeParent);
+				Entity* meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), nodeParent);
 				meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
 			}
 		}
@@ -44,7 +44,7 @@ namespace Atlas
 		{
 			aiMesh* mesh = modelScene.mMeshes[node.mMeshes[0]];
 
-			Ref<Entity> meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), parent);
+			Entity* meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), parent);
 			meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
 
 			nodeParent = meshEntity;
