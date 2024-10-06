@@ -35,6 +35,7 @@ namespace Atlas
 		void DestroyAllEntities();
 		Entity* GetEntity(UUID uuid);
 		Entity* GetEntity(entt::entity entityHandle);
+		glm::mat4 GetEntityTransform(Entity* entity);
 
 		std::string const GetName() { return m_Name; }
 		Entity* GetPrimaryCameraEntity();
@@ -44,7 +45,6 @@ namespace Atlas
 		void DrawScene(const glm::vec3& cameraPosition, Entity* selectedEntity);
 		void DrawEntity(Entity* entity);
 		void DrawSelectedEntityAndOutline(Entity* entity);
-		glm::mat4 GetEntityTransform(Entity* entity);
 
 		template<typename T>
 		void DrawComponent(Entity* entity, const glm::mat4& transform, const T& component);

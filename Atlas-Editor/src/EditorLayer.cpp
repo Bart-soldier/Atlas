@@ -317,8 +317,8 @@ namespace Atlas
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
 			// Entity transform
-			auto& tc = selectedEntity->GetComponent<TransformComponent>();
-			glm::mat4 transform = tc.GetTransform();
+			auto& transformComponent = selectedEntity->GetComponent<TransformComponent>();
+			glm::mat4 transform = m_ActiveScene->GetEntityTransform(selectedEntity);
 
 			// Snapping
 			bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -340,10 +340,10 @@ namespace Atlas
 				glm::vec3 translation, rotation, scale;
 				Math::DecomposeTransform(transform, translation, rotation, scale);
 
-				glm::vec3 deltaRotation = rotation - tc.Rotation;
-				tc.Translation = translation;
-				tc.Rotation += deltaRotation;
-				tc.Scale = scale;
+				glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
+				transformComponent.Translation = translation;
+				transformComponent.Rotation += deltaRotation;
+				transformComponent.Scale = scale;
 			}
 		}
 		
