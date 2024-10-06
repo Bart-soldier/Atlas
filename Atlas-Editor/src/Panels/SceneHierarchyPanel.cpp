@@ -50,7 +50,7 @@ namespace Atlas
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			{
-				m_SelectedEntity = {};
+				m_SelectedEntity = nullptr;
 			}
 
 			// Right-click on blank space
@@ -62,6 +62,18 @@ namespace Atlas
 				}
 
 				ImGui::EndPopup();
+			}
+
+			ImGui::Dummy({ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y});
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+				{
+					Entity* droppedEntity = (Entity*)payload->Data;
+					m_Context->GetEntity(droppedEntity->GetHandle())->SetParent(nullptr);
+				}
+				ImGui::EndDragDropTarget();
 			}
 		}
 
@@ -105,6 +117,12 @@ namespace Atlas
 			ImGui::EndPopup();
 		}
 
+		if (ImGui::BeginDragDropSource())
+		{
+			ImGui::SetDragDropPayload("SCENE_HIERARCHY_ENTITY", entity, sizeof(Entity));
+			ImGui::EndDragDropSource();
+		}
+
 		if (opened)
 		{
 			for (Entity* child : entity->GetChildren())
@@ -113,6 +131,16 @@ namespace Atlas
 			}
 
 			ImGui::TreePop();
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				Entity* droppedEntity = (Entity*)payload->Data;
+				m_Context->GetEntity(droppedEntity->GetHandle())->SetParent(entity);
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		if (entityDeleted)
