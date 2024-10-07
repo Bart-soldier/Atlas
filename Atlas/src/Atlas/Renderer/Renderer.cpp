@@ -140,11 +140,7 @@ namespace Atlas
 		Ref<UniformBuffer> CameraUniformBuffer;
 
 		// Lights
-		struct LightCountData
-		{
-			uint32_t LightCount;
-		};
-		LightCountData LightCountBuffer;
+		uint32_t LightCountBuffer;
 		Ref<UniformBuffer> LightCountUniformBuffer;
 
 		// Storage buffers
@@ -301,8 +297,8 @@ namespace Atlas
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 	
 		// Uniform buffers
-		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData)    , 0);
-		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(RendererData::LightCountData), 1);
+		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
+		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 1);
 
 		// Storage buffers
 		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 2);
@@ -433,8 +429,8 @@ namespace Atlas
 		s_RendererData.CameraBuffer.Position = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
 
-		s_RendererData.LightCountBuffer.LightCount = lights.size();
-		s_RendererData.LightCountUniformBuffer->SetData(&s_RendererData.LightCountBuffer, sizeof(RendererData::LightCountData));
+		s_RendererData.LightCountBuffer = lights.size();
+		s_RendererData.LightCountUniformBuffer->SetData(&s_RendererData.LightCountBuffer, sizeof(uint32_t));
 
 		EnsureLightStorageBufferCapacity(lights.capacity());
 		s_RendererData.LightStorageBuffer->SetData(lights.data(), sizeof(LightData) * lights.size());
