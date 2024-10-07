@@ -1,6 +1,7 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/Renderer.h"
 
+#include "Atlas/Renderer/Framebuffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
 #include "Atlas/Renderer/UniformBuffer.h"
@@ -65,6 +66,8 @@ namespace Atlas
 
 	struct RendererData
 	{
+		Ref<Framebuffer> Framebuffer;
+
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
 		static const uint32_t MaxVertices     = MaxTriangles * 3; // TODO: Check renderer capabilities
@@ -158,6 +161,13 @@ namespace Atlas
 	void Renderer::Init()
 	{
 		ATLAS_PROFILE_FUNCTION();
+
+		FramebufferSpecification fbSpec;
+		// Color, EntityID, PostProcessing, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
+		fbSpec.Width = 1280;
+		fbSpec.Height = 720;
+		s_RendererData.Framebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -324,6 +334,78 @@ namespace Atlas
 	void Renderer::DisableStencilWriting()
 	{
 		RenderCommand::SetStencilMask(0x00);
+	}
+
+	uint32_t Renderer::GetLightStorageBufferCapacity()
+	{
+		return s_RendererData.LightStorageBufferCapacity;
+	}
+
+	RendererAPI::PolygonMode Renderer::GetPolygonMode()
+	{
+		return s_RendererData.PolygonMode;
+	}
+
+	void Renderer::SetPolygonMode(RendererAPI::PolygonMode polygonMode)
+	{
+		s_RendererData.PolygonMode = polygonMode;
+		RenderCommand::SetPolygonMode(polygonMode);
+	}
+
+	void Renderer::BeginRenderPass()
+	{
+		s_RendererData.Framebuffer->Bind();
+		// TODO: Link to palette
+		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
+		RenderCommand::Clear();
+
+		// Clear our entity ID attachment to -1
+		s_RendererData.Framebuffer->ClearAttachment(1, -1);
+	}
+
+	void Renderer::EndRenderPass()
+	{
+		s_RendererData.Framebuffer->Unbind();
+	}
+
+	bool Renderer::ResizeFramebuffer(uint32_t width, uint32_t height)
+	{
+		bool resized = false;
+		FramebufferSpecification spec = s_RendererData.Framebuffer->GetSpecification();
+
+		// Zero sized framebuffer is invalid
+		if (width > 0.0f && height > 0.0f && (spec.Width != width || spec.Height != height))
+		{
+			s_RendererData.Framebuffer->Resize(width, height);
+			resized = true;
+		}
+
+		return resized;
+	}
+
+	uint32_t Renderer::GetRenderID()
+	{
+		return s_RendererData.Framebuffer->GetColorAttachmentRendererID();
+	}
+
+	uint32_t Renderer::GetPostProcessRenderID()
+	{
+		return s_RendererData.Framebuffer->GetColorAttachmentRendererID(2);
+	}
+
+	int Renderer::GetEntityIDFromPixel(int x, int y)
+	{
+		return s_RendererData.Framebuffer->ReadPixel(1, x, y);
+	}
+
+	void Renderer::ResetStats()
+	{
+		memset(&s_RendererData.Stats, 0, sizeof(Statistics));
+	}
+
+	Renderer::Statistics Renderer::GetStats()
+	{
+		return s_RendererData.Stats;
 	}
 
 	void Renderer::BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights)
@@ -531,32 +613,6 @@ namespace Atlas
 	{
 		Flush();
 		StartBatch();
-	}
-
-	uint32_t Renderer::GetLightStorageBufferCapacity()
-	{
-		return s_RendererData.LightStorageBufferCapacity;
-	}
-
-	RendererAPI::PolygonMode Renderer::GetPolygonMode()
-	{
-		return s_RendererData.PolygonMode;
-	}
-
-	void Renderer::SetPolygonMode(RendererAPI::PolygonMode polygonMode)
-	{
-		s_RendererData.PolygonMode = polygonMode;
-		RenderCommand::SetPolygonMode(polygonMode);
-	}
-
-	void Renderer::ResetStats()
-	{
-		memset(&s_RendererData.Stats, 0, sizeof(Statistics));
-	}
-
-	Renderer::Statistics Renderer::GetStats()
-	{
-		return s_RendererData.Stats;
 	}
 
 	/* --------------- COLOR VERSION --------------- */

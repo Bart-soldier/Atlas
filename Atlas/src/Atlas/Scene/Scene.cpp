@@ -143,6 +143,8 @@ namespace Atlas
 		// Render 2D
 		SceneCamera* mainCamera = nullptr;
 		TransformComponent* cameraTransform;
+		PostProcessorComponent* postProcessor = nullptr;
+
 		{
 			auto view = m_Registry.view<TransformComponent, CameraComponent>();
 			for (auto entity : view)
@@ -153,6 +155,8 @@ namespace Atlas
 				{
 					mainCamera = &camera.Camera;
 					cameraTransform = &transform;
+					postProcessor = m_Registry.try_get<PostProcessorComponent>(entity);
+
 					break;
 				}
 			}
@@ -165,6 +169,13 @@ namespace Atlas
 			Renderer::BeginScene(*mainCamera, *cameraTransform, m_Lights);
 			DrawScene(cameraTransform->Translation, false, nullptr);
 			Renderer::EndScene();
+
+			if (postProcessor)
+			{
+				RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+				PostProcessor::ApplyPostProcessingEffect(postProcessor->Effect, Renderer::GetPostProcessRenderID());
+				RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+			}
 		}
 	}
 
@@ -174,6 +185,33 @@ namespace Atlas
 		Renderer::BeginScene(camera, m_Lights);
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
+
+		if (camera.IsPostProcessEnabled())
+		{
+			SceneCamera* mainCamera = nullptr;
+			PostProcessorComponent* postProcessor = nullptr;
+
+			auto view = m_Registry.view<CameraComponent>();
+			for (auto entity : view)
+			{
+				auto camera = view.get<CameraComponent>(entity);
+
+				if (camera.Primary)
+				{
+					mainCamera = &camera.Camera;
+					postProcessor = m_Registry.try_get<PostProcessorComponent>(entity);
+
+					break;
+				}
+			}
+
+			if (mainCamera && postProcessor)
+			{
+				RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+				PostProcessor::ApplyPostProcessingEffect(postProcessor->Effect, Renderer::GetPostProcessRenderID());
+				RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+			}
+		}
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)

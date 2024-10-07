@@ -33,15 +33,22 @@ namespace Atlas
 		static void EnableStencilWriting();
 		static void DisableStencilWriting();
 
-		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
-		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
-		static void EndScene();
-		static void NextBatch();
-
 		static uint32_t GetLightStorageBufferCapacity();
 
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
+
+		static void BeginRenderPass();
+		static void EndRenderPass();
+		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
+		static uint32_t GetRenderID();
+		static uint32_t GetPostProcessRenderID();
+		static int GetEntityIDFromPixel(int x, int y);
+
+		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
+		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
+		static void EndScene();
+		static void NextBatch();
 
 		// Primitives
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);

@@ -39,30 +39,29 @@ layout (location = 9) in flat int   v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
-layout(std140, binding = 0) uniform Camera
+layout (std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
 	vec4 u_CameraPosition;
 };
 
-layout(std140, binding = 1) uniform LightCount
+layout (std140, binding = 1) uniform LightCount
 {
 	uint u_LightCount;
 };
 
-layout(std430, binding = 2) buffer Lights
+layout (std430, binding = 2) buffer Lights
 {
 	LightData u_Lights[];
 };
 
-layout(location = 0) out vec4 o_color;
-layout(location = 1) out int  o_entityID;
+layout (location = 0) out vec4 o_Color;
+layout (location = 1) out int  o_EntityID;
+layout (location = 2) out vec4 o_PostProcessColor;
 
 void main()
 {
-	// Color buffer
-	o_color = vec4(VertexInput.DiffuseColor, 1.0);
-
-	// Entity ID buffer
-	o_entityID = v_EntityID;
+	o_Color            = vec4(VertexInput.DiffuseColor, 1.0);
+	o_EntityID         = v_EntityID;
+	o_PostProcessColor = o_Color;
 }

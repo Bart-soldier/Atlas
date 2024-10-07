@@ -6,14 +6,14 @@
 #type vertex
 #version 450 core
 
-layout(location = 0) in vec3  a_Position;
-layout(location = 1) in vec4  a_Color;
-layout(location = 2) in vec2  a_TexCoord;
-layout(location = 3) in int   a_TexIndex;
-layout(location = 4) in float a_TilingFactor;
-layout(location = 5) in int   a_EntityID;
+layout (location = 0) in vec3  a_Position;
+layout (location = 1) in vec4  a_Color;
+layout (location = 2) in vec2  a_TexCoord;
+layout (location = 3) in int   a_TexIndex;
+layout (location = 4) in float a_TilingFactor;
+layout (location = 5) in int   a_EntityID;
 
-layout(std140, binding = 0) uniform Camera
+layout (std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
 };
@@ -43,8 +43,9 @@ void main()
 #type fragment
 #version 450 core
 
-layout(location = 0) out vec4 o_color;
-layout(location = 1) out int o_entityID;
+layout (location = 0) out vec4 o_Color;
+layout (location = 1) out int  o_EntityID;
+layout (location = 2) out vec4 o_PostProcessColor;
 
 struct VertexOutput
 {
@@ -104,7 +105,7 @@ void main()
 		discard;
 	}
 
-	o_color = texColor;
-
-	o_entityID = v_EntityID;
+	o_Color            = texColor;
+	o_EntityID         = v_EntityID;
+	o_PostProcessColor = o_Color;
 }

@@ -29,12 +29,6 @@ namespace Atlas
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png", false);
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png", false);
 
-		FramebufferSpecification fbSpec;
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
-		fbSpec.Width = 1280;
-		fbSpec.Height = 720;
-		m_Framebuffer = Framebuffer::Create(fbSpec);
-
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
 		{
@@ -63,11 +57,8 @@ namespace Atlas
 		}
 
 		// Resize
-		FramebufferSpecification spec = m_Framebuffer->GetSpecification();
-		if (m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero sized framebuffer is invalid
-			(spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
+		if (Renderer::ResizeFramebuffer((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y))
 		{
-			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_ViewportInvalidated = true;
@@ -81,15 +72,10 @@ namespace Atlas
 
 		// Render
 		Renderer::ResetStats();
+
 		{
 			ATLAS_PROFILE_SCOPE("Renderer Prep");
-			m_Framebuffer->Bind();
-			// TODO: Link to palette
-			RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
-			RenderCommand::Clear();
-
-			// Clear our entity ID attachment to -1
-			m_Framebuffer->ClearAttachment(1, -1);
+			Renderer::BeginRenderPass();
 		}
 
 		switch (m_SceneState)
@@ -112,8 +98,6 @@ namespace Atlas
 				if (m_ActiveScene)
 				{
 					m_ActiveScene->OnUpdateRuntime(ts);
-
-					PostProcessor::ApplyPostProcessingEffect(PostProcessor::PostProcessingEffect::Greyscale, m_Framebuffer->GetColorAttachmentRendererID());
 				}
 				break;
 			}
@@ -122,11 +106,11 @@ namespace Atlas
 		// Check viewport boundaries
 		if (m_ViewportHovered)
 		{
-			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+			int pixelData = Renderer::GetEntityIDFromPixel(mouseX, mouseY);
 			m_HoveredEntity = pixelData == -1 ? nullptr : m_ActiveScene->GetEntity((entt::entity)pixelData);
 		}
 
-		m_Framebuffer->Unbind();
+		Renderer::EndRenderPass();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -293,7 +277,7 @@ namespace Atlas
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-		uint32_t textureID = m_SceneState == SceneState::Play ? m_Framebuffer->GetColorAttachmentRendererID(2) : m_Framebuffer->GetColorAttachmentRendererID();
+		uint32_t textureID = m_SceneState == SceneState::Play || m_EditorCamera.IsPostProcessEnabled() ? Renderer::GetPostProcessRenderID() : Renderer::GetRenderID();
 
 		ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
@@ -773,6 +757,14 @@ namespace Atlas
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
+
+		/* ---------- PostProcessing ---------- */
+		ImGui::SameLine();
+		bool ppEnabled = m_EditorCamera.IsPostProcessEnabled();
+		if (ImGui::Checkbox("PP", &ppEnabled))
+		{
+			m_EditorCamera.SetIsPostProcessEnabled(ppEnabled);
+		}
 
 		/* ---------- PLAY / STOP ---------- */
 		float size = ImGui::GetWindowHeight() - 2 * padding;

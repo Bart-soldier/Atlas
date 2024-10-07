@@ -187,6 +187,7 @@ namespace Atlas
 		{
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
+			DisplayAddComponentEntryIfOther<PostProcessorComponent, CameraComponent>("Post Processor");
 			DisplayAddComponentEntryIfNoOther<SpriteRendererComponent, MeshComponent>("Sprite Renderer");
 			DisplayAddComponentEntryIfNoOther<MeshComponent, SpriteRendererComponent>("Mesh");
 			DisplayAddComponentEntryIfOther<MaterialComponent, MeshComponent>("Material");
@@ -276,6 +277,31 @@ namespace Atlas
 				}
 
 				ImGuiUtils::Checkbox("Fixed Aspect Ratio", component.FixedAspectRatio);
+			}
+		});
+
+		DrawComponent<PostProcessorComponent>("Post Processor", entity, [](auto& component)
+		{
+			const char* effectsStrings[] = { "None", "Inversion", "Greyscale" };
+			const char* currentEffectString = effectsStrings[(int)component.Effect];
+			if (ImGuiUtils::BeginCombo("Effect", *currentEffectString))
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					bool isSelected = currentEffectString == effectsStrings[i];
+					if (ImGui::Selectable(effectsStrings[i], isSelected))
+					{
+						currentEffectString = effectsStrings[i];
+						component.Effect = (PostProcessor::PostProcessingEffect)i;
+					}
+
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+
+				ImGuiUtils::EndCombo();
 			}
 		});
 
