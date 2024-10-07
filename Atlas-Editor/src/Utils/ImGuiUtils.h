@@ -17,7 +17,7 @@ namespace Atlas
 		static bool ColorEdit3(const std::string& label, float& value);
 		static bool ColorEdit4(const std::string& label, float& value);
 
-		static bool BeginCombo(const std::string& label, const char& value);
+		static bool BeginCombo(const std::string& label, const char& value, float maxWidth = -1, const int& uniqueID = -1);
 		static void EndCombo();
 
 		static void BeginTextureViewer(const std::string& label, const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped);

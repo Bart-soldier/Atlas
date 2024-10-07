@@ -2,9 +2,12 @@
 
 #include "Atlas/Core/Timestep.h"
 #include "Atlas/Core/UUID.h"
+
 #include "Atlas/Renderer/Renderer.h"
 #include "Atlas/Renderer/EditorCamera.h"
 #include "Atlas/Renderer/Light.h"
+
+#include "Atlas/Scene/Components.h"
 
 #include "entt.hpp"
 
@@ -43,6 +46,8 @@ namespace Atlas
 		std::vector<Entity*> GetCameras();
 
 	private:
+		void ApplyPostProcessing(PostProcessorComponent* postProcessor);
+
 		void UpdateLights();
 		void DrawScene(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity);
 		void DrawEntity(Entity* entity);

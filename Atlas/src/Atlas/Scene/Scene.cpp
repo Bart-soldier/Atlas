@@ -148,7 +148,6 @@ namespace Atlas
 		{
 			const SceneCamera& camera = m_PrimaryCamera->GetComponent<CameraComponent>().Camera;
 			const TransformComponent& cameraTransform = m_PrimaryCamera->GetComponent<TransformComponent>();
-			PostProcessorComponent* postProcessor = m_PrimaryCamera->TryGetComponent<PostProcessorComponent>();
 
 			UpdateLights();
 
@@ -156,12 +155,7 @@ namespace Atlas
 			DrawScene(cameraTransform.Translation, false, nullptr);
 			Renderer::EndScene();
 
-			if (postProcessor)
-			{
-				RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effect, postProcessor->KernelOffset);
-				RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-			}
+			ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
 		}
 	}
 
@@ -176,15 +170,23 @@ namespace Atlas
 		{
 			if (m_PrimaryCamera)
 			{
-				PostProcessorComponent* postProcessor = m_PrimaryCamera->TryGetComponent<PostProcessorComponent>();
-
-				if (postProcessor)
-				{
-					RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-					PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effect, postProcessor->KernelOffset);
-					RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-				}
+				ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
 			}
+		}
+	}
+
+	void Scene::ApplyPostProcessing(PostProcessorComponent* postProcessor)
+	{
+		if (postProcessor)
+		{
+			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+			RenderCommand::DisableDepthTest();
+			for (int i = 0; i < postProcessor->Effects.size(); i++)
+			{
+				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], postProcessor->KernelOffsets[i]);
+			}
+			RenderCommand::EnableDepthTest();
+			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 		}
 	}
 

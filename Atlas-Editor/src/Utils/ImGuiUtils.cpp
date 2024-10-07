@@ -260,26 +260,26 @@ namespace Atlas
 		return valueChanged;
 	}
 
-	bool ImGuiUtils::BeginCombo(const std::string& label, const char& value)
+	bool ImGuiUtils::BeginCombo(const std::string& label, const char& value, float maxWidth, const int& uniqueID)
 	{
 		bool valueChanged = false;
 
-		ImGui::PushID(label.c_str());
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushItemWidth(-1);
-		valueChanged = ImGui::BeginCombo("##X", &value);
+		float width = std::min(ImGui::GetContentRegionAvail().x, maxWidth == -1 ? maxWidth : maxWidth - labelSize);
+		ImGui::PushItemWidth(width);
+		valueChanged = ImGui::BeginCombo(uniqueID == -1 ? "##X" : ("##" + std::to_string(uniqueID)).c_str(), &value);
 
 		if (!valueChanged)
 		{
 			ImGui::PopItemWidth();
 			ImGui::Columns(1);
-			ImGui::PopID();
 		}
 
 		return valueChanged;
@@ -291,8 +291,6 @@ namespace Atlas
 
 		ImGui::PopItemWidth();
 		ImGui::Columns(1);
-		ImGui::PopID();
-
 	}
 
 	void ImGuiUtils::BeginTextureViewer(const std::string& label, const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped)

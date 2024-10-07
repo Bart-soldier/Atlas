@@ -209,12 +209,6 @@ namespace Atlas
 		{
 			auto& camera = component.Camera;
 
-			//bool primary = entity == m_Context->GetPrimaryCamera();
-			//if(ImGuiUtils::Checkbox("Primary", &primary))
-			//{
-			//	m_Context->SetPrimaryCamera(primary ? entity : nullptr);
-			//}
-
 			ImGui::Separator();
 
 			const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
@@ -286,47 +280,92 @@ namespace Atlas
 
 		DrawComponent<PostProcessorComponent>("Post Processor", entity, [](auto& component)
 		{
+			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
 			const char* effectsStrings[] = { "None", "Inversion", "Greyscale", "Numerical", "Blur", "Edge Detection"};
-			const char* currentEffectString = effectsStrings[(int)component.Effect];
-			if (ImGuiUtils::BeginCombo("Effect", *currentEffectString))
+			int removeEffect = -1;
+
+			for (int effectIndex = 0; effectIndex < component.Effects.size(); effectIndex++)
 			{
-				for (int i = 0; i < 6; i++)
+				if (effectIndex > 0)
 				{
-					bool isSelected = currentEffectString == effectsStrings[i];
-					if (ImGui::Selectable(effectsStrings[i], isSelected))
-					{
-						currentEffectString = effectsStrings[i];
-						component.Effect = (PostProcessor::PostProcessingEffect)i;
-
-						if (component.Effect == PostProcessor::PostProcessingEffect::Numerical)
-						{
-							component.KernelOffset = 90.0f;
-						}
-
-						if (component.Effect == PostProcessor::PostProcessingEffect::Blur || component.Effect == PostProcessor::PostProcessingEffect::EdgeDetection)
-						{
-							component.KernelOffset = 300.0f;
-						}
-					}
-
-					if (isSelected)
-					{
-						ImGui::SetItemDefaultFocus();
-					}
+					ImGui::Separator();
 				}
 
-				ImGuiUtils::EndCombo();
+				const char* currentEffectString = effectsStrings[(int)component.Effects[effectIndex]];
+				if (ImGuiUtils::BeginCombo("Effect", *currentEffectString, ImGui::GetContentRegionAvail().x - buttonSize.x, effectIndex))
+				{
+					for (int stringIndex = 0; stringIndex < 6; stringIndex++)
+					{
+						bool isSelected = currentEffectString == effectsStrings[stringIndex];
+						if (ImGui::Selectable(effectsStrings[stringIndex], isSelected))
+						{
+							currentEffectString = effectsStrings[stringIndex];
+							component.Effects[effectIndex] = (PostProcessor::PostProcessingEffect)stringIndex;
+
+							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
+							{
+								component.KernelOffsets[effectIndex] = 90.0f;
+							}
+
+							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
+								component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
+							{
+								component.KernelOffsets[effectIndex] = 300.0f;
+							}
+						}
+
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+
+					ImGuiUtils::EndCombo();
+				}
+				//ImGui::PopItemWidth();
+
+				//ImGui::SameLine(ImGui::GetContentRegionAvail().x - lineHeight * 0.5f);
+				ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
+				//ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
+				if (ImGui::Button(("-##" + std::to_string(effectIndex)).c_str(), buttonSize))
+				{
+					removeEffect = effectIndex;
+				}
+
+				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
+				{
+					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 90.0f, 1.0f, 1.0f);
+				}
+
+				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
+					component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
+				{
+					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 300.0f, 1.0f, 1.0f);
+				}
 			}
 
-			if (component.Effect == PostProcessor::PostProcessingEffect::Numerical)
+			ImGui::Separator();
+
+			//ImVec2 padding = ImGui::GetStyle().FramePadding;
+			//ImVec2 buttonLabelSize = ImGui::CalcTextSize("Add Effect", NULL, true);
+			//ImVec2 buttonSize = ImGui::CalcItemSize({ 0, 0 }, buttonLabelSize.x + padding.x * 2.0f, buttonLabelSize.y + padding.y * 2.0f);
+
+			//ImGui::PushItemWidth(2 * buttonSize.x);
+
+			if (removeEffect >= 0)
 			{
-				ImGuiUtils::DragFloat("Offset", component.KernelOffset, 90.0f, 1.0f, 1.0f);
+				component.Effects.erase(component.Effects.begin() + removeEffect);
+				component.KernelOffsets.erase(component.KernelOffsets.begin() + removeEffect);
 			}
 
-			if (component.Effect == PostProcessor::PostProcessingEffect::Blur || component.Effect == PostProcessor::PostProcessingEffect::EdgeDetection)
+			if (ImGui::Button("Add Effect"))
 			{
-				ImGuiUtils::DragFloat("Offset", component.KernelOffset, 300.0f, 1.0f, 1.0f);
+				component.Effects.push_back(PostProcessor::PostProcessingEffect::None);
+				component.KernelOffsets.push_back(0.0f);
 			}
+
+			//ImGui::PopItemWidth();
 		});
 
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
