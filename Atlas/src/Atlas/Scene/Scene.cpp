@@ -112,11 +112,10 @@ namespace Atlas
 		std::unordered_map<entt::entity, Entity*> newSceneEnttMap;
 
 		// Create entities in new scene
-		auto idView = srcSceneRegistry.view<IDComponent>();
-		for (auto e : idView)
+		for (auto& [handle, entity] : other->m_EntityHandleMap)
 		{
-			UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
-			const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+			UUID uuid = srcSceneRegistry.get<IDComponent>(handle).ID;
+			const auto& name = srcSceneRegistry.get<TagComponent>(handle).Tag;
 			Entity* newEntity = newScene->CreateEntity(uuid, name);
 			newSceneUUIDMap[uuid] = newEntity;
 			newSceneEnttMap[newEntity->GetHandle()] = newEntity;
@@ -127,7 +126,10 @@ namespace Atlas
 		newScene->m_EntityUUIDMap = newSceneUUIDMap;
 		newScene->m_EntityHandleMap = newSceneEnttMap;
 
-		newScene->m_PrimaryCamera = newSceneEnttMap[other->m_PrimaryCamera->GetHandle()];
+		if (other->m_PrimaryCamera)
+		{
+			newScene->m_PrimaryCamera = newSceneEnttMap[other->m_PrimaryCamera->GetHandle()];
+		}
 
 		return newScene;
 	}
