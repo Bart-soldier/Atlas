@@ -166,7 +166,6 @@ namespace Atlas
 			out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
 			out << YAML::EndMap; // Camera
 
-			out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
 			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComponent.FixedAspectRatio;
 
 			out << YAML::EndMap; // CameraComponent
@@ -390,11 +389,6 @@ namespace Atlas
 					if (cameraProps["OrthographicFar"])
 					{
 						cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
-					}
-
-					if (cameraComponent["Primary"])
-					{
-						cc.Primary = cameraComponent["Primary"].as<bool>();
 					}
 
 					if (cameraComponent["FixedAspectRatio"])

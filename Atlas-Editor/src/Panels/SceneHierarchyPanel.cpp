@@ -82,7 +82,7 @@ namespace Atlas
 		ImGui::Begin("Properties");
 		if (m_SelectedEntity)
 		{
-			DrawComponents(*m_SelectedEntity);
+			DrawComponents(m_SelectedEntity);
 		}
 
 		ImGui::End();
@@ -153,7 +153,7 @@ namespace Atlas
 		}
 	}
 
-	void SceneHierarchyPanel::DrawComponents(Entity entity)
+	void SceneHierarchyPanel::DrawComponents(Entity* entity)
 	{
 		ImVec2 padding = ImGui::GetStyle().FramePadding;
 		ImVec2 buttonLabelSize = ImGui::CalcTextSize("Add Component", NULL, true);
@@ -161,9 +161,9 @@ namespace Atlas
 
 		ImGui::PushItemWidth(ImGui::GetColumnWidth() - buttonSize.x - padding.x);
 
-		if (entity.HasComponent<TagComponent>())
+		if (entity->HasComponent<TagComponent>())
 		{
-			auto& tag = entity.GetComponent<TagComponent>().Tag;
+			auto& tag = entity->GetComponent<TagComponent>().Tag;
 
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
@@ -209,7 +209,11 @@ namespace Atlas
 		{
 			auto& camera = component.Camera;
 
-			ImGuiUtils::Checkbox("Primary", component.Primary);
+			//bool primary = entity == m_Context->GetPrimaryCamera();
+			//if(ImGuiUtils::Checkbox("Primary", &primary))
+			//{
+			//	m_Context->SetPrimaryCamera(primary ? entity : nullptr);
+			//}
 
 			ImGui::Separator();
 
@@ -650,12 +654,12 @@ namespace Atlas
 	}
 
 	template<typename T, typename UIFunction>
-	void SceneHierarchyPanel::DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+	void SceneHierarchyPanel::DrawComponent(const std::string& name, Entity* entity, UIFunction uiFunction)
 	{
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
-		if (entity.HasComponent<T>())
+		if (entity->HasComponent<T>())
 		{
-			auto& component = entity.GetComponent<T>();
+			auto& component = entity->GetComponent<T>();
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
@@ -672,7 +676,7 @@ namespace Atlas
 			bool removeComponent = false;
 			if (ImGui::BeginPopup("ComponentSettings"))
 			{
-				if (ImGui::MenuItem("Remove component"))
+				if (!std::is_same<T, TransformComponent>::value && ImGui::MenuItem("Remove component"))
 				{
 					removeComponent = true;
 				}
@@ -688,7 +692,7 @@ namespace Atlas
 
 			if (removeComponent)
 			{
-				entity.RemoveComponent<T>();
+				entity->RemoveComponent<T>();
 			}
 		}
 	}

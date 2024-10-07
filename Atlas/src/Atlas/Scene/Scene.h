@@ -38,7 +38,9 @@ namespace Atlas
 		glm::mat4 GetEntityTransform(Entity* entity);
 
 		std::string const GetName() { return m_Name; }
-		Entity* GetPrimaryCameraEntity();
+		Entity* GetPrimaryCamera();
+		void SetPrimaryCamera(Entity* entity);
+		std::vector<Entity*> GetCameras();
 
 	private:
 		void UpdateLights();
@@ -63,6 +65,7 @@ namespace Atlas
 		entt::registry m_Registry;
 		std::unordered_map<UUID, Entity*> m_EntityUUIDMap;
 		std::unordered_map<entt::entity, Entity*> m_EntityHandleMap;
+		Entity* m_PrimaryCamera = nullptr;
 
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;

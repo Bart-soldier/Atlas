@@ -127,6 +127,8 @@ namespace Atlas
 		newScene->m_EntityUUIDMap = newSceneUUIDMap;
 		newScene->m_EntityHandleMap = newSceneEnttMap;
 
+		newScene->m_PrimaryCamera = newSceneEnttMap[other->m_PrimaryCamera->GetHandle()];
+
 		return newScene;
 	}
 
@@ -140,34 +142,16 @@ namespace Atlas
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
-		// Render 2D
-		SceneCamera* mainCamera = nullptr;
-		TransformComponent* cameraTransform;
-		PostProcessorComponent* postProcessor = nullptr;
-
+		if (m_PrimaryCamera)
 		{
-			auto view = m_Registry.view<TransformComponent, CameraComponent>();
-			for (auto entity : view)
-			{
-				auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+			const SceneCamera& camera = m_PrimaryCamera->GetComponent<CameraComponent>().Camera;
+			const TransformComponent& cameraTransform = m_PrimaryCamera->GetComponent<TransformComponent>();
+			PostProcessorComponent* postProcessor = m_PrimaryCamera->TryGetComponent<PostProcessorComponent>();
 
-				if (camera.Primary)
-				{
-					mainCamera = &camera.Camera;
-					cameraTransform = &transform;
-					postProcessor = m_Registry.try_get<PostProcessorComponent>(entity);
-
-					break;
-				}
-			}
-		}
-
-		if (mainCamera)
-		{
 			UpdateLights();
 
-			Renderer::BeginScene(*mainCamera, *cameraTransform, m_Lights);
-			DrawScene(cameraTransform->Translation, false, nullptr);
+			Renderer::BeginScene(camera, cameraTransform, m_Lights);
+			DrawScene(cameraTransform.Translation, false, nullptr);
 			Renderer::EndScene();
 
 			if (postProcessor)
@@ -188,28 +172,16 @@ namespace Atlas
 
 		if (camera.IsPostProcessEnabled())
 		{
-			SceneCamera* mainCamera = nullptr;
-			PostProcessorComponent* postProcessor = nullptr;
-
-			auto view = m_Registry.view<CameraComponent>();
-			for (auto entity : view)
+			if (m_PrimaryCamera)
 			{
-				auto camera = view.get<CameraComponent>(entity);
+				PostProcessorComponent* postProcessor = m_PrimaryCamera->TryGetComponent<PostProcessorComponent>();
 
-				if (camera.Primary)
+				if (postProcessor)
 				{
-					mainCamera = &camera.Camera;
-					postProcessor = m_Registry.try_get<PostProcessorComponent>(entity);
-
-					break;
+					RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+					PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effect, postProcessor->KernelOffset);
+					RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 				}
-			}
-
-			if (mainCamera && postProcessor)
-			{
-				RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effect, postProcessor->KernelOffset);
-				RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 			}
 		}
 	}
@@ -316,18 +288,28 @@ namespace Atlas
 		return {};
 	}
 
-	Entity* Scene::GetPrimaryCameraEntity()
+	Entity* Scene::GetPrimaryCamera()
+	{
+		return m_PrimaryCamera;
+	}
+
+	void Scene::SetPrimaryCamera(Entity* entity)
+	{
+		m_PrimaryCamera = entity;
+	}
+
+	std::vector<Entity*> Scene::GetCameras()
 	{
 		auto view = m_Registry.view<CameraComponent>();
+		std::vector<Entity*> cameras;
+		cameras.reserve(view.size());
+
 		for (auto entity : view)
 		{
-			const auto& camera = view.get<CameraComponent>(entity);
-			if (camera.Primary)
-			{
-				return m_EntityHandleMap[entity];
-			}
+			cameras.push_back(GetEntity(entity));
 		}
-		return {};
+
+		return cameras;
 	}
 
 	void Scene::UpdateLights()

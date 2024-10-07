@@ -31,10 +31,10 @@ namespace Atlas
 		void DisplayAddComponentEntryIfNoOther(const std::string& entryName);
 
 		void DrawEntityNode(Entity* entity);
-		void DrawComponents(Entity entity);
+		void DrawComponents(Entity* entity);
 
 		template<typename T, typename UIFunction>
-		static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction);
+		static void DrawComponent(const std::string& name, Entity* entity, UIFunction uiFunction);
 
 		Ref<Scene> m_Context;
 		Entity* m_SelectedEntity;
