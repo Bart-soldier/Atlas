@@ -24,6 +24,8 @@ namespace Atlas
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0) override;
 		virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
 
+		virtual void BindTextureSlot(uint32_t slot, uint32_t rendererID) override;
+
 		virtual void SetLineWidth(const float& width) override;
 
 		virtual void SetPolygonMode(const PolygonMode& mode) override;

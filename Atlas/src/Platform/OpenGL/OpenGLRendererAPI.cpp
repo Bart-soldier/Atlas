@@ -157,6 +157,11 @@ namespace Atlas
 		glDrawArrays(GL_LINES, 0, vertexCount);
 	}
 
+	void OpenGLRendererAPI::BindTextureSlot(uint32_t slot, uint32_t rendererID)
+	{
+		glBindTextureUnit(slot, rendererID);
+	}
+
 	void OpenGLRendererAPI::SetLineWidth(const float& width)
 	{
 		glLineWidth(width);

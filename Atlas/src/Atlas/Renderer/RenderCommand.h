@@ -67,6 +67,11 @@ namespace Atlas
 			s_RendererAPI->DrawLines(vertexArray, vertexCount);
 		}
 
+		static void BindTextureSlot(uint32_t slot, uint32_t rendererID)
+		{
+			s_RendererAPI->BindTextureSlot(slot, rendererID);
+		}
+
 		static void SetLineWidth(float width)
 		{
 			s_RendererAPI->SetLineWidth(width);

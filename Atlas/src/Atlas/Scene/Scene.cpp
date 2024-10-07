@@ -163,7 +163,7 @@ namespace Atlas
 			UpdateLights();
 
 			Renderer::BeginScene(*mainCamera, *cameraTransform, m_Lights);
-			DrawScene(cameraTransform->Translation, {});
+			DrawScene(cameraTransform->Translation, false, nullptr);
 			Renderer::EndScene();
 		}
 	}
@@ -172,7 +172,7 @@ namespace Atlas
 	{
 		UpdateLights();
 		Renderer::BeginScene(camera, m_Lights);
-		DrawScene(camera.GetPosition(), selectedEntity);
+		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
 	}
 
@@ -327,7 +327,7 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawScene(const glm::vec3& cameraPosition, Entity* selectedEntity)
+	void Scene::DrawScene(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
 	{
 		Renderer::DisableStencilWriting();
 
@@ -376,6 +376,7 @@ namespace Atlas
 			}
 		}
 
+		if(isEditor)
 		{
 			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 			for (auto entity : view)
@@ -468,6 +469,7 @@ namespace Atlas
 
 	glm::mat4 Scene::GetEntityTransform(Entity* entity)
 	{
+		// TODO: Fix? Weird behavior when rotating child then moving parent
 		glm::mat4 transform = m_Registry.get<TransformComponent>(entity->GetHandle()).GetTransform();
 
 		if (entity->GetParent() != nullptr)
