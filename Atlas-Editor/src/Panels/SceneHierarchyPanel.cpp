@@ -323,11 +323,8 @@ namespace Atlas
 
 					ImGuiUtils::EndCombo();
 				}
-				//ImGui::PopItemWidth();
 
-				//ImGui::SameLine(ImGui::GetContentRegionAvail().x - lineHeight * 0.5f);
 				ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
-				//ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
 				if (ImGui::Button(("-##" + std::to_string(effectIndex)).c_str(), buttonSize))
 				{
 					removeEffect = effectIndex;
@@ -335,23 +332,20 @@ namespace Atlas
 
 				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
 				{
-					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 90.0f, 1.0f, 1.0f);
+					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 90.0f, 1.0f, 1.0f, 0.0f, effectIndex);
 				}
 
 				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
 					component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
 				{
-					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 300.0f, 1.0f, 1.0f);
+					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 300.0f, 1.0f, 1.0f, 0.0f, effectIndex);
 				}
 			}
 
-			ImGui::Separator();
-
-			//ImVec2 padding = ImGui::GetStyle().FramePadding;
-			//ImVec2 buttonLabelSize = ImGui::CalcTextSize("Add Effect", NULL, true);
-			//ImVec2 buttonSize = ImGui::CalcItemSize({ 0, 0 }, buttonLabelSize.x + padding.x * 2.0f, buttonLabelSize.y + padding.y * 2.0f);
-
-			//ImGui::PushItemWidth(2 * buttonSize.x);
+			if (component.Effects.size() > 0)
+			{
+				ImGui::Separator();
+			}
 
 			if (removeEffect >= 0)
 			{
