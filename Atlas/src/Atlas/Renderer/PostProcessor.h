@@ -11,11 +11,14 @@ namespace Atlas
 		{
 			None = 0,
 			Inversion,
-			Greyscale
+			Greyscale,
+			Numerical,
+			Blur,
+			EdgeDetection
 		};
 
 		static void Init();
 
-		static void ApplyPostProcessingEffect(PostProcessingEffect effect, uint32_t renderID);
+		static void ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const float& kernelOffset);
 	};
 }

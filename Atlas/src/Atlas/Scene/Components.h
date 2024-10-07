@@ -74,7 +74,8 @@ namespace Atlas
 
 	struct PostProcessorComponent
 	{
-		PostProcessor::PostProcessingEffect Effect;
+		PostProcessor::PostProcessingEffect Effect = PostProcessor::PostProcessingEffect::None;
+		float KernelOffset = 90.0f;
 
 		PostProcessorComponent() = default;
 		PostProcessorComponent(const PostProcessorComponent&) = default;

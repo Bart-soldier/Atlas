@@ -3,6 +3,7 @@
 
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Buffer.h"
+#include "Atlas/Renderer/UniformBuffer.h"
 #include "Atlas/Renderer/Shader.h"
 #include "Atlas/Renderer/RenderCommand.h"
 
@@ -20,8 +21,13 @@ namespace Atlas
 		static const uint32_t RenderIndices  = 6;
 		Ref<VertexArray> RenderVertexArray;
 
+		Ref<UniformBuffer> KernelOffsetUniformBuffer;
+
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
+		Ref<Shader> NumericalShader;
+		Ref<Shader> BlurShader;
+		Ref<Shader> EdgeDetectionShader;
 	};
 
 	static PostProcessorData s_PostProcessorData;
@@ -64,11 +70,18 @@ namespace Atlas
 		Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, s_PostProcessorData.RenderIndices * sizeof(uint32_t));
 		s_PostProcessorData.RenderVertexArray->SetIndexBuffer(indexBuffer);
 
-		s_PostProcessorData.InversionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl");
-		s_PostProcessorData.GreyscaleShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl");
+		// Uniform Buffers
+		s_PostProcessorData.KernelOffsetUniformBuffer = UniformBuffer::Create(sizeof(float), 2);
+
+		// Shaders
+		s_PostProcessorData.InversionShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"    );
+		s_PostProcessorData.GreyscaleShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"    );
+		s_PostProcessorData.NumericalShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Numerical.glsl"    );
+		s_PostProcessorData.BlurShader          = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"         );
+		s_PostProcessorData.EdgeDetectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl");
 	}
 
-	void PostProcessor::ApplyPostProcessingEffect(PostProcessingEffect effect, uint32_t renderID)
+	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const float& kernelOffset)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
@@ -83,7 +96,18 @@ namespace Atlas
 		case Atlas::PostProcessor::PostProcessingEffect::Greyscale:
 			s_PostProcessorData.GreyscaleShader->Bind();
 			break;
+		case Atlas::PostProcessor::PostProcessingEffect::Numerical:
+			s_PostProcessorData.NumericalShader->Bind();
+			break;
+		case Atlas::PostProcessor::PostProcessingEffect::Blur:
+			s_PostProcessorData.BlurShader->Bind();
+			break;
+		case Atlas::PostProcessor::PostProcessingEffect::EdgeDetection:
+			s_PostProcessorData.EdgeDetectionShader->Bind();
+			break;
 		}
+
+		s_PostProcessorData.KernelOffsetUniformBuffer->SetData(&kernelOffset, sizeof(float));
 
 		RenderCommand::BindTextureSlot(0, renderID);
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);

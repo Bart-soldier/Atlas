@@ -173,7 +173,7 @@ namespace Atlas
 			if (postProcessor)
 			{
 				RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-				PostProcessor::ApplyPostProcessingEffect(postProcessor->Effect, Renderer::GetPostProcessRenderID());
+				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effect, postProcessor->KernelOffset);
 				RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 			}
 		}
@@ -208,7 +208,7 @@ namespace Atlas
 			if (mainCamera && postProcessor)
 			{
 				RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-				PostProcessor::ApplyPostProcessingEffect(postProcessor->Effect, Renderer::GetPostProcessRenderID());
+				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effect, postProcessor->KernelOffset);
 				RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 			}
 		}

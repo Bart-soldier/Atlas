@@ -282,17 +282,27 @@ namespace Atlas
 
 		DrawComponent<PostProcessorComponent>("Post Processor", entity, [](auto& component)
 		{
-			const char* effectsStrings[] = { "None", "Inversion", "Greyscale" };
+			const char* effectsStrings[] = { "None", "Inversion", "Greyscale", "Numerical", "Blur", "Edge Detection"};
 			const char* currentEffectString = effectsStrings[(int)component.Effect];
 			if (ImGuiUtils::BeginCombo("Effect", *currentEffectString))
 			{
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < 6; i++)
 				{
 					bool isSelected = currentEffectString == effectsStrings[i];
 					if (ImGui::Selectable(effectsStrings[i], isSelected))
 					{
 						currentEffectString = effectsStrings[i];
 						component.Effect = (PostProcessor::PostProcessingEffect)i;
+
+						if (component.Effect == PostProcessor::PostProcessingEffect::Numerical)
+						{
+							component.KernelOffset = 90.0f;
+						}
+
+						if (component.Effect == PostProcessor::PostProcessingEffect::Blur || component.Effect == PostProcessor::PostProcessingEffect::EdgeDetection)
+						{
+							component.KernelOffset = 300.0f;
+						}
 					}
 
 					if (isSelected)
@@ -302,6 +312,16 @@ namespace Atlas
 				}
 
 				ImGuiUtils::EndCombo();
+			}
+
+			if (component.Effect == PostProcessor::PostProcessingEffect::Numerical)
+			{
+				ImGuiUtils::DragFloat("Offset", component.KernelOffset, 90.0f, 1.0f, 1.0f);
+			}
+
+			if (component.Effect == PostProcessor::PostProcessingEffect::Blur || component.Effect == PostProcessor::PostProcessingEffect::EdgeDetection)
+			{
+				ImGuiUtils::DragFloat("Offset", component.KernelOffset, 300.0f, 1.0f, 1.0f);
 			}
 		});
 
