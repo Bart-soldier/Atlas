@@ -60,14 +60,14 @@ namespace Atlas
 	}
 
 	template<typename... Component>
-	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<entt::entity, Entity*>& enttMap)
+	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<entt::entity, Entity*>& correspondanceEnttMap)
 	{
 		([&]()
 		{
 			auto view = src.view<Component>();
 			for (auto srcEntity : view)
 			{
-				Entity* dstEntity = enttMap.at(srcEntity);
+				Entity* dstEntity = correspondanceEnttMap.at(srcEntity);
 
 				auto& srcComponent = src.get<Component>(srcEntity);
 				dst.emplace_or_replace<Component>(dstEntity->GetHandle(), srcComponent);
@@ -76,9 +76,9 @@ namespace Atlas
 	}
 
 	template<typename... Component>
-	static void CopyComponent(ComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const std::unordered_map<entt::entity, Entity*>& enttMap)
+	static void CopyComponent(ComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const std::unordered_map<entt::entity, Entity*>& correspondanceEnttMap)
 	{
-		CopyComponent<Component...>(dst, src, enttMap);
+		CopyComponent<Component...>(dst, src, correspondanceEnttMap);
 	}
 
 	template<typename... Component>
@@ -105,11 +105,13 @@ namespace Atlas
 
 		newScene->m_ViewportWidth = other->m_ViewportWidth;
 		newScene->m_ViewportHeight = other->m_ViewportHeight;
+		newScene->m_EntityHandleMap.reserve(other->m_EntityHandleMap.size());
+		newScene->m_EntityUUIDMap.reserve(other->m_EntityUUIDMap.size());
 
 		auto& srcSceneRegistry = other->m_Registry;
 		auto& dstSceneRegistry = newScene->m_Registry;
-		std::unordered_map<UUID, Entity*> newSceneUUIDMap;
-		std::unordered_map<entt::entity, Entity*> newSceneEnttMap;
+		std::unordered_map<entt::entity, Entity*> correspondanceEnttMap;
+		correspondanceEnttMap.reserve(other->m_EntityHandleMap.size());
 
 		// Create entities in new scene
 		for (auto& [handle, entity] : other->m_EntityHandleMap)
@@ -117,18 +119,16 @@ namespace Atlas
 			UUID uuid = srcSceneRegistry.get<IDComponent>(handle).ID;
 			const auto& name = srcSceneRegistry.get<TagComponent>(handle).Tag;
 			Entity* newEntity = newScene->CreateEntity(uuid, name);
-			newSceneUUIDMap[uuid] = newEntity;
-			newSceneEnttMap[newEntity->GetHandle()] = newEntity;
+			newScene->m_EntityUUIDMap[uuid] = newEntity;
+			newScene->m_EntityHandleMap[newEntity->GetHandle()] = newEntity;
+			correspondanceEnttMap[handle] = newEntity;
 		}
 
-		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, newSceneEnttMap);
-
-		newScene->m_EntityUUIDMap = newSceneUUIDMap;
-		newScene->m_EntityHandleMap = newSceneEnttMap;
+		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, correspondanceEnttMap);
 
 		if (other->m_PrimaryCamera)
 		{
-			newScene->m_PrimaryCamera = newSceneEnttMap[other->m_PrimaryCamera->GetHandle()];
+			newScene->m_PrimaryCamera = correspondanceEnttMap[other->m_PrimaryCamera->GetHandle()];
 		}
 
 		return newScene;
