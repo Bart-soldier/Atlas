@@ -124,6 +124,14 @@ namespace Atlas
 			correspondanceEnttMap[handle] = newEntity;
 		}
 
+		for (auto& [handle, entity] : other->m_EntityHandleMap)
+		{
+			if (entity->GetParent() != nullptr)
+			{
+				correspondanceEnttMap[handle]->SetParent(correspondanceEnttMap[entity->GetParent()->GetHandle()]);
+			}
+		}
+
 		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, correspondanceEnttMap);
 
 		if (other->m_PrimaryCamera)
