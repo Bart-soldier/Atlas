@@ -15,9 +15,9 @@ When cloning the repository, make sure that you do a `--recursive` clone to fetc
 
 <ins>**2. Configuring the dependencies:**</ins>
 
-1. Run the [Setup.bat](https://github.com/Bart-soldier/Atlas/blob/master/scripts/Setup.bat) script file found in the `scripts` folder. This script will help you download the required prerequisites for the project.
+1. Run the [Setup.bat](https://github.com/Bart-soldier/Atlas/blob/master/scripts/Setup.bat) script file found in the `scripts` folder. This script will help you download the required prerequisites for the project.\
 **N.B.:** Python is required to be able to run the script. Also, you may be required to run the script multiple times.
-2. As part of the script, if they are not yet installed, you will be prompted to download a Python package, the Premake executable, and the Vulkan SDK (`[Y]` when asked).
+2. As part of the script, if they are not yet installed, you will be prompted to download a Python package, the Premake executable, and the Vulkan SDK (`[Y]` when asked).\
 **N.B.:** On the Vulkan SDK installer, make sure to also install the "Shader Toolchain Debug Symbols" to be able to run the project in Debug mode.
 3. Once the installation process is completed, Premake will generate a Visual Studio solution file. Launch `Atlas.sln` from the [root folder](https://github.com/Bart-soldier/Atlas/blob/main/) to open the solution.
 4. You can now build and execute the project!
