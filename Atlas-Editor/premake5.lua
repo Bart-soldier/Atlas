@@ -22,7 +22,8 @@ project "Atlas-Editor"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.assimp}"
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.assimp_config}"
 	}
 
 	links

@@ -24,6 +24,9 @@ When cloning the repository, make sure that you do a `--recursive` clone to fetc
 
 If changes are made, or if you want to regenerate project files, rerun the [Win-GenProjects.bat](https://github.com/Bart-soldier/Atlas/blob/main/scripts/Win-GenProjects.bat) script file found in `scripts` folder, as this script only reruns the Premake files.
 
+## Known issue
+Not all shader programs properly link when using an Intel graphics device, as opposed to NVIDIA.
+
 ## External dependencies
 This project uses the following external dependencies:
 - **Project setup:** [Premake](https://premake.github.io/) (.exe),

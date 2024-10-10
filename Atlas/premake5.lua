@@ -43,7 +43,8 @@ project "Atlas"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.VulkanSDK}",
-		"%{IncludeDir.assimp}"
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.assimp_config}"
 	}
 
 	links

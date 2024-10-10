@@ -14,6 +14,7 @@ IncludeDir["yaml_cpp"] = "%{wks.location}/Atlas/vendor/yaml-cpp/include"
 IncludeDir["SPIRV_Cross"] = "%{wks.location}/Atlas/vendor/SPIRV-Cross"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 IncludeDir["assimp"] = "%{wks.location}/Atlas/vendor/assimp/include"
+IncludeDir["assimp_config"] = "%{wks.location}/Atlas/vendor/assimp/_config_headers"
 
 LibraryDir = {}
 
