@@ -21,8 +21,10 @@ When cloning the repository, make sure that you do a `--recursive` clone to fetc
 **N.B.:** On the Vulkan SDK installer, make sure to also install the "Shader Toolchain Debug Symbols" to be able to run the project in Debug mode.
 3. Once the installation process is completed, Premake will generate a Visual Studio solution file.
 4. At the moment, assimp is not built using Premake, but CMake (this should be changed in the future). Hence, to build assimp, you need to have CMake installed, and to run the following commands in the assimp root directory (Atlas/vendor/assimp):
-- cmake CMakeLists.txt -DBUILD_SHARED_LIBS=0FF
-- cmake --build .
+```bash
+cmake CMakeLists.txt -DBUILD_SHARED_LIBS=0FF
+cmake --build .
+```
 5. Launch `Atlas.sln` from the [root folder](https://github.com/Bart-soldier/Atlas/blob/main/) to open the solution.
 6. You can now build and execute the project!
 
