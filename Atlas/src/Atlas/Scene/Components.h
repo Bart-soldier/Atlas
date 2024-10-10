@@ -8,6 +8,7 @@
 #include "Atlas/Renderer/Light.h"
 #include "Atlas/Renderer/Material.h"
 #include "Atlas/Renderer/Mesh.h"
+#include "Atlas/Renderer/PostProcessor.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -64,11 +65,19 @@ namespace Atlas
 	struct CameraComponent
 	{
 		SceneCamera Camera;
-		bool Primary = true; // TODO: think about moving to Scene
 		bool FixedAspectRatio = false;
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent&) = default;
+	};
+
+	struct PostProcessorComponent
+	{
+		std::vector<PostProcessor::PostProcessingEffect> Effects = { PostProcessor::PostProcessingEffect::None };
+		std::vector<float> KernelOffsets = { 0.0f };
+
+		PostProcessorComponent() = default;
+		PostProcessorComponent(const PostProcessorComponent&) = default;
 	};
 
 	struct SpriteRendererComponent
@@ -149,7 +158,7 @@ namespace Atlas
 	};
 
 	using AllComponents =
-		ComponentGroup<TransformComponent, CameraComponent,
+		ComponentGroup<TransformComponent, CameraComponent, PostProcessorComponent,
 		SpriteRendererComponent, MeshComponent, MaterialComponent,
 		LightSourceComponent>;
 }

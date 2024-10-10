@@ -19,8 +19,14 @@ When cloning the repository, make sure that you do a `--recursive` clone to fetc
 **N.B.:** Python is required to be able to run the script. Also, you may be required to run the script multiple times.
 2. As part of the script, if they are not yet installed, you will be prompted to download a Python package, the Premake executable, and the Vulkan SDK (`[Y]` when asked).
 **N.B.:** On the Vulkan SDK installer, make sure to also install the "Shader Toolchain Debug Symbols" to be able to run the project in Debug mode.
-3. Once the installation process is completed, Premake will generate a Visual Studio solution file. Launch `Atlas.sln` from the [root folder](https://github.com/Bart-soldier/Atlas/blob/main/) to open the solution.
-4. You can now build and execute the project!
+3. Once the installation process is completed, Premake will generate a Visual Studio solution file.
+4. At the moment, assimp is not built using Premake, but CMake (this should be changed in the future). Hence, to build assimp, you need to have CMake installed, and to run the following commands in the assimp root directory (Atlas/vendor/assimp):
+```bash
+cmake CMakeLists.txt -DBUILD_SHARED_LIBS=0FF
+cmake --build .
+```
+5. Launch `Atlas.sln` from the [root folder](https://github.com/Bart-soldier/Atlas/blob/main/) to open the solution.
+6. You can now build and execute the project!
 
 If changes are made, or if you want to regenerate project files, rerun the [Win-GenProjects.bat](https://github.com/Bart-soldier/Atlas/blob/main/scripts/Win-GenProjects.bat) script file found in `scripts` folder, as this script only reruns the Premake files.
 
@@ -37,7 +43,9 @@ This project uses the following external dependencies:
 - **Texture Loading:** [stb_image](https://github.com/nothings/stb/tree/master),
 - **ECS:** [entt](https://github.com/skypjack/entt/tree/master),
 - **Serialization:** [yaml](https://github.com/Bart-soldier/yaml-cpp) (forked),
-- **Shader compiling:** [shaderc](https://github.com/google/shaderc) and [SPIR-V](https://www.khronos.org/spir/).
+- **Shader compiling:** [shaderc](https://github.com/google/shaderc) and [SPIR-V](https://www.khronos.org/spir/),
+- **Model loading:** [assimp](https://github.com/Bart-soldier/assimp) (forked).
+
 
 ## Resources used
 This project used the following resources:

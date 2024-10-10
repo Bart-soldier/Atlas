@@ -3,6 +3,7 @@
 
 #include "Atlas/Utils/PlatformUtils.h"
 
+#include "Atlas/Renderer/PostProcessor.h"
 #include "Atlas/Renderer/Model.h"
 
 #include <imgui/imgui.h>
@@ -27,12 +28,6 @@ namespace Atlas
 		// Editor resources
 		m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png", false);
 		m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png", false);
-
-		FramebufferSpecification fbSpec;
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
-		fbSpec.Width = 1280;
-		fbSpec.Height = 720;
-		m_Framebuffer = Framebuffer::Create(fbSpec);
 
 		auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
 		if (commandLineArgs.Count > 1)
@@ -62,11 +57,8 @@ namespace Atlas
 		}
 
 		// Resize
-		FramebufferSpecification spec = m_Framebuffer->GetSpecification();
-		if (m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero sized framebuffer is invalid
-			(spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
+		if (Renderer::ResizeFramebuffer((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y))
 		{
-			m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 			m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 			m_ViewportInvalidated = true;
@@ -80,15 +72,10 @@ namespace Atlas
 
 		// Render
 		Renderer::ResetStats();
+
 		{
 			ATLAS_PROFILE_SCOPE("Renderer Prep");
-			m_Framebuffer->Bind();
-			// TODO: Link to palette
-			RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
-			RenderCommand::Clear();
-
-			// Clear our entity ID attachment to -1
-			m_Framebuffer->ClearAttachment(1, -1);
+			Renderer::BeginRenderPass();
 		}
 
 		switch (m_SceneState)
@@ -102,7 +89,7 @@ namespace Atlas
 
 				if (m_ActiveScene)
 				{
-					m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+					m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, m_SceneHierarchyPanel.GetSelectedEntity());
 				}
 				break;
 			}
@@ -119,13 +106,11 @@ namespace Atlas
 		// Check viewport boundaries
 		if (m_ViewportHovered)
 		{
-			int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-			m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+			int pixelData = Renderer::GetEntityIDFromPixel(mouseX, mouseY);
+			m_HoveredEntity = pixelData == -1 ? nullptr : m_ActiveScene->GetEntity((entt::entity)pixelData);
 		}
 
-		//OnOverlayRender();
-
-		m_Framebuffer->Unbind();
+		Renderer::EndRenderPass();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -256,8 +241,8 @@ namespace Atlas
 		ImGui::Text("API: %s", RendererAPI::GetAPI() == RendererAPI::API::OpenGL ? "OpenGL" : "None");
 
 		std::string name = "None";
-		if (m_HoveredEntity)
-			name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
+		if (m_HoveredEntity && m_HoveredEntity->HasComponent<TagComponent>())
+			name = m_HoveredEntity->GetComponent<TagComponent>().Tag;
 		ImGui::Text("Hovered Entity: %s", name.c_str());
 
 		auto stats = Renderer::GetStats();
@@ -268,6 +253,7 @@ namespace Atlas
 		ImGui::Text("Mesh Count: %d", stats.MeshCount);
 		ImGui::Text("Vertices: %d", stats.TotalVertexCount);
 		ImGui::Text("Indices: %d", stats.TotalIndexCount);
+		ImGui::Text("Selection Count: %d", stats.SelectionCount);
 
 		ImGui::End();
 
@@ -290,9 +276,10 @@ namespace Atlas
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-			
-		uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-		ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1,0 });
+
+		uint32_t textureID = m_SceneState == SceneState::Play || m_EditorCamera.IsPostProcessEnabled() ? Renderer::GetPostProcessRenderID() : Renderer::GetRenderID();
+
+		ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -305,7 +292,7 @@ namespace Atlas
 		}
 
 		// Gizmos
-		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity && m_GizmoType != -1)
 		{
 			ImGuizmo::SetOrthographic((int)m_EditorCamera.GetProjectionType());
@@ -318,8 +305,8 @@ namespace Atlas
 			glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
 			// Entity transform
-			auto& tc = selectedEntity.GetComponent<TransformComponent>();
-			glm::mat4 transform = tc.GetTransform();
+			auto& transformComponent = selectedEntity->GetComponent<TransformComponent>();
+			glm::mat4 transform = m_ActiveScene->GetEntityTransform(selectedEntity);
 
 			// Snapping
 			bool snap = Input::IsKeyPressed(Key::LeftControl);
@@ -341,10 +328,10 @@ namespace Atlas
 				glm::vec3 translation, rotation, scale;
 				Math::DecomposeTransform(transform, translation, rotation, scale);
 
-				glm::vec3 deltaRotation = rotation - tc.Rotation;
-				tc.Translation = translation;
-				tc.Rotation += deltaRotation;
-				tc.Scale = scale;
+				glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
+				transformComponent.Translation = translation;
+				transformComponent.Rotation += deltaRotation;
+				transformComponent.Scale = scale;
 			}
 		}
 		
@@ -354,34 +341,6 @@ namespace Atlas
 		UI_Toolbar();
 
 		ImGui::End();
-	}
-
-	void EditorLayer::OnOverlayRender()
-	{
-		if (m_SceneState == SceneState::Play)
-		{
-			Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
-			if (!camera)
-			{
-				return;
-			}
-
-			// Overlay should not be affected by lights
-			//Renderer::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>(), nullptr);
-		}
-		else
-		{
-			// Overlay should not be affected by lights
-			//Renderer::BeginScene(m_EditorCamera);
-		}
-
-		// Draw selected entity outline 
-		if (Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity()) {
-			const TransformComponent& transform = selectedEntity.GetComponent<TransformComponent>();
-			Renderer::DrawRect(transform.GetTransform(), glm::vec4(0.400f, 0.733f, 0.417f, 1.0f)); // TODO: Link to palette (selection green)
-		}
-
-		Renderer::EndScene();
 	}
 
 	void EditorLayer::OnEvent(Event& e)
@@ -468,11 +427,15 @@ namespace Atlas
 			{
 				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
 				{
-					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 					if (selectedEntity)
 					{
-						m_SceneHierarchyPanel.SetSelectedEntity({});
+						m_SceneHierarchyPanel.SetSelectedEntity(nullptr);
 						m_ActiveScene->DestroyEntity(selectedEntity);
+						if (selectedEntity == m_HoveredEntity)
+						{
+							m_HoveredEntity = nullptr;
+						}
 					}
 				}
 				break;
@@ -588,14 +551,14 @@ namespace Atlas
 		Ref<Scene> newScene = CreateRef<Scene>("Starter Scene");
 		SetEditorScene(newScene);
 
-		Entity squareEntity = newScene->CreateEntity("White Square");
-		squareEntity.AddComponent<SpriteRendererComponent>();
+		Entity* squareEntity = newScene->CreateEntity("White Square");
+		squareEntity->AddComponent<SpriteRendererComponent>();
 
-		Entity cameraEntity = newScene->CreateEntity("Camera");
-		cameraEntity.AddComponent<CameraComponent>();
-		CameraComponent cameraComponent = cameraEntity.GetComponent<CameraComponent>();
-		cameraComponent.Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
-		cameraComponent.Camera.SetOrthographicFarClip(2.0f);
+		Entity* cameraEntity = newScene->CreateEntity("Camera");
+		cameraEntity->AddComponent<CameraComponent>();
+		CameraComponent* cameraComponent = &cameraEntity->GetComponent<CameraComponent>();
+		cameraComponent->Camera.SetProjectionType(Camera::ProjectionType::Orthographic);
+		cameraComponent->Camera.SetOrthographicFarClip(2.0f);
 
 		return newScene;
 	}
@@ -605,21 +568,21 @@ namespace Atlas
 		Ref<Scene> newScene = CreateRef<Scene>("Starter Scene");
 		SetEditorScene(newScene);
 
-		Entity squareEntity = newScene->CreateEntity("White Cube");
-		squareEntity.AddComponent<MeshComponent>();
-		squareEntity.AddComponent<MaterialComponent>();
-		squareEntity.GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Gold);
+		Entity* squareEntity = newScene->CreateEntity("White Cube");
+		squareEntity->AddComponent<MeshComponent>();
+		squareEntity->AddComponent<MaterialComponent>();
+		squareEntity->GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Gold);
 
-		Entity cameraEntity = newScene->CreateEntity("Camera");
-		cameraEntity.AddComponent<CameraComponent>();
-		cameraEntity.GetComponent<CameraComponent>().Camera.SetProjectionType(Camera::ProjectionType::Perspective);
-		TransformComponent* cameraTransform = &cameraEntity.GetComponent<TransformComponent>();
+		Entity* cameraEntity = newScene->CreateEntity("Camera");
+		cameraEntity->AddComponent<CameraComponent>();
+		cameraEntity->GetComponent<CameraComponent>().Camera.SetProjectionType(Camera::ProjectionType::Perspective);
+		TransformComponent* cameraTransform = &cameraEntity->GetComponent<TransformComponent>();
 		cameraTransform->Translation = glm::vec3(3.5f, 2.1f, 3.5f);
 		cameraTransform->Rotation = glm::radians(glm::vec3(-25.0f, 45.0f, 0.0f));
 
-		Entity lightEntity = newScene->CreateEntity("Point Light");
-		lightEntity.GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
-		lightEntity.AddComponent<LightSourceComponent>();
+		Entity* lightEntity = newScene->CreateEntity("Point Light");
+		lightEntity->GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
+		lightEntity->AddComponent<LightSourceComponent>();
 
 		return newScene;
 	}
@@ -703,24 +666,7 @@ namespace Atlas
 		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj)\0*.obj\0");
 		if (!path.empty())
 		{
-			const Model::ModelData& modelData = Model::LoadModel(path);
-
-			for (uint32_t meshIndex = 0; meshIndex < modelData.Meshes.size(); meshIndex++)
-			{
-				Entity meshEntity = m_ActiveScene->CreateEntity(path.stem().string());
-				meshEntity.AddComponent<MeshComponent>(modelData.Meshes[meshIndex]);
-				//meshEntity.AddComponent<MaterialComponent>();
-
-				//if (modelData.DiffuseTextures[meshIndex] != nullptr)
-				//{
-				//	meshEntity.GetComponent<MaterialComponent>().Material->SetDiffuseTexture(modelData.DiffuseTextures[meshIndex]);
-				//}
-
-				//if (modelData.SpecularTextures[meshIndex] != nullptr)
-				//{
-				//	meshEntity.GetComponent<MaterialComponent>().Material->SetSpecularTexture(modelData.SpecularTextures[meshIndex]);
-				//}
-			}
+			Model::LoadModel(m_ActiveScene, path);
 		}
 	}
 
@@ -753,10 +699,10 @@ namespace Atlas
 			return;
 		}
 
-		Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
 		if (selectedEntity)
 		{
-			Entity newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
+			Entity* newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
 			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
 		}
 	}
@@ -811,6 +757,14 @@ namespace Atlas
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
+
+		/* ---------- PostProcessing ---------- */
+		ImGui::SameLine();
+		bool ppEnabled = m_EditorCamera.IsPostProcessEnabled();
+		if (ImGui::Checkbox("PP", &ppEnabled))
+		{
+			m_EditorCamera.SetIsPostProcessEnabled(ppEnabled);
+		}
 
 		/* ---------- PLAY / STOP ---------- */
 		float size = ImGui::GetWindowHeight() - 2 * padding;

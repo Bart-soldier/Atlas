@@ -1,6 +1,7 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/Renderer.h"
 
+#include "Atlas/Renderer/Framebuffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
 #include "Atlas/Renderer/UniformBuffer.h"
@@ -11,6 +12,15 @@
 
 namespace Atlas
 {
+	struct SimpleVertex
+	{
+		glm::vec3 Position;
+		glm::vec4 Color;
+
+		// Editor-only
+		int EntityID;
+	};
+
 	// 2D
 	struct QuadVertex
 	{
@@ -36,15 +46,6 @@ namespace Atlas
 		int EntityID;
 	};
 
-	struct LineVertex
-	{
-		glm::vec3 Position;
-		glm::vec4 Color;
-
-		// Editor-only
-		int EntityID;
-	};
-
 	// 3D
 	struct MeshVertex
 	{
@@ -63,13 +64,10 @@ namespace Atlas
 		int EntityID;
 	};
 
-	struct MeshIndex
-	{
-		uint32_t Index;
-	};
-
 	struct RendererData
 	{
+		Ref<Framebuffer> Framebuffer;
+
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
 		static const uint32_t MaxVertices     = MaxTriangles * 3; // TODO: Check renderer capabilities
@@ -103,7 +101,7 @@ namespace Atlas
 
 		uint32_t LineVertexCount = 0;
 		uint32_t LineIndexCount = 0;
-		LineVertex* LineVertexBufferBase = nullptr;
+		SimpleVertex* LineVertexBufferBase = nullptr;
 
 		// 3D
 		Ref<VertexArray> MeshVertexArray;
@@ -114,7 +112,18 @@ namespace Atlas
 		uint32_t MeshVertexCount = 0;
 		uint32_t MeshIndexCount = 0;
 		MeshVertex* MeshVertexBufferBase = nullptr;
-		MeshIndex* MeshIndexBufferBase = nullptr;
+		uint32_t* MeshIndexBufferBase = nullptr;
+
+		// Outline
+		Ref<VertexArray> MeshOutlineVertexArray;
+		Ref<VertexBuffer> MeshOutlineVertexBuffer;
+		Ref<IndexBuffer> MeshOutlineIndexBuffer;
+		Ref<Shader> MeshOutlineShader;
+
+		uint32_t MeshOutlineVertexCount = 0;
+		uint32_t MeshOutlineIndexCount = 0;
+		SimpleVertex* MeshOutlineVertexBufferBase = nullptr;
+		uint32_t* MeshOutlineIndexBufferBase = nullptr;
 
 		// Textures
 		Ref<Texture2D> WhiteTexture;
@@ -131,11 +140,7 @@ namespace Atlas
 		Ref<UniformBuffer> CameraUniformBuffer;
 
 		// Lights
-		struct LightCountData
-		{
-			uint32_t LightCount;
-		};
-		LightCountData LightCountBuffer;
+		uint32_t LightCountBuffer;
 		Ref<UniformBuffer> LightCountUniformBuffer;
 
 		// Storage buffers
@@ -147,18 +152,25 @@ namespace Atlas
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
 	};
 
-	static RendererData s_Data;
+	static RendererData s_RendererData;
 
 	void Renderer::Init()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		FramebufferSpecification fbSpec;
+		// Color, EntityID, PostProcessing, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
+		fbSpec.Width = 1280;
+		fbSpec.Height = 720;
+		s_RendererData.Framebuffer = Framebuffer::Create(fbSpec);
+
 		// Quad VAO
-		s_Data.QuadVertexArray = VertexArray::Create();
+		s_RendererData.QuadVertexArray = VertexArray::Create();
 
 		// Quad VBO
-		s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxQuadVertices * sizeof(QuadVertex));
-		s_Data.QuadVertexBuffer->SetLayout({
+		s_RendererData.QuadVertexBuffer = VertexBuffer::Create(s_RendererData.MaxQuadVertices * sizeof(QuadVertex));
+		s_RendererData.QuadVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
 			{ ShaderDataType::Float2, "a_TexCoord"     },
@@ -166,18 +178,18 @@ namespace Atlas
 			{ ShaderDataType::Float,  "a_TilingFactor" },
 			{ ShaderDataType::Int,    "a_EntityID"     }
 		});
-		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
-		s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxQuadVertices];
+		s_RendererData.QuadVertexArray->AddVertexBuffer(s_RendererData.QuadVertexBuffer);
+		s_RendererData.QuadVertexBufferBase = new QuadVertex[s_RendererData.MaxQuadVertices];
 
-		s_Data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
-		s_Data.QuadVertexPositions[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
-		s_Data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
+		s_RendererData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
+		s_RendererData.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
+		s_RendererData.QuadVertexPositions[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
+		s_RendererData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		// Quad IBO / EBO
-		uint32_t* quadIndices = new uint32_t[s_Data.MaxQuadIndices];
+		uint32_t* quadIndices = new uint32_t[s_RendererData.MaxQuadIndices];
 		uint32_t offset = 0;
-		for (uint32_t i = 0; i < s_Data.MaxQuadIndices; i += 6)
+		for (uint32_t i = 0; i < s_RendererData.MaxQuadIndices; i += 6)
 		{
 			quadIndices[i + 0] = offset + 0;
 			quadIndices[i + 1] = offset + 1;
@@ -189,16 +201,16 @@ namespace Atlas
 
 			offset += 4;
 		}
-		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data.MaxQuadIndices * sizeof(uint32_t));
-		s_Data.QuadVertexArray->SetIndexBuffer(quadIndexBuffer);
+		Ref<IndexBuffer> quadIndexBuffer = IndexBuffer::Create(quadIndices, s_RendererData.MaxQuadIndices * sizeof(uint32_t));
+		s_RendererData.QuadVertexArray->SetIndexBuffer(quadIndexBuffer);
 		delete[] quadIndices;
 
 		// Circle VAO
-		s_Data.CircleVertexArray = VertexArray::Create();
+		s_RendererData.CircleVertexArray = VertexArray::Create();
 
 		// Circle VBO
-		s_Data.CircleVertexBuffer = VertexBuffer::Create(s_Data.MaxQuadVertices * sizeof(CircleVertex));
-		s_Data.CircleVertexBuffer->SetLayout({
+		s_RendererData.CircleVertexBuffer = VertexBuffer::Create(s_RendererData.MaxQuadVertices * sizeof(CircleVertex));
+		s_RendererData.CircleVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_WorldPosition" },
 			{ ShaderDataType::Float3, "a_LocalPosition" },
 			{ ShaderDataType::Float4, "a_Color"         },
@@ -206,31 +218,31 @@ namespace Atlas
 			{ ShaderDataType::Float,  "a_Fade"          },
 			{ ShaderDataType::Int,    "a_EntityID"      }
 			});
-		s_Data.CircleVertexArray->AddVertexBuffer(s_Data.CircleVertexBuffer);
-		s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxQuadVertices];
+		s_RendererData.CircleVertexArray->AddVertexBuffer(s_RendererData.CircleVertexBuffer);
+		s_RendererData.CircleVertexBufferBase = new CircleVertex[s_RendererData.MaxQuadVertices];
 
 		// Circle IBO / EBO
-		s_Data.CircleVertexArray->SetIndexBuffer(quadIndexBuffer);
+		s_RendererData.CircleVertexArray->SetIndexBuffer(quadIndexBuffer);
 
 		// Line VAO
-		s_Data.LineVertexArray = VertexArray::Create();
+		s_RendererData.LineVertexArray = VertexArray::Create();
 
 		// Line VBO
-		s_Data.LineVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(LineVertex));
-		s_Data.LineVertexBuffer->SetLayout({
+		s_RendererData.LineVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(SimpleVertex));
+		s_RendererData.LineVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position" },
 			{ ShaderDataType::Float4, "a_Color"    },
 			{ ShaderDataType::Int,    "a_EntityID" }
 			});
-		s_Data.LineVertexArray->AddVertexBuffer(s_Data.LineVertexBuffer);
-		s_Data.LineVertexBufferBase = new LineVertex[s_Data.MaxVertices];
+		s_RendererData.LineVertexArray->AddVertexBuffer(s_RendererData.LineVertexBuffer);
+		s_RendererData.LineVertexBufferBase = new SimpleVertex[s_RendererData.MaxVertices];
 
 		// Mesh VAO
-		s_Data.MeshVertexArray = VertexArray::Create();
+		s_RendererData.MeshVertexArray = VertexArray::Create();
 
 		// Mesh VBO
-		s_Data.MeshVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(MeshVertex));
-		s_Data.MeshVertexBuffer->SetLayout({
+		s_RendererData.MeshVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(MeshVertex));
+		s_RendererData.MeshVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position"             },
 			{ ShaderDataType::Float3, "a_Normal"               },
 			{ ShaderDataType::Float2, "a_TexCoord"             },
@@ -242,48 +254,154 @@ namespace Atlas
 			{ ShaderDataType::UInt,   "a_SpecularTextureIndex" },
 			{ ShaderDataType::Int,    "a_EntityID"             }
 			});
-		s_Data.MeshVertexArray->AddVertexBuffer(s_Data.MeshVertexBuffer);
-		s_Data.MeshVertexBufferBase = new MeshVertex[s_Data.MaxVertices];
+		s_RendererData.MeshVertexArray->AddVertexBuffer(s_RendererData.MeshVertexBuffer);
+		s_RendererData.MeshVertexBufferBase = new MeshVertex[s_RendererData.MaxVertices];
 
 		// Mesh IBO / EBO
-		s_Data.MeshIndexBuffer = IndexBuffer::Create(s_Data.MaxIndices * sizeof(MeshIndex));
-		s_Data.MeshVertexArray->SetIndexBuffer(s_Data.MeshIndexBuffer);
-		s_Data.MeshIndexBufferBase = new MeshIndex[s_Data.MaxIndices];
+		s_RendererData.MeshIndexBuffer = IndexBuffer::Create(s_RendererData.MaxIndices * sizeof(uint32_t));
+		s_RendererData.MeshVertexArray->SetIndexBuffer(s_RendererData.MeshIndexBuffer);
+		s_RendererData.MeshIndexBufferBase = new uint32_t[s_RendererData.MaxIndices];
+
+		// Outline VAO
+		s_RendererData.MeshOutlineVertexArray = VertexArray::Create();
+
+		// Outline VBO
+		s_RendererData.MeshOutlineVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(SimpleVertex));
+		s_RendererData.MeshOutlineVertexBuffer->SetLayout({
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float4, "a_Color"    },
+			{ ShaderDataType::Int,    "a_EntityID" }
+			});
+		s_RendererData.MeshOutlineVertexArray->AddVertexBuffer(s_RendererData.MeshOutlineVertexBuffer);
+		s_RendererData.MeshOutlineVertexBufferBase = new SimpleVertex[s_RendererData.MaxVertices];
+
+		// Outline IBO / EBO
+		s_RendererData.MeshOutlineIndexBuffer = IndexBuffer::Create(s_RendererData.MaxIndices * sizeof(uint32_t));
+		s_RendererData.MeshOutlineVertexArray->SetIndexBuffer(s_RendererData.MeshOutlineIndexBuffer);
+		s_RendererData.MeshOutlineIndexBufferBase = new uint32_t[s_RendererData.MaxIndices];
 
 		// Textures
 		TextureSpecification whiteTextureSpecification = TextureSpecification();
 		whiteTextureSpecification.GenerateMips = false;
-		s_Data.WhiteTexture = Texture2D::Create(whiteTextureSpecification);
+		s_RendererData.WhiteTexture = Texture2D::Create(whiteTextureSpecification);
 		uint32_t whiteTextureData = 0xffffffff;
-		s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
-		s_Data.TextureSlots[0] = s_Data.WhiteTexture;
+		s_RendererData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+		s_RendererData.TextureSlots[0] = s_RendererData.WhiteTexture;
 
 		// Shaders
-		s_Data.QuadShader   = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
-		s_Data.CircleShader = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
-		s_Data.LineShader   = Shader::Create("assets/shaders/Renderer2D_Line.glsl");
-		s_Data.MeshShader   = Shader::Create("assets/shaders/Renderer3D_Vert.glsl", "assets/shaders/Renderer3D_Frag.glsl");
+		s_RendererData.QuadShader    = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
+		s_RendererData.CircleShader  = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
+		s_RendererData.LineShader    = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
+		s_RendererData.MeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
+		//s_RendererData.MeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 	
 		// Uniform buffers
-		s_Data.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData)    , 0);
-		s_Data.LightCountUniformBuffer = UniformBuffer::Create(sizeof(RendererData::LightCountData), 1);
+		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
+		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 1);
 
 		// Storage buffers
-		s_Data.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_Data.LightStorageBufferCapacity, 2);
+		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 2);
 	}
 
 	void Renderer::Shutdown()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		delete[] s_Data.QuadVertexBufferBase;
+		delete[] s_RendererData.QuadVertexBufferBase;
 
-		delete[] s_Data.CircleVertexBufferBase;
+		delete[] s_RendererData.CircleVertexBufferBase;
 
-		delete[] s_Data.LineVertexBufferBase;
+		delete[] s_RendererData.LineVertexBufferBase;
 
-		delete[] s_Data.MeshVertexBufferBase;
-		delete[] s_Data.MeshIndexBufferBase;
+		delete[] s_RendererData.MeshVertexBufferBase;
+		delete[] s_RendererData.MeshIndexBufferBase;
+
+		delete[] s_RendererData.MeshOutlineVertexBufferBase;
+		delete[] s_RendererData.MeshOutlineIndexBufferBase;
+	}
+
+	void Renderer::EnableStencilWriting()
+	{
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::Always, 1, 0xFF);
+		RenderCommand::SetStencilMask(0xFF);
+	}
+
+	void Renderer::DisableStencilWriting()
+	{
+		RenderCommand::SetStencilMask(0x00);
+	}
+
+	uint32_t Renderer::GetLightStorageBufferCapacity()
+	{
+		return s_RendererData.LightStorageBufferCapacity;
+	}
+
+	RendererAPI::PolygonMode Renderer::GetPolygonMode()
+	{
+		return s_RendererData.PolygonMode;
+	}
+
+	void Renderer::SetPolygonMode(RendererAPI::PolygonMode polygonMode)
+	{
+		s_RendererData.PolygonMode = polygonMode;
+		RenderCommand::SetPolygonMode(polygonMode);
+	}
+
+	void Renderer::BeginRenderPass()
+	{
+		s_RendererData.Framebuffer->Bind();
+		// TODO: Link to palette
+		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
+		RenderCommand::Clear();
+
+		// Clear our entity ID attachment to -1
+		s_RendererData.Framebuffer->ClearAttachment(1, -1);
+	}
+
+	void Renderer::EndRenderPass()
+	{
+		s_RendererData.Framebuffer->Unbind();
+	}
+
+	bool Renderer::ResizeFramebuffer(uint32_t width, uint32_t height)
+	{
+		bool resized = false;
+		FramebufferSpecification spec = s_RendererData.Framebuffer->GetSpecification();
+
+		// Zero sized framebuffer is invalid
+		if (width > 0.0f && height > 0.0f && (spec.Width != width || spec.Height != height))
+		{
+			s_RendererData.Framebuffer->Resize(width, height);
+			resized = true;
+		}
+
+		return resized;
+	}
+
+	uint32_t Renderer::GetRenderID()
+	{
+		return s_RendererData.Framebuffer->GetColorAttachmentRendererID();
+	}
+
+	uint32_t Renderer::GetPostProcessRenderID()
+	{
+		return s_RendererData.Framebuffer->GetColorAttachmentRendererID(2);
+	}
+
+	int Renderer::GetEntityIDFromPixel(int x, int y)
+	{
+		return s_RendererData.Framebuffer->ReadPixel(1, x, y);
+	}
+
+	void Renderer::ResetStats()
+	{
+		memset(&s_RendererData.Stats, 0, sizeof(Statistics));
+	}
+
+	Renderer::Statistics Renderer::GetStats()
+	{
+		return s_RendererData.Stats;
 	}
 
 	void Renderer::BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights)
@@ -307,26 +425,26 @@ namespace Atlas
 	void Renderer::SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights)
 	{
 		// Uniform buffers
-		s_Data.CameraBuffer.ViewProjection = cameraViewProjection;
-		s_Data.CameraBuffer.Position = cameraPosition;
-		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
+		s_RendererData.CameraBuffer.ViewProjection = cameraViewProjection;
+		s_RendererData.CameraBuffer.Position = cameraPosition;
+		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
 
-		s_Data.LightCountBuffer.LightCount = lights.size();
-		s_Data.LightCountUniformBuffer->SetData(&s_Data.LightCountBuffer, sizeof(RendererData::LightCountData));
+		s_RendererData.LightCountBuffer = lights.size();
+		s_RendererData.LightCountUniformBuffer->SetData(&s_RendererData.LightCountBuffer, sizeof(uint32_t));
 
 		EnsureLightStorageBufferCapacity(lights.capacity());
-		s_Data.LightStorageBuffer->SetData(lights.data(), sizeof(LightData) * lights.size());
+		s_RendererData.LightStorageBuffer->SetData(lights.data(), sizeof(LightData) * lights.size());
 	}
 
 	void Renderer::EnsureLightStorageBufferCapacity(uint32_t capacity)
 	{
-		if (capacity <= s_Data.LightStorageBufferCapacity)
+		if (capacity <= s_RendererData.LightStorageBufferCapacity)
 		{
 			return;
 		}
 
-		s_Data.LightStorageBufferCapacity = capacity;
-		s_Data.LightStorageBuffer->SetSize(sizeof(LightData) * s_Data.LightStorageBufferCapacity);
+		s_RendererData.LightStorageBufferCapacity = capacity;
+		s_RendererData.LightStorageBuffer->SetSize(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity);
 	}
 
 	int Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
@@ -339,9 +457,9 @@ namespace Atlas
 		}
 
 		// Check if texture is already slotted
-		for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+		for (uint32_t i = 1; i < s_RendererData.TextureSlotIndex; i++)
 		{
-			if (*s_Data.TextureSlots[i] == *texture)
+			if (*s_RendererData.TextureSlots[i] == *texture)
 			{
 				textureIndex = i;
 				break;
@@ -351,14 +469,14 @@ namespace Atlas
 		// If texture is not found
 		if (textureIndex == 0)
 		{
-			if (s_Data.TextureSlotIndex >= RendererData::MaxTextureSlots)
+			if (s_RendererData.TextureSlotIndex >= RendererData::MaxTextureSlots)
 			{
 				NextBatch();
 			}
 
-			textureIndex = s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
-			s_Data.TextureSlotIndex++;
+			textureIndex = s_RendererData.TextureSlotIndex;
+			s_RendererData.TextureSlots[s_RendererData.TextureSlotIndex] = texture;
+			s_RendererData.TextureSlotIndex++;
 		}
 
 		return textureIndex;
@@ -373,123 +491,124 @@ namespace Atlas
 
 	void Renderer::Flush()
 	{
-		if (s_Data.QuadIndexCount)
+		if (s_RendererData.QuadIndexCount)
 		{
 			// VBO
-			s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, sizeof(QuadVertex) * s_Data.QuadVertexCount);
+			s_RendererData.QuadVertexBuffer->SetData(s_RendererData.QuadVertexBufferBase, sizeof(QuadVertex) * s_RendererData.QuadVertexCount);
 
 			// Textures
-			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+			for (uint32_t i = 0; i < s_RendererData.TextureSlotIndex; i++)
 			{
-				s_Data.TextureSlots[i]->Bind(i);
+				s_RendererData.TextureSlots[i]->Bind(i);
 			}
 
 			// Shader
-			s_Data.QuadShader->Bind();
+			s_RendererData.QuadShader->Bind();
 
 			// Draw
-			RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-			s_Data.Stats.DrawCalls++;
+			RenderCommand::DrawIndexed(s_RendererData.QuadVertexArray, s_RendererData.QuadIndexCount);
+			s_RendererData.Stats.DrawCalls++;
 		}
 
-		if (s_Data.CircleIndexCount)
+		if (s_RendererData.CircleIndexCount)
 		{
 			// VBO
-			s_Data.CircleVertexBuffer->SetData(s_Data.CircleVertexBufferBase, sizeof(CircleVertex) * s_Data.CircleVertexCount);
+			s_RendererData.CircleVertexBuffer->SetData(s_RendererData.CircleVertexBufferBase, sizeof(CircleVertex) * s_RendererData.CircleVertexCount);
 
 			// Shader
-			s_Data.CircleShader->Bind();
+			s_RendererData.CircleShader->Bind();
 
 			// Draw
-			RenderCommand::DrawIndexed(s_Data.CircleVertexArray, s_Data.CircleIndexCount);
-			s_Data.Stats.DrawCalls++;
+			RenderCommand::DrawIndexed(s_RendererData.CircleVertexArray, s_RendererData.CircleIndexCount);
+			s_RendererData.Stats.DrawCalls++;
 		}
 
-		if (s_Data.LineIndexCount)
+		if (s_RendererData.LineIndexCount)
 		{
 			// VBO
-			s_Data.LineVertexBuffer->SetData(s_Data.LineVertexBufferBase, sizeof(LineVertex) * s_Data.LineVertexCount);
+			s_RendererData.LineVertexBuffer->SetData(s_RendererData.LineVertexBufferBase, sizeof(SimpleVertex) * s_RendererData.LineVertexCount);
 
 			// Shader
-			s_Data.LineShader->Bind();
+			s_RendererData.LineShader->Bind();
 
 			// Draw
 			RenderCommand::SetLineWidth(4.0f);
-			RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineIndexCount);
+			RenderCommand::DrawLines(s_RendererData.LineVertexArray, s_RendererData.LineIndexCount);
 			RenderCommand::SetLineWidth(2.0f);
-			s_Data.Stats.DrawCalls++;
+			s_RendererData.Stats.DrawCalls++;
 		}
 
-		if (s_Data.MeshIndexCount)
+		if (s_RendererData.MeshIndexCount)
 		{
+			RenderCommand::EnableBackCulling();
+
 			// VBO
-			s_Data.MeshVertexBuffer->SetData(s_Data.MeshVertexBufferBase, sizeof(MeshVertex) * s_Data.MeshVertexCount);
+			s_RendererData.MeshVertexBuffer->SetData(s_RendererData.MeshVertexBufferBase, sizeof(MeshVertex) * s_RendererData.MeshVertexCount);
 
 			// IBO / EBO
-			s_Data.MeshIndexBuffer->SetData(s_Data.MeshIndexBufferBase, sizeof(MeshIndex) * s_Data.MeshIndexCount);
+			s_RendererData.MeshIndexBuffer->SetData(s_RendererData.MeshIndexBufferBase, sizeof(uint32_t) * s_RendererData.MeshIndexCount);
 
 			// Textures
-			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+			for (uint32_t i = 0; i < s_RendererData.TextureSlotIndex; i++)
 			{
-				s_Data.TextureSlots[i]->Bind(i);
+				s_RendererData.TextureSlots[i]->Bind(i);
 			}
 
 			// Shader
-			s_Data.MeshShader->Bind();
+			s_RendererData.MeshShader->Bind();
 
 			// Draw
-			RenderCommand::DrawIndexed(s_Data.MeshVertexArray, s_Data.MeshIndexCount);
-			s_Data.Stats.DrawCalls++;
+			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);
+			s_RendererData.Stats.DrawCalls++;
+
+			RenderCommand::DisableBackCulling();
+		}
+
+		if (s_RendererData.MeshOutlineIndexCount)
+		{
+			RenderCommand::EnableBackCulling();
+
+			// VBO
+			s_RendererData.MeshOutlineVertexBuffer->SetData(s_RendererData.MeshOutlineVertexBufferBase, sizeof(SimpleVertex) * s_RendererData.MeshOutlineVertexCount);
+
+			// IBO / EBO
+			s_RendererData.MeshOutlineIndexBuffer->SetData(s_RendererData.MeshOutlineIndexBufferBase, sizeof(uint32_t) * s_RendererData.MeshOutlineIndexCount);
+
+			// Shader
+			s_RendererData.MeshOutlineShader->Bind();
+
+			// Draw
+			RenderCommand::DrawIndexed(s_RendererData.MeshOutlineVertexArray, s_RendererData.MeshOutlineIndexCount);
+			s_RendererData.Stats.DrawCalls++;
+
+			RenderCommand::DisableBackCulling();
 		}
 	}
 
 	void Renderer::StartBatch()
 	{
-		s_Data.QuadVertexCount = 0;
-		s_Data.QuadIndexCount = 0;
+		s_RendererData.QuadVertexCount = 0;
+		s_RendererData.QuadIndexCount = 0;
 
-		s_Data.CircleVertexCount = 0;
-		s_Data.CircleIndexCount = 0;
+		s_RendererData.CircleVertexCount = 0;
+		s_RendererData.CircleIndexCount = 0;
 
-		s_Data.LineVertexCount = 0;
-		s_Data.LineIndexCount = 0;
+		s_RendererData.LineVertexCount = 0;
+		s_RendererData.LineIndexCount = 0;
 
-		s_Data.MeshVertexCount = 0;
-		s_Data.MeshIndexCount  = 0;
+		s_RendererData.MeshVertexCount = 0;
+		s_RendererData.MeshIndexCount  = 0;
 
-		s_Data.TextureSlotIndex = 1;
+		s_RendererData.MeshOutlineVertexCount = 0;
+		s_RendererData.MeshOutlineIndexCount = 0;
+
+		s_RendererData.TextureSlotIndex = 1;
 	}
 
 	void Renderer::NextBatch()
 	{
 		Flush();
 		StartBatch();
-	}
-
-	uint32_t Renderer::GetLightStorageBufferCapacity()
-	{
-		return s_Data.LightStorageBufferCapacity;
-	}
-
-	RendererAPI::PolygonMode Renderer::GetPolygonMode()
-	{
-		return s_Data.PolygonMode;
-	}
-
-	void Renderer::SetPolygonMode(RendererAPI::PolygonMode polygonMode)
-	{
-		s_Data.PolygonMode = polygonMode;
-		RenderCommand::SetPolygonMode(polygonMode);
-	}
-
-	void Renderer::ResetStats()
-	{
-		memset(&s_Data.Stats, 0, sizeof(Statistics));
-	}
-
-	Renderer::Statistics Renderer::GetStats()
-	{
-		return s_Data.Stats;
 	}
 
 	/* --------------- COLOR VERSION --------------- */
@@ -535,28 +654,28 @@ namespace Atlas
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
-		if (s_Data.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
-			s_Data.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
+		if (s_RendererData.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
+			s_RendererData.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Position     = transform * s_Data.QuadVertexPositions[i];
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Color        = color;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexCoord     = textureCoords[i];
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexIndex     = textureIndex;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].EntityID     = entityID;
-			s_Data.QuadVertexCount++;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].Position     = transform * s_RendererData.QuadVertexPositions[i];
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].Color        = color;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TexCoord     = textureCoords[i];
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TexIndex     = textureIndex;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TilingFactor = tilingFactor;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].EntityID     = entityID;
+			s_RendererData.QuadVertexCount++;
 		}
 
-		s_Data.QuadIndexCount += quadIndexCount;
+		s_RendererData.QuadIndexCount += quadIndexCount;
 
-		s_Data.Stats.QuadCount++;
-		s_Data.Stats.TotalVertexCount += quadVertexCount;
-		s_Data.Stats.TotalIndexCount  += quadIndexCount;
+		s_RendererData.Stats.QuadCount++;
+		s_RendererData.Stats.TotalVertexCount += quadVertexCount;
+		s_RendererData.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- TEXTURE VERSION --------------- */
@@ -605,8 +724,8 @@ namespace Atlas
 			{ 0.0f, 1.0f }
 		};
 
-		if (s_Data.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
-			s_Data.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
+		if (s_RendererData.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
+			s_RendererData.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -615,20 +734,20 @@ namespace Atlas
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Position     = transform * s_Data.QuadVertexPositions[i];
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Color        = tintColor;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexCoord     = textureCoords[i];
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexIndex     = textureIndex;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].EntityID     = entityID;
-			s_Data.QuadVertexCount++;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].Position     = transform * s_RendererData.QuadVertexPositions[i];
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].Color        = tintColor;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TexCoord     = textureCoords[i];
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TexIndex     = textureIndex;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TilingFactor = tilingFactor;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].EntityID     = entityID;
+			s_RendererData.QuadVertexCount++;
 		}
 
-		s_Data.QuadIndexCount += quadIndexCount;
+		s_RendererData.QuadIndexCount += quadIndexCount;
 
-		s_Data.Stats.QuadCount++;
-		s_Data.Stats.TotalVertexCount += quadVertexCount;
-		s_Data.Stats.TotalIndexCount  += quadIndexCount;
+		s_RendererData.Stats.QuadCount++;
+		s_RendererData.Stats.TotalVertexCount += quadVertexCount;
+		s_RendererData.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- SUBTEXTURE VERSION --------------- */
@@ -673,8 +792,8 @@ namespace Atlas
 		const glm::vec2* textureCoords = subTexture->GetTexCoords();
 		const Ref<Texture2D> texture = subTexture->GetTexture();
 
-		if (s_Data.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
-			s_Data.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
+		if (s_RendererData.QuadVertexCount + quadVertexCount >= RendererData::MaxVertices ||
+			s_RendererData.QuadIndexCount  + quadIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
@@ -683,25 +802,25 @@ namespace Atlas
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Position     = transform * s_Data.QuadVertexPositions[i];
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].Color        = tintColor;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexCoord     = textureCoords[i];
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TexIndex     = textureIndex;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferBase[s_Data.QuadVertexCount].EntityID     = entityID;
-			s_Data.QuadVertexCount++;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].Position     = transform * s_RendererData.QuadVertexPositions[i];
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].Color        = tintColor;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TexCoord     = textureCoords[i];
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TexIndex     = textureIndex;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].TilingFactor = tilingFactor;
+			s_RendererData.QuadVertexBufferBase[s_RendererData.QuadVertexCount].EntityID     = entityID;
+			s_RendererData.QuadVertexCount++;
 		}
 
-		s_Data.QuadIndexCount += quadIndexCount;
+		s_RendererData.QuadIndexCount += quadIndexCount;
 
-		s_Data.Stats.QuadCount++;
-		s_Data.Stats.TotalVertexCount += quadVertexCount;
-		s_Data.Stats.TotalIndexCount  += quadIndexCount;
+		s_RendererData.Stats.QuadCount++;
+		s_RendererData.Stats.TotalVertexCount += quadVertexCount;
+		s_RendererData.Stats.TotalIndexCount  += quadIndexCount;
 	}
 
 	/* --------------- EDITOR-USE VERSION --------------- */
 
-	void Renderer::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
+	void Renderer::DrawSprite(const glm::mat4& transform, const SpriteRendererComponent& src, int entityID)
 	{
 		switch (src.Type)
 		{
@@ -732,28 +851,28 @@ namespace Atlas
 		constexpr size_t circleVertexCount = 4;
 		constexpr size_t circleIndexCount  = 6;
 
-		if (s_Data.CircleVertexCount + circleVertexCount >= RendererData::MaxVertices ||
-			s_Data.CircleIndexCount  + circleIndexCount  >= RendererData::MaxIndices)
+		if (s_RendererData.CircleVertexCount + circleVertexCount >= RendererData::MaxVertices ||
+			s_RendererData.CircleIndexCount  + circleIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
 		for (size_t i = 0; i < circleVertexCount; i++)
 		{
-			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].WorldPosition = transform * s_Data.QuadVertexPositions[i];
-			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].LocalPosition = s_Data.QuadVertexPositions[i] * 2.0f;
-			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].Color         = color;
-			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].Thickness     = thickness;
-			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].Fade          = fade;
-			s_Data.CircleVertexBufferBase[s_Data.CircleVertexCount].EntityID      = entityID;
-			s_Data.CircleVertexCount++;
+			s_RendererData.CircleVertexBufferBase[s_RendererData.CircleVertexCount].WorldPosition = transform * s_RendererData.QuadVertexPositions[i];
+			s_RendererData.CircleVertexBufferBase[s_RendererData.CircleVertexCount].LocalPosition = s_RendererData.QuadVertexPositions[i] * 2.0f;
+			s_RendererData.CircleVertexBufferBase[s_RendererData.CircleVertexCount].Color         = color;
+			s_RendererData.CircleVertexBufferBase[s_RendererData.CircleVertexCount].Thickness     = thickness;
+			s_RendererData.CircleVertexBufferBase[s_RendererData.CircleVertexCount].Fade          = fade;
+			s_RendererData.CircleVertexBufferBase[s_RendererData.CircleVertexCount].EntityID      = entityID;
+			s_RendererData.CircleVertexCount++;
 		}
 
-		s_Data.CircleIndexCount += circleIndexCount;
+		s_RendererData.CircleIndexCount += circleIndexCount;
 
-		s_Data.Stats.CircleCount++;
-		s_Data.Stats.TotalVertexCount += circleVertexCount;
-		s_Data.Stats.TotalIndexCount  += circleIndexCount;
+		s_RendererData.Stats.CircleCount++;
+		s_RendererData.Stats.TotalVertexCount += circleVertexCount;
+		s_RendererData.Stats.TotalIndexCount  += circleIndexCount;
 	}
 
 	void Renderer::DrawLine(const glm::vec3& p0, glm::vec3& p1, const glm::vec4& color, int entityID)
@@ -763,27 +882,27 @@ namespace Atlas
 		constexpr size_t lineVertexCount = 2;
 		constexpr size_t lineIndexCount  = 2;
 
-		if (s_Data.LineVertexCount + lineVertexCount >= RendererData::MaxVertices ||
-			s_Data.LineIndexCount  + lineIndexCount  >= RendererData::MaxIndices)
+		if (s_RendererData.LineVertexCount + lineVertexCount >= RendererData::MaxVertices ||
+			s_RendererData.LineIndexCount  + lineIndexCount  >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
-		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Position = p0;
-		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Color    = color;
-		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].EntityID = entityID;
-		s_Data.LineVertexCount++;
+		s_RendererData.LineVertexBufferBase[s_RendererData.LineVertexCount].Position = p0;
+		s_RendererData.LineVertexBufferBase[s_RendererData.LineVertexCount].Color    = color;
+		s_RendererData.LineVertexBufferBase[s_RendererData.LineVertexCount].EntityID = entityID;
+		s_RendererData.LineVertexCount++;
 
-		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Position = p1;
-		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].Color    = color;
-		s_Data.LineVertexBufferBase[s_Data.LineVertexCount].EntityID = entityID;
-		s_Data.LineVertexCount++;
+		s_RendererData.LineVertexBufferBase[s_RendererData.LineVertexCount].Position = p1;
+		s_RendererData.LineVertexBufferBase[s_RendererData.LineVertexCount].Color    = color;
+		s_RendererData.LineVertexBufferBase[s_RendererData.LineVertexCount].EntityID = entityID;
+		s_RendererData.LineVertexCount++;
 
-		s_Data.LineIndexCount += lineIndexCount;
+		s_RendererData.LineIndexCount += lineIndexCount;
 
-		s_Data.Stats.LineCount++;
-		s_Data.Stats.TotalVertexCount += lineVertexCount;
-		s_Data.Stats.TotalIndexCount  += lineIndexCount;
+		s_RendererData.Stats.LineCount++;
+		s_RendererData.Stats.TotalVertexCount += lineVertexCount;
+		s_RendererData.Stats.TotalIndexCount  += lineIndexCount;
 	}
 
 	void Renderer::DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int entityID)
@@ -807,7 +926,7 @@ namespace Atlas
 
 		glm::vec3 lineVertices[4];
 		for (size_t i = 0; i < 4; i++)
-			lineVertices[i] = transform * s_Data.QuadVertexPositions[i];
+			lineVertices[i] = transform * s_RendererData.QuadVertexPositions[i];
 
 		DrawLine(lineVertices[0], lineVertices[1], color, entityID);
 		DrawLine(lineVertices[1], lineVertices[2], color, entityID);
@@ -827,38 +946,68 @@ namespace Atlas
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
 
-		if (s_Data.MeshVertexCount + vertices.size() >= RendererData::MaxVertices ||
-			s_Data.MeshIndexCount  + indices .size() >= RendererData::MaxIndices)
+		if (s_RendererData.MeshVertexCount + vertices.size() >= RendererData::MaxVertices ||
+			s_RendererData.MeshIndexCount  + indices .size() >= RendererData::MaxIndices)
 		{
 			NextBatch();
 		}
 
 		for (uint32_t i = 0; i < indices.size(); i++)
 		{
-			s_Data.MeshIndexBufferBase[s_Data.MeshIndexCount++].Index = s_Data.MeshVertexCount + indices[i];
+			s_RendererData.MeshIndexBufferBase[s_RendererData.MeshIndexCount++] = s_RendererData.MeshVertexCount + indices[i];
 		}
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].TexCoord             = vertices[i].TexCoords;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord             = vertices[i].TexCoords;
 
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].Shininess            = material == nullptr ? 0.25f           : material->Material->GetShininess();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Shininess            = material == nullptr ? 0.25f           : material->Material->GetShininess();
 
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].DiffuseTextureIndex  = diffuseTextureIndex;
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].SpecularTextureIndex = specularTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseTextureIndex  = diffuseTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularTextureIndex = specularTextureIndex;
 			
-			s_Data.MeshVertexBufferBase[s_Data.MeshVertexCount].EntityID             = entityID;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID             = entityID;
 
-			s_Data.MeshVertexCount++;
+			s_RendererData.MeshVertexCount++;
 		}
 
-		s_Data.Stats.MeshCount++;
-		s_Data.Stats.TotalVertexCount += vertices.size();
-		s_Data.Stats.TotalIndexCount  += indices.size();
+		s_RendererData.Stats.MeshCount++;
+		s_RendererData.Stats.TotalVertexCount += vertices.size();
+		s_RendererData.Stats.TotalIndexCount  += indices.size();
+	}
+
+	void Renderer::DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh,const glm::vec4& color, int entityID)
+	{
+		ATLAS_PROFILE_FUNCTION();
+
+		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
+		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
+
+		if (s_RendererData.MeshOutlineVertexCount + vertices.size() >= RendererData::MaxVertices ||
+			s_RendererData.MeshOutlineIndexCount  + indices .size() >= RendererData::MaxIndices)
+		{
+			NextBatch();
+		}
+
+		for (uint32_t i = 0; i < indices.size(); i++)
+		{
+			s_RendererData.MeshOutlineIndexBufferBase[s_RendererData.MeshOutlineIndexCount++] = s_RendererData.MeshOutlineVertexCount + indices[i];
+		}
+
+		for (size_t i = 0; i < vertices.size(); i++)
+		{
+			s_RendererData.MeshOutlineVertexBufferBase[s_RendererData.MeshOutlineVertexCount].Position = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_RendererData.MeshOutlineVertexBufferBase[s_RendererData.MeshOutlineVertexCount].Color    = color;
+			s_RendererData.MeshOutlineVertexBufferBase[s_RendererData.MeshOutlineVertexCount].EntityID = entityID;
+
+			s_RendererData.MeshOutlineVertexCount++;
+		}
+
+		s_RendererData.Stats.SelectionCount++;
 	}
 }

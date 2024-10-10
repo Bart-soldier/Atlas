@@ -30,15 +30,25 @@ namespace Atlas
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
-		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
-		static void EndScene();
-		static void Flush();
+		static void EnableStencilWriting();
+		static void DisableStencilWriting();
 
 		static uint32_t GetLightStorageBufferCapacity();
 
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
+
+		static void BeginRenderPass();
+		static void EndRenderPass();
+		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
+		static uint32_t GetRenderID();
+		static uint32_t GetPostProcessRenderID();
+		static int GetEntityIDFromPixel(int x, int y);
+
+		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
+		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
+		static void EndScene();
+		static void NextBatch();
 
 		// Primitives
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
@@ -59,7 +69,7 @@ namespace Atlas
 		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<SubTexture2D>& subTexture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
 		static void DrawQuad(const glm::mat4& transform, const Ref<SubTexture2D>& subTexture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f), int entityID = -1);
 
-		static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
+		static void DrawSprite(const glm::mat4& transform, const SpriteRendererComponent& src, int entityID);
 		
 		static void DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.005f, int entityID = -1);
 
@@ -69,6 +79,7 @@ namespace Atlas
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
 		static void DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID);
+		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
 
 		// Stats
 		struct Statistics
@@ -78,6 +89,7 @@ namespace Atlas
 			uint32_t CircleCount = 0;
 			uint32_t LineCount = 0;
 			uint32_t MeshCount = 0;
+			uint32_t SelectionCount = 0;
 			uint32_t TotalVertexCount = 0;
 			uint32_t TotalIndexCount = 0;
 		};
@@ -90,6 +102,6 @@ namespace Atlas
 		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
-		static void NextBatch();
+		static void Flush();
 	};
 }

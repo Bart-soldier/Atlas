@@ -40,6 +40,9 @@ namespace Atlas
 		bool IsRotationLocked() const { return m_RotationLocked; }
 		void SetRotationLock(bool locked) { m_RotationLocked = locked; UpdateView(); }
 
+		bool IsPostProcessEnabled() const { return m_IsPostProcessEnabled; }
+		void SetIsPostProcessEnabled(bool enable) { m_IsPostProcessEnabled = enable; }
+
 	private:
 		ProjectionType m_ProjectionType = ProjectionType::Perspective;
 		bool m_RotationLocked = false;
@@ -71,5 +74,7 @@ namespace Atlas
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;
 
 		float m_ViewportWidth = 1280, m_ViewportHeight = 720;
+
+		bool m_IsPostProcessEnabled = false;
 	};
 }

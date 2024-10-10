@@ -9,10 +9,12 @@ namespace Atlas
 	{
 		bool valueChanged = false;
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
@@ -25,7 +27,7 @@ namespace Atlas
 		return valueChanged;
 	}
 
-	bool ImGuiUtils::DragFloat(const std::string& label, float& value, float resetValue, float speed, float min, float max)
+	bool ImGuiUtils::DragFloat(const std::string& label, float& value, float resetValue, float speed, float min, float max, int uniqueID)
 	{
 		bool valueChanged = false;
 
@@ -34,20 +36,23 @@ namespace Atlas
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushItemWidth(ImGui::GetColumnWidth() - 1.4 * buttonSize.x);
-		valueChanged = ImGui::DragFloat("##X", &value, speed, min, max, "%.2f");
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - buttonSize.x + ImGui::GetStyle().FramePadding.x);
+		valueChanged = ImGui::DragFloat(uniqueID == -1 ? "##X" : ("##" + std::to_string(uniqueID)).c_str(), &value, speed, min, max, "%.2f");
 		ImGui::PopItemWidth();
+		ImGui::Columns(1);
 
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
+		ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
+
 		ImGui::PushFont(boldFont);
 		if (ImGui::Button("R", buttonSize))
 		{
@@ -56,7 +61,6 @@ namespace Atlas
 		}
 		ImGui::PopFont();
 
-		ImGui::Columns(1);
 		ImGui::PopID();
 
 		return valueChanged;
@@ -69,10 +73,12 @@ namespace Atlas
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
@@ -80,7 +86,7 @@ namespace Atlas
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
 
-		ImGui::PushMultiItemsWidths(2, ImGui::GetColumnWidth() - 2 * buttonSize.x);
+		ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x - 2 * buttonSize.x + 2 * ImGui::GetStyle().FramePadding.x);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f });
@@ -136,10 +142,12 @@ namespace Atlas
 		ImGuiIO& io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
@@ -147,7 +155,7 @@ namespace Atlas
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
 
-		ImGui::PushMultiItemsWidths(3, ImGui::GetColumnWidth() - 3 * buttonSize.x);
+		ImGui::PushMultiItemsWidths(3, ImGui::GetContentRegionAvail().x - 3 * buttonSize.x + 3 * ImGui::GetStyle().FramePadding.x);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.933f, 0.357f, 0.416f, 1.0f });
@@ -220,15 +228,17 @@ namespace Atlas
 	{
 		bool valueChanged = false;
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushItemWidth(-1);
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + ImGui::GetStyle().FramePadding.x);
 		valueChanged = ImGui::ColorEdit3("##Color", &value);
 		ImGui::PopItemWidth();
 
@@ -242,15 +252,17 @@ namespace Atlas
 	{
 		bool valueChanged = false;
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushItemWidth(-1);
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x + ImGui::GetStyle().FramePadding.x);
 		valueChanged = ImGui::ColorEdit4("##Color", &value);
 		ImGui::PopItemWidth();
 
@@ -260,26 +272,31 @@ namespace Atlas
 		return valueChanged;
 	}
 
-	bool ImGuiUtils::BeginCombo(const std::string& label, const char& value)
+	bool ImGuiUtils::BeginCombo(const std::string& label, const char& value, float maxWidth, int uniqueID)
 	{
 		bool valueChanged = false;
 
-		ImGui::PushID(label.c_str());
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();
 
-		ImGui::PushItemWidth(-1);
-		valueChanged = ImGui::BeginCombo("##X", &value);
+		float width = ImGui::GetContentRegionAvail().x + ImGui::GetStyle().FramePadding.x;
+		if (maxWidth >= 0)
+		{
+			width = std::min(width, maxWidth - labelSize - ImGui::GetStyle().FramePadding.x);
+		}
+
+		ImGui::PushItemWidth(width);
+		valueChanged = ImGui::BeginCombo(uniqueID == -1 ? "##X" : ("##" + std::to_string(uniqueID)).c_str(), &value);
 
 		if (!valueChanged)
 		{
 			ImGui::PopItemWidth();
 			ImGui::Columns(1);
-			ImGui::PopID();
 		}
 
 		return valueChanged;
@@ -291,8 +308,6 @@ namespace Atlas
 
 		ImGui::PopItemWidth();
 		ImGui::Columns(1);
-		ImGui::PopID();
-
 	}
 
 	void ImGuiUtils::BeginTextureViewer(const std::string& label, const Ref<Texture2D> texture, float desiredWidth, float desiredHeight, bool flipped)
@@ -315,10 +330,12 @@ namespace Atlas
 		ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
 		ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
 
+		float labelSize = ImGui::GetContentRegionAvail().x / 3;
+
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 4);
+		ImGui::SetColumnWidth(0, labelSize);
 
 		ImGui::Text(label.c_str());
 		ImGui::NextColumn();

@@ -23,8 +23,6 @@ namespace Atlas
 		void OnEvent(Event& e) override;
 
 	private:
-		void OnOverlayRender();
-
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
@@ -68,7 +66,7 @@ namespace Atlas
 		bool m_ViewportFocused = false, m_ViewportHovered = false;
 		EditorCamera m_EditorCamera;
 		int m_GizmoType = -1;
-		Entity m_HoveredEntity;
+		Entity* m_HoveredEntity = nullptr;
 		bool m_ViewportInvalidated = false;
 
 		enum class SceneState
@@ -76,9 +74,6 @@ namespace Atlas
 			Edit = 0, Play = 1
 		};
 		SceneState m_SceneState = SceneState::Edit;
-
-		// Temp
-		Ref<Framebuffer> m_Framebuffer;
 
 		Ref<Scene> m_ActiveScene;
 		Ref<Scene> m_EditorScene;

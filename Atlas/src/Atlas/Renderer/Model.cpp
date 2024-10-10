@@ -6,46 +6,57 @@
 
 namespace Atlas
 {
-	static Model::ModelData s_ModelData;
-
-	const Model::ModelData& Model::LoadModel(const std::filesystem::path& path)
+	void Model::LoadModel(Ref<Scene> activeScene, const std::filesystem::path& path)
 	{
-		s_ModelData.Path = path;
-		s_ModelData.Path.remove_filename();
-
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
-	
-		s_ModelData.Meshes.clear();
+		const aiScene* modelScene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
-		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+		if (!modelScene || modelScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !modelScene->mRootNode)
 		{
 			ATLAS_CORE_ERROR("ERROR::ASSIMP::{0}", importer.GetErrorString());
-			return s_ModelData;
+			return;
 		}
 
-		s_ModelData.Meshes.reserve(scene->mNumMeshes);
+		ProcessNode(activeScene, *modelScene->mRootNode, *modelScene);
 
-		ProcessNode(*scene->mRootNode, *scene);
+		importer.FreeScene();
 
-		return s_ModelData;
+		return;
 	}
 
-	void Model::ProcessNode(const aiNode& node, const aiScene& scene)
+	void Model::ProcessNode(Ref<Scene> activeScene, const aiNode& node, const aiScene& modelScene, Entity* parent)
 	{
-		for (uint32_t meshIndex = 0; meshIndex < node.mNumMeshes; meshIndex++)
+		Entity* nodeParent;
+
+		if (node.mNumMeshes != 1)
 		{
-			aiMesh* mesh = scene.mMeshes[node.mMeshes[meshIndex]];
-			s_ModelData.Meshes.push_back(ProcessMesh(*mesh, scene));
+			nodeParent = activeScene->CreateEntity(node.mName.C_Str(), parent);
+
+			for (uint32_t meshIndex = 0; meshIndex < node.mNumMeshes; meshIndex++)
+			{
+				aiMesh* mesh = modelScene.mMeshes[node.mMeshes[meshIndex]];
+
+				Entity* meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), nodeParent);
+				meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+			}
+		}
+		else
+		{
+			aiMesh* mesh = modelScene.mMeshes[node.mMeshes[0]];
+
+			Entity* meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), parent);
+			meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+
+			nodeParent = meshEntity;
 		}
 
 		for (uint32_t childIndex = 0; childIndex < node.mNumChildren; childIndex++)
 		{
-			ProcessNode(*node.mChildren[childIndex], scene);
+			ProcessNode(activeScene, *node.mChildren[childIndex], modelScene, nodeParent);
 		}
 	}
 
-	Ref<Mesh> Model::ProcessMesh(const aiMesh& mesh, const aiScene& scene)
+	Ref<Mesh> Model::CreateMesh(const aiMesh& mesh, const aiScene& modelScene)
 	{
 		uint32_t indicesPerFace = 3; // Faces will always be triangles due to aiProcess_Triangulate
 
@@ -75,7 +86,7 @@ namespace Atlas
 
 		//if (mesh.mMaterialIndex > 0)
 		//{
-		//	aiMaterial* material = scene.mMaterials[mesh.mMaterialIndex];
+		//	aiMaterial* material = modelScene.mMaterials[mesh.mMaterialIndex];
 		//	aiString path;
 		//	material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 		//	s_ModelData.DiffuseTextures.push_back(Texture2D::Create(s_ModelData.Path / path.C_Str()));

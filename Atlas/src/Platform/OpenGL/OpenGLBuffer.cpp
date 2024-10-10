@@ -17,12 +17,12 @@ namespace Atlas
 		Initialize(nullptr, size);
 	}
 
-	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, uint32_t size)
+	OpenGLVertexBuffer::OpenGLVertexBuffer(const void* data, uint32_t size)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		glCreateBuffers(1, &m_RendererID);
-		Initialize(vertices, size);
+		Initialize(data, size);
 	}
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()

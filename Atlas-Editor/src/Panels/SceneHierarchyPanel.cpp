@@ -17,12 +17,12 @@ namespace Atlas
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
 		m_Context = context;
-		m_SelectionContext = {};
+		m_SelectedEntity = nullptr;
 	}
 
-	void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
+	void SceneHierarchyPanel::SetSelectedEntity(Entity* entity)
 	{
-		m_SelectionContext = entity;
+		m_SelectedEntity = entity;
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
@@ -40,15 +40,17 @@ namespace Atlas
 				name = std::string(buffer);
 			}
 
-			for (auto entityID : m_Context->m_Registry.view<entt::entity>())
+			for (auto& [handle, entity] : m_Context->m_EntityHandleMap)
 			{
-				Entity entity{ entityID, m_Context.get() };
-				DrawEntityNode(entity);
+				if (entity->GetParent() == nullptr)
+				{
+					DrawEntityNode(entity);
+				}
 			}
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			{
-				m_SelectionContext = {};
+				m_SelectedEntity = nullptr;
 			}
 
 			// Right-click on blank space
@@ -61,35 +63,52 @@ namespace Atlas
 
 				ImGui::EndPopup();
 			}
+
+			ImGui::Dummy({ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y});
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+				{
+					Entity* droppedEntity = (Entity*)payload->Data;
+					m_Context->GetEntity(droppedEntity->GetHandle())->SetParent(nullptr);
+				}
+				ImGui::EndDragDropTarget();
+			}
 		}
 
 		ImGui::End();
 
 		ImGui::Begin("Properties");
-		if (m_SelectionContext)
+		if (m_SelectedEntity)
 		{
-			DrawComponents(m_SelectionContext);
+			DrawComponents(m_SelectedEntity);
 		}
 
 		ImGui::End();
 	}
 
-	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
+	void SceneHierarchyPanel::DrawEntityNode(Entity* entity)
 	{
-		auto& tag = entity.GetComponent<TagComponent>().Tag;
+		auto& tag = entity->GetComponent<TagComponent>().Tag;
 
-		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = ((m_SelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity->GetHandle(), flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 		{
-			m_SelectionContext = entity;
+			m_SelectedEntity = entity;
 		}
 
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
+			if (ImGui::MenuItem("Create Entity"))
+			{
+				m_Context->CreateEntity("Untitled Entity", entity);
+			}
+
 			if (ImGui::MenuItem("Delete Entity"))
 			{
 				entityDeleted = true;
@@ -98,29 +117,43 @@ namespace Atlas
 			ImGui::EndPopup();
 		}
 
+		if (ImGui::BeginDragDropSource())
+		{
+			ImGui::SetDragDropPayload("SCENE_HIERARCHY_ENTITY", entity, sizeof(Entity));
+			ImGui::EndDragDropSource();
+		}
+
 		if (opened)
 		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
-			if (opened)
+			for (Entity* child : entity->GetChildren())
 			{
-				ImGui::TreePop();
+				DrawEntityNode(child);
 			}
+
 			ImGui::TreePop();
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_HIERARCHY_ENTITY", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				Entity* droppedEntity = (Entity*)payload->Data;
+				m_Context->GetEntity(droppedEntity->GetHandle())->SetParent(entity);
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		if (entityDeleted)
 		{
 			m_Context->DestroyEntity(entity);
-			if (m_SelectionContext == entity)
+			if (m_SelectedEntity == entity)
 			{
-				m_SelectionContext = {};
+				m_SelectedEntity = nullptr;
 			}
 		}
 	}
 
-	void SceneHierarchyPanel::DrawComponents(Entity entity)
+	void SceneHierarchyPanel::DrawComponents(Entity* entity)
 	{
 		ImVec2 padding = ImGui::GetStyle().FramePadding;
 		ImVec2 buttonLabelSize = ImGui::CalcTextSize("Add Component", NULL, true);
@@ -128,9 +161,9 @@ namespace Atlas
 
 		ImGui::PushItemWidth(ImGui::GetColumnWidth() - buttonSize.x - padding.x);
 
-		if (entity.HasComponent<TagComponent>())
+		if (entity->HasComponent<TagComponent>())
 		{
-			auto& tag = entity.GetComponent<TagComponent>().Tag;
+			auto& tag = entity->GetComponent<TagComponent>().Tag;
 
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
@@ -154,6 +187,7 @@ namespace Atlas
 		{
 			DisplayAddComponentEntry<TransformComponent>("Transform");
 			DisplayAddComponentEntry<CameraComponent>("Camera");
+			DisplayAddComponentEntryIfOther<PostProcessorComponent, CameraComponent>("Post Processor");
 			DisplayAddComponentEntryIfNoOther<SpriteRendererComponent, MeshComponent>("Sprite Renderer");
 			DisplayAddComponentEntryIfNoOther<MeshComponent, SpriteRendererComponent>("Mesh");
 			DisplayAddComponentEntryIfOther<MaterialComponent, MeshComponent>("Material");
@@ -174,8 +208,6 @@ namespace Atlas
 		DrawComponent<CameraComponent>("Camera", entity, [](auto& component)
 		{
 			auto& camera = component.Camera;
-
-			ImGuiUtils::Checkbox("Primary", component.Primary);
 
 			ImGui::Separator();
 
@@ -244,6 +276,90 @@ namespace Atlas
 
 				ImGuiUtils::Checkbox("Fixed Aspect Ratio", component.FixedAspectRatio);
 			}
+		});
+
+		DrawComponent<PostProcessorComponent>("Post Processor", entity, [](auto& component)
+		{
+			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+			const char* effectsStrings[] = { "None", "Inversion", "Greyscale", "Numerical", "Blur", "Edge Detection"};
+			int removeEffect = -1;
+
+			for (int effectIndex = 0; effectIndex < component.Effects.size(); effectIndex++)
+			{
+				if (effectIndex > 0)
+				{
+					ImGui::Separator();
+				}
+
+				const char* currentEffectString = effectsStrings[(int)component.Effects[effectIndex]];
+				if (ImGuiUtils::BeginCombo("Effect", *currentEffectString, ImGui::GetContentRegionAvail().x - buttonSize.x, effectIndex))
+				{
+					for (int stringIndex = 0; stringIndex < 6; stringIndex++)
+					{
+						bool isSelected = currentEffectString == effectsStrings[stringIndex];
+						if (ImGui::Selectable(effectsStrings[stringIndex], isSelected))
+						{
+							currentEffectString = effectsStrings[stringIndex];
+							component.Effects[effectIndex] = (PostProcessor::PostProcessingEffect)stringIndex;
+
+							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
+							{
+								component.KernelOffsets[effectIndex] = 90.0f;
+							}
+
+							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
+								component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
+							{
+								component.KernelOffsets[effectIndex] = 300.0f;
+							}
+						}
+
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+
+					ImGuiUtils::EndCombo();
+				}
+
+				ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - buttonSize.x);
+				if (ImGui::Button(("-##" + std::to_string(effectIndex)).c_str(), buttonSize))
+				{
+					removeEffect = effectIndex;
+				}
+
+				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
+				{
+					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 90.0f, 1.0f, 1.0f, 0.0f, effectIndex);
+				}
+
+				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
+					component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
+				{
+					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 300.0f, 1.0f, 1.0f, 0.0f, effectIndex);
+				}
+			}
+
+			if (component.Effects.size() > 0)
+			{
+				ImGui::Separator();
+			}
+
+			if (removeEffect >= 0)
+			{
+				component.Effects.erase(component.Effects.begin() + removeEffect);
+				component.KernelOffsets.erase(component.KernelOffsets.begin() + removeEffect);
+			}
+
+			if (ImGui::Button("Add Effect"))
+			{
+				component.Effects.push_back(PostProcessor::PostProcessingEffect::None);
+				component.KernelOffsets.push_back(0.0f);
+			}
+
+			//ImGui::PopItemWidth();
 		});
 
 		DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
@@ -571,12 +687,12 @@ namespace Atlas
 	}
 
 	template<typename T, typename UIFunction>
-	void SceneHierarchyPanel::DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+	void SceneHierarchyPanel::DrawComponent(const std::string& name, Entity* entity, UIFunction uiFunction)
 	{
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
-		if (entity.HasComponent<T>())
+		if (entity->HasComponent<T>())
 		{
-			auto& component = entity.GetComponent<T>();
+			auto& component = entity->GetComponent<T>();
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
@@ -593,7 +709,7 @@ namespace Atlas
 			bool removeComponent = false;
 			if (ImGui::BeginPopup("ComponentSettings"))
 			{
-				if (ImGui::MenuItem("Remove component"))
+				if (!std::is_same<T, TransformComponent>::value && ImGui::MenuItem("Remove component"))
 				{
 					removeComponent = true;
 				}
@@ -609,7 +725,7 @@ namespace Atlas
 
 			if (removeComponent)
 			{
-				entity.RemoveComponent<T>();
+				entity->RemoveComponent<T>();
 			}
 		}
 	}
@@ -617,11 +733,11 @@ namespace Atlas
 	template<typename T>
 	void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName)
 	{
-		if (!m_SelectionContext.HasComponent<T>())
+		if (!m_SelectedEntity->HasComponent<T>())
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
-				m_SelectionContext.AddComponent<T>();
+				m_SelectedEntity->AddComponent<T>();
 				ImGui::CloseCurrentPopup();
 			}
 		}
@@ -630,7 +746,7 @@ namespace Atlas
 	template<typename T, typename T2>
 	void SceneHierarchyPanel::DisplayAddComponentEntryIfOther(const std::string& entryName)
 	{
-		if (m_SelectionContext.HasComponent<T2>())
+		if (m_SelectedEntity->HasComponent<T2>())
 		{
 			DisplayAddComponentEntry<T>(entryName);
 		}
@@ -639,7 +755,7 @@ namespace Atlas
 	template<typename T, typename T2>
 	void SceneHierarchyPanel::DisplayAddComponentEntryIfNoOther(const std::string& entryName)
 	{
-		if (!m_SelectionContext.HasComponent<T2>())
+		if (!m_SelectedEntity->HasComponent<T2>())
 		{
 			DisplayAddComponentEntry<T>(entryName);
 		}
