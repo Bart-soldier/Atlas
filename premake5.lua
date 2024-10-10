@@ -30,6 +30,7 @@ group "Dependencies"
 	include "Atlas/vendor/Glad"
 	include "Atlas/vendor/imgui"
 	include "Atlas/vendor/yaml-cpp"
+	include "Atlas/vendor/assimp"
 group ""
 
 include "Atlas"

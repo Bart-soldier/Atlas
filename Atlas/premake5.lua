@@ -52,7 +52,8 @@ project "Atlas"
 		"Glad",
 		"imgui",
 		"yaml-cpp",
-		"opengl32.lib"
+		"opengl32.lib",
+		"assimp"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -74,9 +75,7 @@ project "Atlas"
 		{
 			"%{Library.ShaderC_Debug}",
 			"%{Library.SPIRV_Cross_Debug}",
-			"%{Library.SPIRV_Cross_GLSL_Debug}",
-			"%{Library.assimp_Debug}",
-			"%{Library.assimp_zlib_Debug}"
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
 		}
 
 	filter "configurations:Release"
