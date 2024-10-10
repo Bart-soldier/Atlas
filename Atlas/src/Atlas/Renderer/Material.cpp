@@ -3,6 +3,28 @@
 
 namespace Atlas
 {
+	Material::Material()
+	{
+		SetMaterialPreset(MaterialPresets::Default);
+	}
+
+	Material::Material(const MaterialPresets& materialPreset)
+	{
+		SetMaterialPreset(materialPreset);
+	}
+
+	Material::Material(const glm::vec4& color, const glm::vec3& ambientColor, const glm::vec3& diffuseColor, const glm::vec3& specularColor, const float& shininess)
+		: m_AmbientColor(ambientColor), m_DiffuseColor(diffuseColor), m_SpecularColor(specularColor), m_Shininess(shininess)
+	{
+		m_MaterialPreset = MaterialPresets::Custom;
+	}
+
+	Material::Material(const Ref<Texture2D>& diffuseTexture, const Ref<Texture2D>& specularTexture)
+	{
+		SetDiffuseTexture(diffuseTexture);
+		SetSpecularTexture(specularTexture);
+	}
+
 	void Material::SetDiffuseTexture(const Ref<Texture2D>& diffuseTexture)
 	{
 		m_DiffuseTexture = diffuseTexture;

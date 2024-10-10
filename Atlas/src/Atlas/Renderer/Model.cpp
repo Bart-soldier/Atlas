@@ -17,14 +17,17 @@ namespace Atlas
 			return;
 		}
 
-		ProcessNode(activeScene, *modelScene->mRootNode, *modelScene);
+		std::filesystem::path modelPath = path;
+		modelPath.remove_filename();
+
+		ProcessNode(activeScene, modelPath, *modelScene->mRootNode, *modelScene);
 
 		importer.FreeScene();
 
 		return;
 	}
 
-	void Model::ProcessNode(Ref<Scene> activeScene, const aiNode& node, const aiScene& modelScene, Entity* parent)
+	void Model::ProcessNode(Ref<Scene> activeScene, const std::filesystem::path& modelPath, const aiNode& node, const aiScene& modelScene, Entity* parent)
 	{
 		Entity* nodeParent;
 
@@ -38,6 +41,7 @@ namespace Atlas
 
 				Entity* meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), nodeParent);
 				meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+				//meshEntity->AddComponent<MaterialComponent>(CreateMaterial(*mesh, modelPath, modelScene)); TODO: Fix: Memory leak?
 			}
 		}
 		else
@@ -46,13 +50,14 @@ namespace Atlas
 
 			Entity* meshEntity = activeScene->CreateEntity(mesh->mName.C_Str(), parent);
 			meshEntity->AddComponent<MeshComponent>(CreateMesh(*mesh, modelScene));
+			//meshEntity->AddComponent<MaterialComponent>(CreateMaterial(*mesh, modelPath, modelScene)); TODO: Fix: Memory leak?
 
 			nodeParent = meshEntity;
 		}
 
 		for (uint32_t childIndex = 0; childIndex < node.mNumChildren; childIndex++)
 		{
-			ProcessNode(activeScene, *node.mChildren[childIndex], modelScene, nodeParent);
+			ProcessNode(activeScene, modelPath, *node.mChildren[childIndex], modelScene, nodeParent);
 		}
 	}
 
@@ -84,21 +89,33 @@ namespace Atlas
 			}
 		}
 
-		//if (mesh.mMaterialIndex > 0)
-		//{
-		//	aiMaterial* material = modelScene.mMaterials[mesh.mMaterialIndex];
-		//	aiString path;
-		//	material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-		//	s_ModelData.DiffuseTextures.push_back(Texture2D::Create(s_ModelData.Path / path.C_Str()));
-		//	material->GetTexture(aiTextureType_SPECULAR, 0, &path);
-		//	s_ModelData.SpecularTextures.push_back(Texture2D::Create(s_ModelData.Path / path.C_Str()));
-		//}
-		//else
-		//{
-		//	s_ModelData.DiffuseTextures.push_back(nullptr);
-		//	s_ModelData.SpecularTextures.push_back(nullptr);
-		//}
-
 		return CreateRef<Mesh>(vertices, indices);
+	}
+	Ref<Material> Model::CreateMaterial(const aiMesh& mesh, const std::filesystem::path& modelPath, const aiScene& modelScene)
+	{
+		Ref<Texture2D> diffuseTexture = nullptr;
+		Ref<Texture2D> specularTexture = nullptr;
+
+		if (mesh.mMaterialIndex > 0)
+		{
+			aiMaterial* material = modelScene.mMaterials[mesh.mMaterialIndex];
+			aiString path;
+
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+			diffuseTexture = Texture2D::Create(modelPath / path.C_Str());
+			if (!diffuseTexture->IsLoaded())
+			{
+				diffuseTexture = nullptr;
+			}
+
+			material->GetTexture(aiTextureType_SPECULAR, 0, &path);
+			specularTexture = Texture2D::Create(modelPath / path.C_Str());
+			if (!specularTexture->IsLoaded())
+			{
+				specularTexture = nullptr;
+			}
+		}
+
+		return CreateRef<Material>(diffuseTexture, specularTexture);
 	}
 }

@@ -39,10 +39,10 @@ namespace Atlas
 			Rubber_Yellow  = 25,
 		};
 
-		Material() { SetMaterialPreset(MaterialPresets::Default); }
-		Material(const MaterialPresets& materialPreset) { SetMaterialPreset(materialPreset); }
-		Material(const glm::vec4& color, const glm::vec3& ambientColor, const glm::vec3& diffuseColor, const glm::vec3& specularColor, const float& shininess)
-			: m_AmbientColor(ambientColor), m_DiffuseColor(diffuseColor), m_SpecularColor(specularColor), m_Shininess(shininess) {}
+		Material();
+		Material(const MaterialPresets& materialPreset);
+		Material(const glm::vec4& color, const glm::vec3& ambientColor, const glm::vec3& diffuseColor, const glm::vec3& specularColor, const float& shininess);
+		Material(const Ref<Texture2D>& diffuseTexture, const Ref<Texture2D>& specularTexture);
 
 		virtual ~Material() = default;
 
@@ -66,14 +66,14 @@ namespace Atlas
 		const MaterialPresets& GetMaterialPreset() { return m_MaterialPreset; }
 
 	private:
-		MaterialPresets m_MaterialPreset = MaterialPresets::Custom;
+		MaterialPresets m_MaterialPreset = MaterialPresets::Default;
 
-		glm::vec3 m_AmbientColor;
-		glm::vec3 m_DiffuseColor;
-		glm::vec3 m_SpecularColor;
-		float m_Shininess;
+		glm::vec3 m_AmbientColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		glm::vec3 m_DiffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		glm::vec3 m_SpecularColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		float m_Shininess = 0.25f;
 
-		Ref<Texture2D> m_DiffuseTexture;
-		Ref<Texture2D> m_SpecularTexture;
+		Ref<Texture2D> m_DiffuseTexture = nullptr;
+		Ref<Texture2D> m_SpecularTexture = nullptr;
 	};
 }
