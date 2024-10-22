@@ -16,6 +16,9 @@ namespace Atlas
 		void OnImGuiRender();
 
 	private:
+		void DrawPrimaryCamera();
+		void DrawSkybox();
+
 		Ref<Scene> m_Context;
 	};
 }

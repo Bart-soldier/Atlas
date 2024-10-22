@@ -3,6 +3,7 @@
 #include "Atlas/Renderer/RenderCommand.h"
 #include "Atlas/Renderer/Texture.h"
 #include "Atlas/Renderer/SubTexture2D.h"
+#include "Atlas/Renderer/Cubemap.h"
 #include "Atlas/Renderer/Camera.h"
 #include "Atlas/Renderer/EditorCamera.h"
 
@@ -81,6 +82,9 @@ namespace Atlas
 		static void DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID);
 		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
 
+		static void DrawSkybox(const Ref<Cubemap>& skybox, const Camera& camera, const TransformComponent& cameraTransform);
+		static void DrawSkybox(const Ref<Cubemap>& skybox, const EditorCamera& camera);
+
 		// Stats
 		struct Statistics
 		{
@@ -97,11 +101,20 @@ namespace Atlas
 		static Statistics GetStats();
 
 	private:
-		static void SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights);
+		static void InitArrays();
+		static void InitSkybox();
+		static void InitTexture();
+		static void InitShaders();
+		static void InitBuffers();
+
+		static void SetUniformBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition);
+		static void SetStorageBuffers(const std::vector<LightData>& lights);
 		static void EnsureLightStorageBufferCapacity(uint32_t capacity);
 		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
 		static void Flush();
+
+		static void DrawSkybox(const Ref<Cubemap>& skybox);
 	};
 }

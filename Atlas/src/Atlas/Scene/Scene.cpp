@@ -46,12 +46,14 @@ namespace Atlas
 	{
 		m_Name = "Untitled Scene";
 		m_Lights.reserve(Renderer::GetLightStorageBufferCapacity());
+		m_Skybox = Cubemap::Create();
 	}
 
 	Scene::Scene(std::string name)
 		: m_Name(name)
 	{
 		m_Lights.reserve(Renderer::GetLightStorageBufferCapacity());
+		m_Skybox = Cubemap::Create();
 	}
 
 	Scene::~Scene()
@@ -102,6 +104,7 @@ namespace Atlas
 		Ref<Scene> newScene = CreateRef<Scene>();
 
 		newScene->m_Name = other->m_Name;
+		newScene->m_Skybox = other->m_Skybox;
 
 		newScene->m_ViewportWidth = other->m_ViewportWidth;
 		newScene->m_ViewportHeight = other->m_ViewportHeight;
@@ -163,6 +166,8 @@ namespace Atlas
 			DrawScene(cameraTransform.Translation, false, nullptr);
 			Renderer::EndScene();
 
+			Renderer::DrawSkybox(m_Skybox, camera, cameraTransform);
+
 			ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
 		}
 	}
@@ -170,9 +175,12 @@ namespace Atlas
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity* selectedEntity)
 	{
 		UpdateLights();
+
 		Renderer::BeginScene(camera, m_Lights);
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
+
+		Renderer::DrawSkybox(m_Skybox, camera);
 
 		if (camera.IsPostProcessEnabled())
 		{

@@ -6,6 +6,7 @@
 #include "Atlas/Renderer/Renderer.h"
 #include "Atlas/Renderer/EditorCamera.h"
 #include "Atlas/Renderer/Light.h"
+#include "Atlas/Renderer/Cubemap.h"
 
 #include "Atlas/Scene/Components.h"
 
@@ -75,10 +76,12 @@ namespace Atlas
 		uint32_t m_ViewportWidth = 0;
 		uint32_t m_ViewportHeight = 0;
 		std::vector<Renderer::LightData> m_Lights;
+		Ref<Cubemap> m_Skybox;
 
 		friend class Entity;
 		friend class SceneSerializer;
 		friend class SceneHierarchyPanel;
+		friend class SceneSettingsPanel;
 	};
 }
 
