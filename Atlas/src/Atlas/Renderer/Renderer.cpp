@@ -125,6 +125,13 @@ namespace Atlas
 		SimpleVertex* MeshOutlineVertexBufferBase = nullptr;
 		uint32_t* MeshOutlineIndexBufferBase = nullptr;
 
+		// Skybox
+		Ref<VertexArray> SkyboxVertexArray;
+		Ref<Shader> SkyboxShader;
+
+		uint32_t SkyboxVertexCount = 24;
+		uint32_t SkyboxIndexCount = 36;
+
 		// Textures
 		Ref<Texture2D> WhiteTexture;
 		std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
@@ -158,6 +165,15 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		InitArrays();
+		InitSkybox();
+		InitTexture();
+		InitShaders();
+		InitBuffers();
+	}
+
+	void Renderer::InitArrays()
+	{
 		FramebufferSpecification fbSpec;
 		// Color, EntityID, PostProcessing, Depth
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
@@ -182,8 +198,8 @@ namespace Atlas
 		s_RendererData.QuadVertexBufferBase = new QuadVertex[s_RendererData.MaxQuadVertices];
 
 		s_RendererData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-		s_RendererData.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
-		s_RendererData.QuadVertexPositions[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
+		s_RendererData.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
+		s_RendererData.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
 		s_RendererData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		// Quad IBO / EBO
@@ -279,23 +295,124 @@ namespace Atlas
 		s_RendererData.MeshOutlineIndexBuffer = IndexBuffer::Create(s_RendererData.MaxIndices * sizeof(uint32_t));
 		s_RendererData.MeshOutlineVertexArray->SetIndexBuffer(s_RendererData.MeshOutlineIndexBuffer);
 		s_RendererData.MeshOutlineIndexBufferBase = new uint32_t[s_RendererData.MaxIndices];
+	}
 
-		// Textures
+	void Renderer::InitSkybox()
+	{
+		// Skybox VAO
+		s_RendererData.SkyboxVertexArray = VertexArray::Create();
+		glm::vec3* skyboxVertices = new glm::vec3[s_RendererData.SkyboxVertexCount];
+		uint32_t* skyboxIndices = new uint32_t[s_RendererData.SkyboxIndexCount];
+
+		// Back face
+		skyboxVertices[0] = { -1.0f, -1.0f, -1.0f }; // 0: Bottom-left
+		skyboxVertices[1] = {  1.0f,  1.0f, -1.0f }; // 1: Top-right
+		skyboxVertices[2] = {  1.0f, -1.0f, -1.0f }; // 2: Bottom-right
+		skyboxVertices[3] = { -1.0f,  1.0f, -1.0f }; // 3: Top-left
+		skyboxIndices[0] = 0;
+		skyboxIndices[1] = 1;
+		skyboxIndices[2] = 2;
+		skyboxIndices[3] = 3;
+		skyboxIndices[4] = 1;
+		skyboxIndices[5] = 0;
+
+		// Front face
+		skyboxVertices[4] = { -1.0f, -1.0f,  1.0f }; // 0: Bottom-left
+		skyboxVertices[5] = {  1.0f,  1.0f,  1.0f }; // 1: Top-right
+		skyboxVertices[6] = {  1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		skyboxVertices[7] = { -1.0f,  1.0f,  1.0f }; // 3: Top-left
+		skyboxIndices[6] = 4;
+		skyboxIndices[7] = 6;
+		skyboxIndices[8] = 5;
+		skyboxIndices[9] = 7;
+		skyboxIndices[10] = 4;
+		skyboxIndices[11] = 5;
+
+		// Left face
+		skyboxVertices[8]  = { -1.0f, -1.0f, -1.0f }; // 0: Bottom-left
+		skyboxVertices[9]  = { -1.0f,  1.0f,  1.0f }; // 1: Top-right
+		skyboxVertices[10] = { -1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		skyboxVertices[11] = { -1.0f,  1.0f, -1.0f }; // 3: Top-left
+		skyboxIndices[12] = 8;
+		skyboxIndices[13] = 10;
+		skyboxIndices[14] = 9;
+		skyboxIndices[15] = 11;
+		skyboxIndices[16] = 8;
+		skyboxIndices[17] = 9;
+
+		// Right face
+		skyboxVertices[12] = { 1.0f, -1.0f, -1.0f }; // 0: Bottom-left
+		skyboxVertices[13] = { 1.0f,  1.0f,  1.0f }; // 1: Top-right
+		skyboxVertices[14] = { 1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		skyboxVertices[15] = { 1.0f,  1.0f, -1.0f }; // 3: Top-left
+		skyboxIndices[18] = 12;
+		skyboxIndices[19] = 13;
+		skyboxIndices[20] = 14;
+		skyboxIndices[21] = 15;
+		skyboxIndices[22] = 13;
+		skyboxIndices[23] = 12;
+
+		// Bottom face
+		skyboxVertices[16] = {  1.0f, -1.0f,  1.0f }; // 0: Bottom-left
+		skyboxVertices[17] = { -1.0f, -1.0f, -1.0f }; // 1: Top-right
+		skyboxVertices[18] = { -1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		skyboxVertices[19] = {  1.0f, -1.0f, -1.0f }; // 3: Top-left
+		skyboxIndices[24] = 16;
+		skyboxIndices[25] = 18;
+		skyboxIndices[26] = 17;
+		skyboxIndices[27] = 19;
+		skyboxIndices[28] = 16;
+		skyboxIndices[29] = 17;
+
+		// Top face
+		skyboxVertices[20] = {  1.0f, 1.0f,  1.0f }; // 0: Bottom-left
+		skyboxVertices[21] = { -1.0f, 1.0f, -1.0f }; // 1: Top-right
+		skyboxVertices[22] = { -1.0f, 1.0f,  1.0f }; // 2: Bottom-right
+		skyboxVertices[23] = {  1.0f, 1.0f, -1.0f }; // 3: Top-left
+		skyboxIndices[30] = 20;
+		skyboxIndices[31] = 21;
+		skyboxIndices[32] = 22;
+		skyboxIndices[33] = 23;
+		skyboxIndices[34] = 21;
+		skyboxIndices[35] = 20;
+
+		// Skybox VBO
+		Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices, s_RendererData.SkyboxVertexCount * sizeof(glm::vec3));
+		skyboxVertexBuffer->SetLayout({
+			{ ShaderDataType::Float3, "a_Position" }
+		});
+		s_RendererData.SkyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
+		delete[] skyboxVertices;
+
+		// Skybox IBO / EBO
+		Ref<IndexBuffer> skyboxIndexBuffer = IndexBuffer::Create(skyboxIndices, s_RendererData.SkyboxIndexCount * sizeof(uint32_t));
+		s_RendererData.SkyboxVertexArray->SetIndexBuffer(skyboxIndexBuffer);
+		delete[] skyboxIndices;
+	}
+
+	void Renderer::InitTexture()
+	{
 		TextureSpecification whiteTextureSpecification = TextureSpecification();
 		whiteTextureSpecification.GenerateMips = false;
 		s_RendererData.WhiteTexture = Texture2D::Create(whiteTextureSpecification);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_RendererData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 		s_RendererData.TextureSlots[0] = s_RendererData.WhiteTexture;
+	}
 
-		// Shaders
-		s_RendererData.QuadShader    = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
-		s_RendererData.CircleShader  = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
-		s_RendererData.LineShader    = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		s_RendererData.MeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		//s_RendererData.MeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+	void Renderer::InitShaders()
+	{
+		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
+		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
+		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
+		//s_RendererData.MeshShader      = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
-	
+		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
+	}
+
+	void Renderer::InitBuffers()
+	{
 		// Uniform buffers
 		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
 		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 1);
@@ -408,7 +525,8 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformAndStorageBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f), lights);
+		SetUniformBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
+		SetStorageBuffers(lights);
 
 		StartBatch();
 	}
@@ -417,18 +535,21 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformAndStorageBuffers(camera.GetViewProjection(), glm::vec4(camera.GetPosition(), 1.0f), lights);
+		SetUniformBuffers(camera.GetViewProjection(), glm::vec4(camera.GetPosition(), 1.0f));
+		SetStorageBuffers(lights);
 
 		StartBatch();
 	}
 
-	void Renderer::SetUniformAndStorageBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition, const std::vector<LightData>& lights)
+	void Renderer::SetUniformBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition)
 	{
-		// Uniform buffers
 		s_RendererData.CameraBuffer.ViewProjection = cameraViewProjection;
 		s_RendererData.CameraBuffer.Position = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
+	}
 
+	void Renderer::SetStorageBuffers(const std::vector<LightData>& lights)
+	{
 		s_RendererData.LightCountBuffer = lights.size();
 		s_RendererData.LightCountUniformBuffer->SetData(&s_RendererData.LightCountBuffer, sizeof(uint32_t));
 
@@ -1009,5 +1130,38 @@ namespace Atlas
 		}
 
 		s_RendererData.Stats.SelectionCount++;
+	}
+
+	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox, const Camera& camera, const TransformComponent& cameraTransform)
+	{
+		SetUniformBuffers(camera.GetProjection() * glm::mat4(glm::mat3(glm::inverse(cameraTransform.GetTransform()))), glm::vec4(cameraTransform.Translation, 1.0f));
+
+		DrawSkybox(skybox);
+	}
+
+	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox, const EditorCamera& camera)
+	{
+		SetUniformBuffers(camera.GetProjection() * glm::mat4(glm::mat3(camera.GetViewMatrix())), glm::vec4(camera.GetPosition(), 1.0f));
+
+		DrawSkybox(skybox);
+	}
+
+	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
+	{
+		//RenderCommand::DisableDepthTest();
+		//DisableStencilWriting();
+
+		// Cubemap
+		skybox->Bind();
+
+		// Shader
+		s_RendererData.SkyboxShader->Bind();
+
+		// Draw
+		RenderCommand::DrawIndexed(s_RendererData.SkyboxVertexArray, s_RendererData.SkyboxIndexCount);
+		s_RendererData.Stats.DrawCalls++;
+
+		//RenderCommand::EnableDepthTest();
+		//EnableStencilWriting();
 	}
 }
