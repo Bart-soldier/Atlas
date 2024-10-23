@@ -182,7 +182,7 @@ namespace Atlas
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
 
-		Renderer::DrawSkybox(m_Skybox, camera);
+		//Renderer::DrawSkybox(m_Skybox, camera);
 
 		if (camera.IsPostProcessEnabled())
 		{
@@ -192,7 +192,7 @@ namespace Atlas
 			}
 		}
 
-		//ApplyGammaCorrection();
+		ApplyGammaCorrection();
 	}
 
 	void Scene::ApplyGammaCorrection()

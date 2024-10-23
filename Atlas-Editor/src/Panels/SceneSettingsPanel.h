@@ -18,7 +18,9 @@ namespace Atlas
 	private:
 		void DrawPrimaryCamera();
 		void DrawSkybox();
+		void DrawGraphicsSettings();
 
 		Ref<Scene> m_Context;
+		bool m_GammaCorrection = true;
 	};
 }
