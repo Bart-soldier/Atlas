@@ -777,7 +777,7 @@ namespace Atlas
 		{
 			for (int i = 0; i < postProcessor->Effects.size(); i++)
 			{
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], postProcessor->KernelOffsets[i]);
+				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
 			}
 		}
 	}

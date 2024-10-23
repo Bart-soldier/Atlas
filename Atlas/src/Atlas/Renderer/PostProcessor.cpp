@@ -21,7 +21,9 @@ namespace Atlas
 		static const uint32_t RenderIndices  = 6;
 		Ref<VertexArray> RenderVertexArray;
 
-		Ref<UniformBuffer> KernelOffsetUniformBuffer;
+		// Post Processing Settings
+		PostProcessor::Settings SettingsBuffer;
+		Ref<UniformBuffer> SettingsUniformBuffer;
 
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
@@ -72,7 +74,7 @@ namespace Atlas
 		s_PostProcessorData.RenderVertexArray->SetIndexBuffer(indexBuffer);
 
 		// Uniform Buffers
-		s_PostProcessorData.KernelOffsetUniformBuffer = UniformBuffer::Create(sizeof(float), 3);
+		s_PostProcessorData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
 
 		// Shaders
 		s_PostProcessorData.InversionShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"      );
@@ -83,9 +85,12 @@ namespace Atlas
 		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
 	}
 
-	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const float& kernelOffset)
+	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
 	{
 		ATLAS_PROFILE_FUNCTION();
+
+		s_PostProcessorData.SettingsBuffer.Strength     = settings.Strength;
+		s_PostProcessorData.SettingsBuffer.KernelOffset = settings.KernelOffset;
 
 		switch (effect)
 		{
@@ -112,7 +117,7 @@ namespace Atlas
 			break;
 		}
 
-		s_PostProcessorData.KernelOffsetUniformBuffer->SetData(&kernelOffset, sizeof(float));
+		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
 
 		RenderCommand::BindTextureSlot(0, renderID);
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
