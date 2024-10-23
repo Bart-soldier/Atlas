@@ -72,9 +72,16 @@ vec3 CalculateDiffuseLight(vec3 lightColor, float lightDiffuseStrength, vec3 lig
 
 vec3 CalculateSpecularLight(vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal)
 {
-	vec3 viewDirection       = normalize(u_CameraPosition.xyz - VertexInput.Position);
-	vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);
-	float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128); // TODO: Fix Shininess == 0
+	vec3 viewDirection  = normalize(u_CameraPosition.xyz - VertexInput.Position);
+	
+	/* --- Phong Specular Lighting  --- */ 
+	//vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);
+	//float specularFactor     = pow(max(dot(viewDirection, reflectionDirection), 0.0), VertexInput.Shininess == 0 ? 1 : VertexInput.Shininess * 128); // TODO: Fix Shininess == 0
+
+	/* --- Blinn-Phong Specular Lighting  --- */
+	vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+	float specularFactor  = pow(max(dot(vertexNormal, halfwayDirection), 0.0), VertexInput.Shininess * 128);
+
 	return lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor);
 }
 
