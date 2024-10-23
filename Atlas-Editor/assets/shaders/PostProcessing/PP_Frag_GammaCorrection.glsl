@@ -5,16 +5,16 @@
 
 #version 450 core
 
-layout(location = 2) out vec4 o_Color;
+layout (location = 0) in vec2 v_TexCoords;
 
-layout(location = 0) in vec2 v_TexCoords;
-
-layout(binding = 0) uniform sampler2D u_screenTexture;
+layout (binding = 0) uniform sampler2D u_screenTexture;
 
 layout (std140, binding = 3) uniform KernelOffset
 {
 	float u_Gamma;
 };
+
+layout (location = 2) out vec4 o_Color;
 
 void main()
 {
