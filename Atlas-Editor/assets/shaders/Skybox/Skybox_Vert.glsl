@@ -7,10 +7,10 @@
 
 layout (location = 0) in vec3 a_Position;
 
-layout(std140, binding = 0) uniform Camera
+layout (std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
-	vec3 u_CameraPosition;
+	vec4 u_CameraPosition;
 };
 
 layout (location = 0) out vec3 v_TexCoords;
