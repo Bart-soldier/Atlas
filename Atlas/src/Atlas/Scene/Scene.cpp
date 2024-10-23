@@ -182,7 +182,7 @@ namespace Atlas
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
 
-		Renderer::DrawSkybox(m_Skybox);
+		//Renderer::DrawSkybox(m_Skybox); TODO: Fix: not working with post processing
 
 		Renderer::BeginPostProcessing();
 		if (camera.IsPostProcessEnabled())
