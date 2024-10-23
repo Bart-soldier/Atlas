@@ -753,6 +753,31 @@ namespace Atlas
 		StartBatch();
 	}
 
+	void Renderer::BeginPostProcessing()
+	{
+		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+		RenderCommand::DisableDepthTest();
+	}
+
+	void Renderer::EndPostProcessing()
+	{
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+	}
+
+	void Renderer::DrawPostProcessing(PostProcessorComponent* postProcessor)
+	{
+		if (postProcessor)
+		{
+			for (int i = 0; i < postProcessor->Effects.size(); i++)
+			{
+				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], postProcessor->KernelOffsets[i]);
+			}
+		}
+	}
+
 	/* --------------- COLOR VERSION --------------- */
 
 	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)

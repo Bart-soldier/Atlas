@@ -168,9 +168,9 @@ namespace Atlas
 
 			Renderer::DrawSkybox(m_Skybox, camera, cameraTransform);
 
-			ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
-
-			ApplyGammaCorrection();
+			Renderer::BeginPostProcessing();
+			Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+			Renderer::EndPostProcessing();
 		}
 	}
 
@@ -182,41 +182,17 @@ namespace Atlas
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
 
-		//Renderer::DrawSkybox(m_Skybox, camera);
+		Renderer::DrawSkybox(m_Skybox, camera);
 
+		Renderer::BeginPostProcessing();
 		if (camera.IsPostProcessEnabled())
 		{
 			if (m_PrimaryCamera)
 			{
-				ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+				Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
 			}
 		}
-
-		ApplyGammaCorrection();
-	}
-
-	void Scene::ApplyGammaCorrection()
-	{
-		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-		RenderCommand::DisableDepthTest();
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma()); // TODO: Tweakable?
-		RenderCommand::EnableDepthTest();
-		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-	}
-
-	void Scene::ApplyPostProcessing(PostProcessorComponent* postProcessor)
-	{
-		if (postProcessor)
-		{
-			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-			RenderCommand::DisableDepthTest();
-			for (int i = 0; i < postProcessor->Effects.size(); i++)
-			{
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], postProcessor->KernelOffsets[i]);
-			}
-			RenderCommand::EnableDepthTest();
-			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-		}
+		Renderer::EndPostProcessing();
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
