@@ -1,6 +1,8 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/Renderer.h"
 
+#include <Atlas/Core/Application.h>
+
 #include "Atlas/Renderer/Framebuffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
@@ -187,8 +189,9 @@ namespace Atlas
 		FramebufferSpecification fbSpec;
 		// Color, EntityID, PostProcessing, Depth
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::Depth };
-		fbSpec.Width = 1280;
-		fbSpec.Height = 720;
+		Application& app = Application::Get();
+		fbSpec.Width = app.GetWindow().GetWidth();
+		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.Framebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
