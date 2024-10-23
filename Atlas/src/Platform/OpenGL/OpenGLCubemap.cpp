@@ -9,7 +9,6 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID);
 		glGenTextures(1, &m_RendererID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 

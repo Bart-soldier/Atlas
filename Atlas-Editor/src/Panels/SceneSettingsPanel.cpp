@@ -49,6 +49,14 @@ namespace Atlas
 			ImGui::TreePop();
 		}
 
+		sectionName = "Graphics Settings";
+		open = ImGui::TreeNodeEx(sectionName.c_str(), treeNodeFlags);
+		if (open)
+		{
+			DrawGraphicsSettings();
+			ImGui::TreePop();
+		}
+
 		ImGui::End();
 	}
 
@@ -130,13 +138,16 @@ namespace Atlas
 					m_Context->m_Skybox->SetFace((CubemapFace)i, nullptr);
 				}
 
-				//if (m_Context->m_SkyBox[i] == nullptr)
-				//{
-				//	ImGuiUtils::ColorEdit3("Color", *glm::value_ptr(m_Context->m_SkyBoxColors[i]));
-				//}
-
 				ImGui::TreePop();
 			}
+		}
+	}
+
+	void SceneSettingsPanel::DrawGraphicsSettings()
+	{
+		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))
+		{
+			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);
 		}
 	}
 }

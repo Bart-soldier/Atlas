@@ -166,9 +166,11 @@ namespace Atlas
 			DrawScene(cameraTransform.Translation, false, nullptr);
 			Renderer::EndScene();
 
-			Renderer::DrawSkybox(m_Skybox, camera, cameraTransform);
+			Renderer::DrawSkybox(m_Skybox);
 
-			ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+			Renderer::BeginPostProcessing();
+			Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+			Renderer::EndPostProcessing();
 		}
 	}
 
@@ -180,30 +182,17 @@ namespace Atlas
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
 
-		Renderer::DrawSkybox(m_Skybox, camera);
+		//Renderer::DrawSkybox(m_Skybox); TODO: Fix: not working with post processing
 
+		Renderer::BeginPostProcessing();
 		if (camera.IsPostProcessEnabled())
 		{
 			if (m_PrimaryCamera)
 			{
-				ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+				Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
 			}
 		}
-	}
-
-	void Scene::ApplyPostProcessing(PostProcessorComponent* postProcessor)
-	{
-		if (postProcessor)
-		{
-			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
-			RenderCommand::DisableDepthTest();
-			for (int i = 0; i < postProcessor->Effects.size(); i++)
-			{
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], postProcessor->KernelOffsets[i]);
-			}
-			RenderCommand::EnableDepthTest();
-			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-		}
+		Renderer::EndPostProcessing();
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)

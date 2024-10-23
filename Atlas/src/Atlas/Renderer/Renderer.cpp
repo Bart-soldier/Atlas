@@ -1,6 +1,8 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/Renderer.h"
 
+#include <Atlas/Core/Application.h>
+
 #include "Atlas/Renderer/Framebuffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
@@ -27,7 +29,7 @@ namespace Atlas
 		glm::vec3 Position;
 		glm::vec4 Color;
 		glm::vec2 TexCoord;
-		int TexIndex;
+		uint32_t TexIndex;
 		float TilingFactor;
 
 		// Editor-only
@@ -141,6 +143,8 @@ namespace Atlas
 		struct CameraData
 		{
 			glm::mat4 ViewProjection;
+			glm::mat4 Projection;
+			glm::mat4 View;
 			glm::vec4 Position;
 		};
 		CameraData CameraBuffer;
@@ -153,6 +157,14 @@ namespace Atlas
 		// Storage buffers
 		uint32_t LightStorageBufferCapacity = 100;
 		Ref<StorageBuffer> LightStorageBuffer;
+
+		// Graphics Settings
+		struct Settings
+		{
+			float Gamma = 2.2f;
+		};
+		Settings SettingsBuffer;
+		Ref<UniformBuffer> SettingsUniformBuffer;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -176,9 +188,10 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
-		fbSpec.Width = 1280;
-		fbSpec.Height = 720;
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::Depth };
+		Application& app = Application::Get();
+		fbSpec.Width = app.GetWindow().GetWidth();
+		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.Framebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
@@ -190,7 +203,7 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
 			{ ShaderDataType::Float2, "a_TexCoord"     },
-			{ ShaderDataType::Int,    "a_TexIndex"     },
+			{ ShaderDataType::UInt,   "a_TexIndex"     },
 			{ ShaderDataType::Float,  "a_TilingFactor" },
 			{ ShaderDataType::Int,    "a_EntityID"     }
 		});
@@ -414,11 +427,12 @@ namespace Atlas
 	void Renderer::InitBuffers()
 	{
 		// Uniform buffers
-		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
-		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 1);
+		s_RendererData.SettingsUniformBuffer   = UniformBuffer::Create(sizeof(RendererData::Settings),   0);
+		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 1);
+		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 2);
 
 		// Storage buffers
-		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 2);
+		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 0);
 	}
 
 	void Renderer::Shutdown()
@@ -463,6 +477,16 @@ namespace Atlas
 	{
 		s_RendererData.PolygonMode = polygonMode;
 		RenderCommand::SetPolygonMode(polygonMode);
+	}
+
+	const float& Renderer::GetGamma()
+	{
+		return s_RendererData.SettingsBuffer.Gamma;
+	}
+
+	void Renderer::SetGamma(float gamma)
+	{
+		s_RendererData.SettingsBuffer.Gamma = gamma;
 	}
 
 	void Renderer::BeginRenderPass()
@@ -525,7 +549,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
+		SetUniformBuffers(camera.GetProjection(), glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
 		SetStorageBuffers(lights);
 
 		StartBatch();
@@ -535,17 +559,21 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetViewProjection(), glm::vec4(camera.GetPosition(), 1.0f));
+		SetUniformBuffers(camera.GetProjection(), camera.GetViewMatrix(), glm::vec4(camera.GetPosition(), 1.0f));
 		SetStorageBuffers(lights);
 
 		StartBatch();
 	}
 
-	void Renderer::SetUniformBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition)
+	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition)
 	{
-		s_RendererData.CameraBuffer.ViewProjection = cameraViewProjection;
-		s_RendererData.CameraBuffer.Position = cameraPosition;
+		s_RendererData.CameraBuffer.ViewProjection = cameraProjection * cameraView;
+		s_RendererData.CameraBuffer.Projection     = cameraProjection;
+		s_RendererData.CameraBuffer.View           = cameraView;
+		s_RendererData.CameraBuffer.Position       = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
+
+		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
 	}
 
 	void Renderer::SetStorageBuffers(const std::vector<LightData>& lights)
@@ -568,9 +596,9 @@ namespace Atlas
 		s_RendererData.LightStorageBuffer->SetSize(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity);
 	}
 
-	int Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
+	uint32_t Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
 	{
-		int textureIndex = 0;
+		uint32_t textureIndex = 0;
 
 		if (texture == nullptr)
 		{
@@ -732,6 +760,31 @@ namespace Atlas
 		StartBatch();
 	}
 
+	void Renderer::BeginPostProcessing()
+	{
+		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+		RenderCommand::DisableDepthTest();
+	}
+
+	void Renderer::EndPostProcessing()
+	{
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+	}
+
+	void Renderer::DrawPostProcessing(PostProcessorComponent* postProcessor)
+	{
+		if (postProcessor)
+		{
+			for (int i = 0; i < postProcessor->Effects.size(); i++)
+			{
+				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+			}
+		}
+	}
+
 	/* --------------- COLOR VERSION --------------- */
 
 	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
@@ -771,7 +824,7 @@ namespace Atlas
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr size_t quadIndexCount  = 6;
-		const int textureIndex = 0; // White Texture
+		const uint32_t textureIndex = 0; // White Texture
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
@@ -851,7 +904,7 @@ namespace Atlas
 			NextBatch();
 		}
 
-		int textureIndex = EnsureTextureSlot(texture);
+		uint32_t textureIndex = EnsureTextureSlot(texture);
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -919,7 +972,7 @@ namespace Atlas
 			NextBatch();
 		}
 
-		int textureIndex = EnsureTextureSlot(texture);
+		uint32_t textureIndex = EnsureTextureSlot(texture);
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -1061,8 +1114,8 @@ namespace Atlas
 
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
-		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
+		uint32_t diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
+		uint32_t specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
 
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
@@ -1132,25 +1185,8 @@ namespace Atlas
 		s_RendererData.Stats.SelectionCount++;
 	}
 
-	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox, const Camera& camera, const TransformComponent& cameraTransform)
-	{
-		SetUniformBuffers(camera.GetProjection() * glm::mat4(glm::mat3(glm::inverse(cameraTransform.GetTransform()))), glm::vec4(cameraTransform.Translation, 1.0f));
-
-		DrawSkybox(skybox);
-	}
-
-	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox, const EditorCamera& camera)
-	{
-		SetUniformBuffers(camera.GetProjection() * glm::mat4(glm::mat3(camera.GetViewMatrix())), glm::vec4(camera.GetPosition(), 1.0f));
-
-		DrawSkybox(skybox);
-	}
-
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
 	{
-		//RenderCommand::DisableDepthTest();
-		//DisableStencilWriting();
-
 		// Cubemap
 		skybox->Bind();
 
@@ -1160,8 +1196,5 @@ namespace Atlas
 		// Draw
 		RenderCommand::DrawIndexed(s_RendererData.SkyboxVertexArray, s_RendererData.SkyboxIndexCount);
 		s_RendererData.Stats.DrawCalls++;
-
-		//RenderCommand::EnableDepthTest();
-		//EnableStencilWriting();
 	}
 }

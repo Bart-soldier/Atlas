@@ -10,9 +10,12 @@ layout (location = 0) in vec3 a_Position;
 layout (location = 1) in vec4 a_Color;
 layout (location = 2) in int a_EntityID;
 
-layout (std140, binding = 0) uniform Camera
+layout (std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
+	mat4 u_Projection;
+	mat4 u_View;
+	vec4 u_CameraPosition;
 };
 
 struct VertexOutput
@@ -46,9 +49,14 @@ struct VertexOutput
 layout (location = 0) in VertexOutput Input;
 layout (location = 1) in flat int v_EntityID;
 
+layout (std140, binding = 0) uniform Settings
+{
+	float u_Gamma;
+};
+
 void main()
 {
-	o_Color            = Input.Color;
+	o_Color            = vec4(pow(Input.Color.rgb, vec3(u_Gamma)), Input.Color.a);
 	o_EntityID         = v_EntityID;
 	o_PostProcessColor = o_Color;
 }

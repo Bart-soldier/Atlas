@@ -10,6 +10,7 @@ namespace Atlas
 
 		// Color
 		RGBA8,
+		RGBA16,
 		RED_INTEGER,
 
 		// Depth/stencil

@@ -1,6 +1,6 @@
 //--------------------------
 // - Atlas Post-Processing -
-// Inversion Fragment Shader
+// Gamma Correction Fragment Shader
 // --------------------------
 
 #version 450 core
@@ -19,5 +19,7 @@ layout (location = 2) out vec4 o_Color;
 
 void main()
 {
-	o_Color = vec4(vec3(1.0 - texture(u_screenTexture, v_TexCoords)), 1.0);
+    vec4 color = texture(u_screenTexture, v_TexCoords);
+
+	o_Color = vec4(pow(color.rgb, vec3(1.0/u_Strength)), color.a);
 }

@@ -9,13 +9,16 @@
 layout (location = 0) in vec3  a_Position;
 layout (location = 1) in vec4  a_Color;
 layout (location = 2) in vec2  a_TexCoord;
-layout (location = 3) in int   a_TexIndex;
+layout (location = 3) in uint  a_TexIndex;
 layout (location = 4) in float a_TilingFactor;
 layout (location = 5) in int   a_EntityID;
 
-layout (std140, binding = 0) uniform Camera
+layout (std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
+	mat4 u_Projection;
+	mat4 u_View;
+	vec4 u_CameraPosition;
 };
 
 struct VertexOutput
@@ -26,7 +29,7 @@ struct VertexOutput
 };
 
 layout (location = 0) out VertexOutput Output;
-layout (location = 3) out flat int     v_TexIndex;
+layout (location = 3) out flat uint    v_TexIndex;
 layout (location = 4) out flat int     v_EntityID;
 
 void main()
@@ -55,8 +58,13 @@ struct VertexOutput
 };
 
 layout (location = 0) in VertexOutput Input;
-layout (location = 3) in flat int     v_TexIndex;
+layout (location = 3) in flat uint    v_TexIndex;
 layout (location = 4) in flat int     v_EntityID;
+
+layout (std140, binding = 0) uniform Settings
+{
+	float u_Gamma;
+};
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -98,14 +106,14 @@ void main()
 		case 29: texColor *= texture(u_Textures[29], Input.TexCoord * Input.TilingFactor); break;
 		case 30: texColor *= texture(u_Textures[30], Input.TexCoord * Input.TilingFactor); break;
 		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
-		}
+	}
 
 	if (texColor.a == 0.0)
 	{
 		discard;
 	}
 
-	o_Color            = texColor;
+	o_Color            = vec4(pow(texColor.rgb, vec3(u_Gamma)), texColor.a);
 	o_EntityID         = v_EntityID;
 	o_PostProcessColor = o_Color;
 }

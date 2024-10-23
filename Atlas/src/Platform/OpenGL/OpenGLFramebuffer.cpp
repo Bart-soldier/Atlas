@@ -76,17 +76,29 @@ namespace Atlas
 			return false;
 		}
 
-		static GLenum AtlasFBTextureFormatToGL(FramebufferTextureFormat format)
+		static GLenum AtlasFBTextureFormatToGLDataFormat(FramebufferTextureFormat format)
 		{
 			switch (format)
 			{
-				case FramebufferTextureFormat::RGBA8:
-					return GL_RGBA8;
-				case FramebufferTextureFormat::RED_INTEGER:
-					return GL_RED_INTEGER;
+			case FramebufferTextureFormat::RGBA8:       return GL_RGBA;
+			case FramebufferTextureFormat::RGBA16:      return GL_RGBA;
+			case FramebufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
 			}
 
-			ATLAS_CORE_ASSERT(false);
+			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffer!");
+			return 0;
+		}
+
+		static GLenum AtlasFBTextureFormatToGLInternalFormat(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::RGBA8:       return GL_RGBA8;
+			case FramebufferTextureFormat::RGBA16:      return GL_RGBA16;
+			case FramebufferTextureFormat::RED_INTEGER: return GL_R32I;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffer!");
 			return 0;
 		}
 	}
@@ -131,15 +143,10 @@ namespace Atlas
 			for (size_t i = 0; i < m_ColorAttachments.size(); i++)
 			{
 				Utils::BindTexture(multisample, m_ColorAttachments[i]);
-				switch (m_ColorAttachmentSpecifications[i].TextureFormat)
-				{
-				case FramebufferTextureFormat::RGBA8:
-					Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGBA, m_Specification.Width, m_Specification.Height, i);
-					break;
-				case FramebufferTextureFormat::RED_INTEGER:
-					Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER, m_Specification.Width, m_Specification.Height, i);
-					break;
-				}
+				Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples,
+					Utils::AtlasFBTextureFormatToGLInternalFormat(m_ColorAttachmentSpecifications[i].TextureFormat),
+					Utils::AtlasFBTextureFormatToGLDataFormat(m_ColorAttachmentSpecifications[i].TextureFormat),
+					m_Specification.Width, m_Specification.Height, i);
 			}
 		}
 
@@ -214,7 +221,7 @@ namespace Atlas
 
 		auto& spec = m_ColorAttachmentSpecifications[attachmentIndex];
 		glClearTexImage(m_ColorAttachments[attachmentIndex], 0,
-			Utils::AtlasFBTextureFormatToGL(spec.TextureFormat), GL_INT, &value);
+			Utils::AtlasFBTextureFormatToGLDataFormat(spec.TextureFormat), GL_INT, &value);
 	}
 
 	void OpenGLFramebuffer::Reset()

@@ -39,6 +39,10 @@ namespace Atlas
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
 
+		// Settings
+		static const float& GetGamma();
+		static void SetGamma(float gamma);
+
 		static void BeginRenderPass();
 		static void EndRenderPass();
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
@@ -50,6 +54,10 @@ namespace Atlas
 		static void BeginScene(const EditorCamera& camera, const std::vector<LightData>& lights);
 		static void EndScene();
 		static void NextBatch();
+
+		static void BeginPostProcessing();
+		static void EndPostProcessing();
+		static void DrawPostProcessing(PostProcessorComponent* postProcessor);
 
 		// Primitives
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
@@ -82,8 +90,7 @@ namespace Atlas
 		static void DrawMesh(const glm::mat4& transform, const MeshComponent& mesh, const MaterialComponent* material, int entityID);
 		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
 
-		static void DrawSkybox(const Ref<Cubemap>& skybox, const Camera& camera, const TransformComponent& cameraTransform);
-		static void DrawSkybox(const Ref<Cubemap>& skybox, const EditorCamera& camera);
+		static void DrawSkybox(const Ref<Cubemap>& skybox);
 
 		// Stats
 		struct Statistics
@@ -107,14 +114,12 @@ namespace Atlas
 		static void InitShaders();
 		static void InitBuffers();
 
-		static void SetUniformBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition);
+		static void SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition);
 		static void SetStorageBuffers(const std::vector<LightData>& lights);
 		static void EnsureLightStorageBufferCapacity(uint32_t capacity);
-		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
+		static uint32_t EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
 		static void Flush();
-
-		static void DrawSkybox(const Ref<Cubemap>& skybox);
 	};
 }

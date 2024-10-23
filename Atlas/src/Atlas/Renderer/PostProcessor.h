@@ -14,11 +14,21 @@ namespace Atlas
 			Greyscale,
 			Numerical,
 			Blur,
-			EdgeDetection
+			EdgeDetection,
+			GammaCorrection
+		};
+
+		struct Settings
+		{
+			float Strength = 1.0f;
+			float KernelOffset = 300.0f;
+
+			Settings(float strength = 1.0f, float kernelOffset = 300.0f)
+				: Strength(strength), KernelOffset(kernelOffset) {}
 		};
 
 		static void Init();
 
-		static void ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const float& kernelOffset);
+		static void ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings);
 	};
 }

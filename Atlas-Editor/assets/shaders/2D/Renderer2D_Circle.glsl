@@ -13,9 +13,12 @@ layout (location = 3) in float a_Thickness;
 layout (location = 4) in float a_Fade;
 layout (location = 5) in int a_EntityID;
 
-layout (std140, binding = 0) uniform Camera
+layout (std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
+	mat4 u_Projection;
+	mat4 u_View;
+	vec4 u_CameraPosition;
 };
 
 struct VertexOutput
@@ -32,9 +35,9 @@ layout (location = 4) out flat int v_EntityID;
 void main()
 {
 	Output.LocalPosition = a_LocalPosition;
-	Output.Color = a_Color;
-	Output.Thickness = a_Thickness;
-	Output.Fade = a_Fade;
+	Output.Color         = a_Color;
+	Output.Thickness     = a_Thickness;
+	Output.Fade          = a_Fade;
 
 	v_EntityID = a_EntityID;
 
@@ -59,18 +62,23 @@ struct VertexOutput
 layout (location = 0) in VertexOutput Input;
 layout (location = 4) in flat int v_EntityID;
 
+layout (std140, binding = 0) uniform Settings
+{
+	float u_Gamma;
+};
+
 void main()
 {
     // Calculate distance and fill circle with white
     float distance = 1.0 - length(Input.LocalPosition);
-    float circle = smoothstep(0.0, Input.Fade, distance);
-    circle *= smoothstep(Input.Thickness + Input.Fade, Input.Thickness, distance);
+    float circle   = smoothstep(0.0, Input.Fade, distance);
+    circle        *= smoothstep(Input.Thickness + Input.Fade, Input.Thickness, distance);
 
 	if (circle == 0.0)
 		discard;
 
     // Set output color
-    o_Color            = Input.Color;
+    o_Color            = vec4(pow(Input.Color.rgb, vec3(u_Gamma)), Input.Color.a);
 	o_Color.a         *= circle;
 	o_EntityID         = v_EntityID;
 	o_PostProcessColor = o_Color;
