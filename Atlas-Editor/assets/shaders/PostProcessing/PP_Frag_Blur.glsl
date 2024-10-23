@@ -11,7 +11,7 @@ layout(location = 0) in vec2 v_TexCoords;
 
 layout(binding = 0) uniform sampler2D u_screenTexture;
 
-layout (std140, binding = 2) uniform KernelOffset
+layout (std140, binding = 3) uniform KernelOffset
 {
 	float u_KernelOffset;
 };

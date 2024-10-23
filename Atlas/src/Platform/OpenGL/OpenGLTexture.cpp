@@ -11,10 +11,8 @@ namespace Atlas
 		{
 			switch (format)
 			{
-			case ImageFormat::SRGB8:
-			case ImageFormat::RGB8:         return GL_RGB;
-			case ImageFormat::SRGB8_ALPHA8:
-			case ImageFormat::RGBA8:        return GL_RGBA;
+			case ImageFormat::RGB8:  return GL_RGB;
+			case ImageFormat::RGBA8: return GL_RGBA;
 			}
 
 			ATLAS_CORE_ASSERT(false);
@@ -25,10 +23,8 @@ namespace Atlas
 		{
 			switch (format)
 			{
-			case ImageFormat::RGB8:         return GL_RGB8;
-			case ImageFormat::RGBA8:        return GL_RGBA8;
-			case ImageFormat::SRGB8:        return GL_SRGB8;
-			case ImageFormat::SRGB8_ALPHA8: return GL_SRGB8_ALPHA8;
+			case ImageFormat::RGB8:  return GL_RGB8;
+			case ImageFormat::RGBA8: return GL_RGBA8;
 			}
 
 			ATLAS_CORE_ASSERT(false);
@@ -42,7 +38,7 @@ namespace Atlas
 		CreateTextureStorage(m_Specification);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool gammaCorrect, const bool generateMips)
+	OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool generateMips)
 		: m_Path(path)
 	{
 		ATLAS_PROFILE_FUNCTION();
@@ -67,25 +63,11 @@ namespace Atlas
 
 			if (channels == 4)
 			{
-				if (gammaCorrect)
-				{
-					m_Specification.Format = ImageFormat::SRGB8_ALPHA8;
-				}
-				else
-				{
-					m_Specification.Format = ImageFormat::RGBA8;
-				}
+				m_Specification.Format = ImageFormat::RGBA8;
 			}
 			else if (channels == 3)
 			{
-				if (gammaCorrect)
-				{
-					m_Specification.Format = ImageFormat::SRGB8;
-				}
-				else
-				{
-					m_Specification.Format = ImageFormat::RGB8;
-				}
+				m_Specification.Format = ImageFormat::RGB8;
 			}
 			else
 			{

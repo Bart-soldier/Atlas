@@ -182,7 +182,7 @@ namespace Atlas
 		DrawScene(camera.GetPosition(), true, selectedEntity);
 		Renderer::EndScene();
 
-		Renderer::DrawSkybox(m_Skybox, camera);
+		//Renderer::DrawSkybox(m_Skybox, camera);
 
 		if (camera.IsPostProcessEnabled())
 		{
@@ -199,7 +199,7 @@ namespace Atlas
 	{
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, 2.2f); // TODO: Tweakable?
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma()); // TODO: Tweakable?
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 	}

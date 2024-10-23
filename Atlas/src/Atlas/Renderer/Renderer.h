@@ -39,6 +39,10 @@ namespace Atlas
 		static RendererAPI::PolygonMode GetPolygonMode();
 		static void SetPolygonMode(RendererAPI::PolygonMode polygonMode);
 
+		// Settings
+		static const float& GetGamma();
+		static void SetGamma(float gamma);
+
 		static void BeginRenderPass();
 		static void EndRenderPass();
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
@@ -110,7 +114,7 @@ namespace Atlas
 		static void SetUniformBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition);
 		static void SetStorageBuffers(const std::vector<LightData>& lights);
 		static void EnsureLightStorageBufferCapacity(uint32_t capacity);
-		static int EnsureTextureSlot(const Ref<Texture2D>& texture);
+		static uint32_t EnsureTextureSlot(const Ref<Texture2D>& texture);
 
 		static void StartBatch();
 		static void Flush();

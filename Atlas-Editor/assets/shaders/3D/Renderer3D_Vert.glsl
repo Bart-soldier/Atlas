@@ -19,7 +19,7 @@ layout(location = 8) in uint  a_SpecularTextureIndex;
 
 layout(location = 9) in int   a_EntityID;
 
-layout(std140, binding = 0) uniform Camera
+layout(std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
 	vec3 u_CameraPosition;

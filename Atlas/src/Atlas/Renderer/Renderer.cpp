@@ -27,7 +27,7 @@ namespace Atlas
 		glm::vec3 Position;
 		glm::vec4 Color;
 		glm::vec2 TexCoord;
-		int TexIndex;
+		uint32_t TexIndex;
 		float TilingFactor;
 
 		// Editor-only
@@ -154,6 +154,14 @@ namespace Atlas
 		uint32_t LightStorageBufferCapacity = 100;
 		Ref<StorageBuffer> LightStorageBuffer;
 
+		// Graphics Settings
+		struct Settings
+		{
+			float Gamma = 2.2f;
+		};
+		Settings SettingsBuffer;
+		Ref<UniformBuffer> SettingsUniformBuffer;
+
 		// Misc.
 		Renderer::Statistics Stats;
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
@@ -190,7 +198,7 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Position"     },
 			{ ShaderDataType::Float4, "a_Color"        },
 			{ ShaderDataType::Float2, "a_TexCoord"     },
-			{ ShaderDataType::Int,    "a_TexIndex"     },
+			{ ShaderDataType::UInt,   "a_TexIndex"     },
 			{ ShaderDataType::Float,  "a_TilingFactor" },
 			{ ShaderDataType::Int,    "a_EntityID"     }
 		});
@@ -414,11 +422,12 @@ namespace Atlas
 	void Renderer::InitBuffers()
 	{
 		// Uniform buffers
-		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 0);
-		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 1);
+		s_RendererData.SettingsUniformBuffer   = UniformBuffer::Create(sizeof(RendererData::Settings),   0);
+		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 1);
+		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 2);
 
 		// Storage buffers
-		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 2);
+		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 0);
 	}
 
 	void Renderer::Shutdown()
@@ -463,6 +472,16 @@ namespace Atlas
 	{
 		s_RendererData.PolygonMode = polygonMode;
 		RenderCommand::SetPolygonMode(polygonMode);
+	}
+
+	const float& Renderer::GetGamma()
+	{
+		return s_RendererData.SettingsBuffer.Gamma;
+	}
+
+	void Renderer::SetGamma(float gamma)
+	{
+		s_RendererData.SettingsBuffer.Gamma = gamma;
 	}
 
 	void Renderer::BeginRenderPass()
@@ -546,6 +565,8 @@ namespace Atlas
 		s_RendererData.CameraBuffer.ViewProjection = cameraViewProjection;
 		s_RendererData.CameraBuffer.Position = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
+
+		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
 	}
 
 	void Renderer::SetStorageBuffers(const std::vector<LightData>& lights)
@@ -568,9 +589,9 @@ namespace Atlas
 		s_RendererData.LightStorageBuffer->SetSize(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity);
 	}
 
-	int Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
+	uint32_t Renderer::EnsureTextureSlot(const Ref<Texture2D>& texture)
 	{
-		int textureIndex = 0;
+		uint32_t textureIndex = 0;
 
 		if (texture == nullptr)
 		{
@@ -771,7 +792,7 @@ namespace Atlas
 
 		constexpr size_t quadVertexCount = 4;
 		constexpr size_t quadIndexCount  = 6;
-		const int textureIndex = 0; // White Texture
+		const uint32_t textureIndex = 0; // White Texture
 		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
 		const float tilingFactor = 1.0f;
 
@@ -851,7 +872,7 @@ namespace Atlas
 			NextBatch();
 		}
 
-		int textureIndex = EnsureTextureSlot(texture);
+		uint32_t textureIndex = EnsureTextureSlot(texture);
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -919,7 +940,7 @@ namespace Atlas
 			NextBatch();
 		}
 
-		int textureIndex = EnsureTextureSlot(texture);
+		uint32_t textureIndex = EnsureTextureSlot(texture);
 
 		for (size_t i = 0; i < quadVertexCount; i++)
 		{
@@ -1061,8 +1082,8 @@ namespace Atlas
 
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		int diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
-		int specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
+		uint32_t diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
+		uint32_t specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
 
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();

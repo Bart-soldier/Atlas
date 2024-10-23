@@ -39,18 +39,23 @@ layout (location = 9) in flat int   v_EntityID;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
-layout (std140, binding = 0) uniform Camera
+layout (std140, binding = 0) uniform Settings
+{
+	float u_Gamma;
+};
+
+layout (std140, binding = 1) uniform Camera
 {
 	mat4 u_ViewProjection;
 	vec4 u_CameraPosition;
 };
 
-layout (std140, binding = 1) uniform LightCount
+layout (std140, binding = 2) uniform LightCount
 {
 	uint u_LightCount;
 };
 
-layout (std430, binding = 2) buffer Lights
+layout (std430, binding = 0) buffer Lights
 {
 	LightData u_Lights[];
 };
@@ -61,13 +66,13 @@ layout (location = 2) out vec4 o_PostProcessColor;
 
 vec3 CalculateAmbientLight(vec3 lightColor, float lightAmbientStrength)
 {
-	return lightColor * lightAmbientStrength * VertexInput.AmbientColor;
+	return lightColor * lightAmbientStrength * pow(VertexInput.AmbientColor.rgb, vec3(u_Gamma));
 }
 
 vec3 CalculateDiffuseLight(vec3 lightColor, float lightDiffuseStrength, vec3 lightDirection, vec3 vertexNormal)
 {
 	float diffuseImpact = max(dot(vertexNormal, lightDirection), 0.0);
-	return lightColor * lightDiffuseStrength * diffuseImpact * VertexInput.DiffuseColor;
+	return lightColor * lightDiffuseStrength * diffuseImpact * pow(VertexInput.DiffuseColor.rgb, vec3(u_Gamma));
 }
 
 vec3 CalculateSpecularLight(vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal)
@@ -82,7 +87,7 @@ vec3 CalculateSpecularLight(vec3 lightColor, float lightSpecularStrength, vec3 l
 	vec3 halfwayDirection = normalize(lightDirection + viewDirection);
 	float specularFactor  = pow(max(dot(vertexNormal, halfwayDirection), 0.0), VertexInput.Shininess * 128);
 
-	return lightColor * lightSpecularStrength * (specularFactor * VertexInput.SpecularColor);
+	return lightColor * lightSpecularStrength * (specularFactor * pow(VertexInput.SpecularColor.rgb, vec3(u_Gamma)));
 }
 
 float CalculateLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vertexPosition)
@@ -126,7 +131,7 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
 	{
 		LightData light = u_Lights[lightIndex];
 
-		vec3 lightColor = light.Color.xyz * light.Intensity;
+		vec3 lightColor = pow(light.Color.rgb, vec3(u_Gamma)) * light.Intensity;
 
 		vec3 lightDirection;
 		if(light.Direction.w == 0)
@@ -199,6 +204,8 @@ void main()
 {
 	vec4 diffuseTexture  = GetTexture(v_DiffuseTextureIndex);
 	vec4 specularTexture = GetTexture(v_SpecularTextureIndex);
+
+	diffuseTexture = vec4(pow(diffuseTexture.rgb, vec3(u_Gamma)), diffuseTexture.a);
 
 	// Alpha discard on diffuse
 	if (diffuseTexture.a == 0.0)
