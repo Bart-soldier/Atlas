@@ -141,6 +141,8 @@ namespace Atlas
 		struct CameraData
 		{
 			glm::mat4 ViewProjection;
+			glm::mat4 Projection;
+			glm::mat4 View;
 			glm::vec4 Position;
 		};
 		CameraData CameraBuffer;
@@ -544,7 +546,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetProjection() * glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
+		SetUniformBuffers(camera.GetProjection(), glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
 		SetStorageBuffers(lights);
 
 		StartBatch();
@@ -554,16 +556,18 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetViewProjection(), glm::vec4(camera.GetPosition(), 1.0f));
+		SetUniformBuffers(camera.GetProjection(), camera.GetViewMatrix(), glm::vec4(camera.GetPosition(), 1.0f));
 		SetStorageBuffers(lights);
 
 		StartBatch();
 	}
 
-	void Renderer::SetUniformBuffers(const glm::mat4& cameraViewProjection, const glm::vec4& cameraPosition)
+	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition)
 	{
-		s_RendererData.CameraBuffer.ViewProjection = cameraViewProjection;
-		s_RendererData.CameraBuffer.Position = cameraPosition;
+		s_RendererData.CameraBuffer.ViewProjection = cameraProjection * cameraView;
+		s_RendererData.CameraBuffer.Projection     = cameraProjection;
+		s_RendererData.CameraBuffer.View           = cameraView;
+		s_RendererData.CameraBuffer.Position       = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
 
 		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
@@ -1176,20 +1180,6 @@ namespace Atlas
 		}
 
 		s_RendererData.Stats.SelectionCount++;
-	}
-
-	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox, const Camera& camera, const TransformComponent& cameraTransform)
-	{
-		SetUniformBuffers(camera.GetProjection() * glm::mat4(glm::mat3(glm::inverse(cameraTransform.GetTransform()))), glm::vec4(cameraTransform.Translation, 1.0f));
-
-		DrawSkybox(skybox);
-	}
-
-	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox, const EditorCamera& camera)
-	{
-		SetUniformBuffers(camera.GetProjection() * glm::mat4(glm::mat3(camera.GetViewMatrix())), glm::vec4(camera.GetPosition(), 1.0f));
-
-		DrawSkybox(skybox);
 	}
 
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
