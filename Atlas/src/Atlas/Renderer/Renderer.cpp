@@ -1148,9 +1148,6 @@ namespace Atlas
 
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
 	{
-		//RenderCommand::DisableDepthTest();
-		//DisableStencilWriting();
-
 		// Cubemap
 		skybox->Bind();
 
@@ -1160,8 +1157,5 @@ namespace Atlas
 		// Draw
 		RenderCommand::DrawIndexed(s_RendererData.SkyboxVertexArray, s_RendererData.SkyboxIndexCount);
 		s_RendererData.Stats.DrawCalls++;
-
-		//RenderCommand::EnableDepthTest();
-		//EnableStencilWriting();
 	}
 }

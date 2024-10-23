@@ -14,7 +14,8 @@ namespace Atlas
 			Greyscale,
 			Numerical,
 			Blur,
-			EdgeDetection
+			EdgeDetection,
+			GammaCorrection
 		};
 
 		static void Init();

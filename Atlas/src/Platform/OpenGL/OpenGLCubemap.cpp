@@ -9,7 +9,6 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID);
 		glGenTextures(1, &m_RendererID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 
@@ -22,7 +21,7 @@ namespace Atlas
 		for (int i = 0; i < 6; i++)
 		{
 			uint32_t blackTextureData = 0x00000000;
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &blackTextureData);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB8, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &blackTextureData);
 		}
 	}
 
@@ -79,7 +78,7 @@ namespace Atlas
 			if (m_MaxWidth <= width)
 			{
 				m_MaxWidth = width;
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face, 0, GL_RGB, m_MaxWidth, m_MaxWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face, 0, GL_SRGB8, m_MaxWidth, m_MaxWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			}
 			else
 			{
@@ -100,7 +99,7 @@ namespace Atlas
 	void OpenGLCubemap::ResetFace(const CubemapFace& face)
 	{
 		std::vector<GLubyte> blackTextureData(m_MaxWidth * m_MaxWidth * 4, 0);
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face, 0, GL_RGB, m_MaxWidth, m_MaxWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, &blackTextureData[0]);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)face, 0, GL_SRGB8, m_MaxWidth, m_MaxWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, &blackTextureData[0]);
 	}
 
 	void OpenGLCubemap::VerifyFaces()

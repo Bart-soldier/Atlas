@@ -23,6 +23,7 @@ namespace Atlas
 
 		Ref<UniformBuffer> KernelOffsetUniformBuffer;
 
+		Ref<Shader> GammaCorrectionShader;
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
 		Ref<Shader> NumericalShader;
@@ -74,11 +75,12 @@ namespace Atlas
 		s_PostProcessorData.KernelOffsetUniformBuffer = UniformBuffer::Create(sizeof(float), 2);
 
 		// Shaders
-		s_PostProcessorData.InversionShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"    );
-		s_PostProcessorData.GreyscaleShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"    );
-		s_PostProcessorData.NumericalShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Numerical.glsl"    );
-		s_PostProcessorData.BlurShader          = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"         );
-		s_PostProcessorData.EdgeDetectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl");
+		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
+		s_PostProcessorData.InversionShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"      );
+		s_PostProcessorData.GreyscaleShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"      );
+		s_PostProcessorData.NumericalShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Numerical.glsl"      );
+		s_PostProcessorData.BlurShader            = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"           );
+		s_PostProcessorData.EdgeDetectionShader   = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"  );
 	}
 
 	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const float& kernelOffset)
@@ -104,6 +106,9 @@ namespace Atlas
 			break;
 		case Atlas::PostProcessor::PostProcessingEffect::EdgeDetection:
 			s_PostProcessorData.EdgeDetectionShader->Bind();
+			break;
+		case Atlas::PostProcessor::PostProcessingEffect::GammaCorrection:
+			s_PostProcessorData.GammaCorrectionShader->Bind();
 			break;
 		}
 

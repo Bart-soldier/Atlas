@@ -8,14 +8,16 @@ namespace Atlas
 		R8,
 		RGB8,
 		RGBA8,
-		RGBA32F
+		RGBA32F,
+		SRGB8,
+		SRGB8_ALPHA8
 	};
 
 	struct TextureSpecification
 	{
 		uint32_t Width = 1;
 		uint32_t Height = 1;
-		ImageFormat Format = ImageFormat::RGBA8;
+		ImageFormat Format = ImageFormat::SRGB8_ALPHA8;
 		bool GenerateMips = true;
 	};
 
@@ -44,6 +46,6 @@ namespace Atlas
 	{
 	public:
 		static Ref<Texture2D> Create(const TextureSpecification& specification);
-		static Ref<Texture2D> Create(const std::filesystem::path& path, const bool generateMips = true);
+		static Ref<Texture2D> Create(const std::filesystem::path& path, const bool gammaCorrect = true, const bool generateMips = true);
 	};
 }

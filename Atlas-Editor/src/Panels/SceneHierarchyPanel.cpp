@@ -578,7 +578,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), false);
 					if (texture->IsLoaded())
 					{
 						material->SetSpecularTexture(texture);

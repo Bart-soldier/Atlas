@@ -47,6 +47,7 @@ namespace Atlas
 		std::vector<Entity*> GetCameras();
 
 	private:
+		void ApplyGammaCorrection();
 		void ApplyPostProcessing(PostProcessorComponent* postProcessor);
 
 		void UpdateLights();

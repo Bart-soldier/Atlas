@@ -169,6 +169,8 @@ namespace Atlas
 			Renderer::DrawSkybox(m_Skybox, camera, cameraTransform);
 
 			ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+
+			ApplyGammaCorrection();
 		}
 	}
 
@@ -189,6 +191,17 @@ namespace Atlas
 				ApplyPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
 			}
 		}
+
+		ApplyGammaCorrection();
+	}
+
+	void Scene::ApplyGammaCorrection()
+	{
+		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+		RenderCommand::DisableDepthTest();
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, 2.2f); // TODO: Tweakable?
+		RenderCommand::EnableDepthTest();
+		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 	}
 
 	void Scene::ApplyPostProcessing(PostProcessorComponent* postProcessor)
