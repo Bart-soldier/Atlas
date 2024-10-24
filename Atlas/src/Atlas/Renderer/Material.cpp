@@ -40,6 +40,12 @@ namespace Atlas
 		m_SpecularColor = glm::vec3(1.0f);
 	}
 
+	void Material::SetNormalMap(const Ref<Texture2D>& normalMap)
+	{
+		m_NormalMap = normalMap;
+		m_MaterialPreset = MaterialPresets::Custom;
+	}
+
 	void Material::SetMaterialPreset(const MaterialPresets& materialPreset)
 	{
 		if (m_MaterialPreset == materialPreset)

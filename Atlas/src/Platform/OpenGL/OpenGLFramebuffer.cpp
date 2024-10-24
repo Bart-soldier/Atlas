@@ -70,10 +70,23 @@ namespace Atlas
 		{
 			switch (format)
 			{
-			case FramebufferTextureFormat::DEPTH24STENCIL8:  return true;
+			case FramebufferTextureFormat::DEPTH24_STENCIL8:  return true;
+			case FramebufferTextureFormat::DEPTH32F:          return true;
 			}
 
 			return false;
+		}
+
+		static GLenum AtlasFBTextureFormatToGLAttachementType(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH_STENCIL_ATTACHMENT;
+			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_ATTACHMENT;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Format not supported for depth/stencil framebuffers!");
+			return 0;
 		}
 
 		static GLenum AtlasFBTextureFormatToGLDataFormat(FramebufferTextureFormat format)
@@ -85,7 +98,7 @@ namespace Atlas
 			case FramebufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
 			}
 
-			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffer!");
+			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffers!");
 			return 0;
 		}
 
@@ -93,12 +106,14 @@ namespace Atlas
 		{
 			switch (format)
 			{
-			case FramebufferTextureFormat::RGBA8:       return GL_RGBA8;
-			case FramebufferTextureFormat::RGBA16:      return GL_RGBA16;
-			case FramebufferTextureFormat::RED_INTEGER: return GL_R32I;
+			case FramebufferTextureFormat::RGBA8:            return GL_RGBA8;
+			case FramebufferTextureFormat::RGBA16:           return GL_RGBA16;
+			case FramebufferTextureFormat::RED_INTEGER:      return GL_R32I;
+			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
+			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_COMPONENT32F;
 			}
 
-			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffer!");
+			ATLAS_CORE_ASSERT(false, "Format not supported for framebuffers!");
 			return 0;
 		}
 	}
@@ -154,12 +169,11 @@ namespace Atlas
 		{
 			Utils::CreateTextures(multisample, &m_DepthAttachment, 1);
 			Utils::BindTexture(multisample, m_DepthAttachment);
-			switch (m_DepthAttachmentSpecification.TextureFormat)
-			{
-			case FramebufferTextureFormat::DEPTH24STENCIL8:
-				Utils::AttachDepthTexture(m_DepthAttachment, m_Specification.Samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, m_Specification.Width, m_Specification.Height);
-				break;
-			}
+
+			Utils::AttachDepthTexture(m_DepthAttachment, m_Specification.Samples,
+				Utils::AtlasFBTextureFormatToGLInternalFormat(m_DepthAttachmentSpecification.TextureFormat),
+				Utils::AtlasFBTextureFormatToGLAttachementType(m_DepthAttachmentSpecification.TextureFormat),
+				m_Specification.Width, m_Specification.Height);
 		}
 
 		if (m_ColorAttachments.size() > 1)

@@ -9,7 +9,7 @@ namespace Atlas
 	void Model::LoadModel(Ref<Scene> activeScene, const std::filesystem::path& path)
 	{
 		Assimp::Importer importer;
-		const aiScene* modelScene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+		const aiScene* modelScene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
 		if (!modelScene || modelScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !modelScene->mRootNode)
 		{
@@ -72,10 +72,11 @@ namespace Atlas
 
 		for (uint32_t vertexIndex = 0; vertexIndex < mesh.mNumVertices; vertexIndex++)
 		{
-			glm::vec3 position = { mesh.mVertices[vertexIndex].x, mesh.mVertices[vertexIndex].y, mesh.mVertices[vertexIndex].z };
-			glm::vec3 normal   = { mesh.mNormals [vertexIndex].x, mesh.mNormals [vertexIndex].y, mesh.mNormals [vertexIndex].z };
+			glm::vec3 position  = { mesh.mVertices[vertexIndex].x, mesh.mVertices[vertexIndex].y, mesh.mVertices[vertexIndex].z };
+			glm::vec3 normal    = { mesh.mNormals [vertexIndex].x, mesh.mNormals [vertexIndex].y, mesh.mNormals [vertexIndex].z };
 			glm::vec2 texCoords = mesh.mTextureCoords[0] ? glm::vec2(mesh.mTextureCoords[0][vertexIndex].x, mesh.mTextureCoords[0][vertexIndex].y) : glm::vec2(0.0f, 0.0f);
-			vertices.push_back({position, normal, texCoords});
+			glm::vec3 tangent   = { mesh.mTangents[vertexIndex].x, mesh.mTangents[vertexIndex].y,  mesh.mTangents[vertexIndex].z };
+			vertices.push_back({position, normal, texCoords, tangent});
 		}
 
 		for (uint32_t faceIndex = 0; faceIndex < mesh.mNumFaces; faceIndex++)

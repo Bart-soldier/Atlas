@@ -51,9 +51,13 @@ namespace Atlas
 	// 3D
 	struct MeshVertex
 	{
+		// Editor-only
+		int EntityID;
+
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
+		glm::vec3 Tangent;
 
 		glm::vec3 AmbientColor;
 		glm::vec3 DiffuseColor;
@@ -61,14 +65,12 @@ namespace Atlas
 		float Shininess;
 		uint32_t DiffuseTextureIndex;
 		uint32_t SpecularTextureIndex;
-
-		// Editor-only
-		int EntityID;
+		uint32_t NormalMapTextureIndex;
 	};
 
 	struct RendererData
 	{
-		Ref<Framebuffer> Framebuffer;
+		Ref<Framebuffer> RenderFramebuffer;
 
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
@@ -187,12 +189,12 @@ namespace Atlas
 	void Renderer::InitArrays()
 	{
 		FramebufferSpecification fbSpec;
-		// Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::Depth };
+		// Render FB: Color, EntityID, PostProcessing, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
-		fbSpec.Width = app.GetWindow().GetWidth();
+		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
-		s_RendererData.Framebuffer = Framebuffer::Create(fbSpec);
+		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -272,16 +274,18 @@ namespace Atlas
 		// Mesh VBO
 		s_RendererData.MeshVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(MeshVertex));
 		s_RendererData.MeshVertexBuffer->SetLayout({
-			{ ShaderDataType::Float3, "a_Position"             },
-			{ ShaderDataType::Float3, "a_Normal"               },
-			{ ShaderDataType::Float2, "a_TexCoord"             },
-			{ ShaderDataType::Float3, "a_AmbientColor"         },
-			{ ShaderDataType::Float3, "a_DiffuseColor"         },
-			{ ShaderDataType::Float3, "a_SpecularColor"        },
-			{ ShaderDataType::Float,  "a_Shininess"            },
-			{ ShaderDataType::UInt,   "a_DiffuseTextureIndex"  },
-			{ ShaderDataType::UInt,   "a_SpecularTextureIndex" },
-			{ ShaderDataType::Int,    "a_EntityID"             }
+			{ ShaderDataType::Int,    "a_EntityID"              },
+			{ ShaderDataType::Float3, "a_Position"              },
+			{ ShaderDataType::Float3, "a_Normal"                },
+			{ ShaderDataType::Float2, "a_TexCoord"              },
+			{ ShaderDataType::Float3, "a_Tangent"               },
+			{ ShaderDataType::Float3, "a_AmbientColor"          },
+			{ ShaderDataType::Float3, "a_DiffuseColor"          },
+			{ ShaderDataType::Float3, "a_SpecularColor"         },
+			{ ShaderDataType::Float,  "a_Shininess"             },
+			{ ShaderDataType::UInt,   "a_DiffuseTextureIndex"   },
+			{ ShaderDataType::UInt,   "a_SpecularTextureIndex"  },
+			{ ShaderDataType::UInt,   "a_NormalMapTextureIndex" }
 			});
 		s_RendererData.MeshVertexArray->AddVertexBuffer(s_RendererData.MeshVertexBuffer);
 		s_RendererData.MeshVertexBufferBase = new MeshVertex[s_RendererData.MaxVertices];
@@ -419,7 +423,7 @@ namespace Atlas
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
 		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		//s_RendererData.MeshShader      = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -491,29 +495,29 @@ namespace Atlas
 
 	void Renderer::BeginRenderPass()
 	{
-		s_RendererData.Framebuffer->Bind();
+		s_RendererData.RenderFramebuffer->Bind();
 		// TODO: Link to palette
 		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
 		RenderCommand::Clear();
 
 		// Clear our entity ID attachment to -1
-		s_RendererData.Framebuffer->ClearAttachment(1, -1);
+		s_RendererData.RenderFramebuffer->ClearAttachment(1, -1);
 	}
 
 	void Renderer::EndRenderPass()
 	{
-		s_RendererData.Framebuffer->Unbind();
+		s_RendererData.RenderFramebuffer->Unbind();
 	}
 
 	bool Renderer::ResizeFramebuffer(uint32_t width, uint32_t height)
 	{
 		bool resized = false;
-		FramebufferSpecification spec = s_RendererData.Framebuffer->GetSpecification();
+		FramebufferSpecification spec = s_RendererData.RenderFramebuffer->GetSpecification();
 
 		// Zero sized framebuffer is invalid
 		if (width > 0.0f && height > 0.0f && (spec.Width != width || spec.Height != height))
 		{
-			s_RendererData.Framebuffer->Resize(width, height);
+			s_RendererData.RenderFramebuffer->Resize(width, height);
 			resized = true;
 		}
 
@@ -522,17 +526,17 @@ namespace Atlas
 
 	uint32_t Renderer::GetRenderID()
 	{
-		return s_RendererData.Framebuffer->GetColorAttachmentRendererID();
+		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID();
 	}
 
 	uint32_t Renderer::GetPostProcessRenderID()
 	{
-		return s_RendererData.Framebuffer->GetColorAttachmentRendererID(2);
+		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(2);
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
 	{
-		return s_RendererData.Framebuffer->ReadPixel(1, x, y);
+		return s_RendererData.RenderFramebuffer->ReadPixel(1, x, y);
 	}
 
 	void Renderer::ResetStats()
@@ -1114,8 +1118,9 @@ namespace Atlas
 
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		uint32_t diffuseTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
-		uint32_t specularTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
+		uint32_t diffuseTextureIndex   = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
+		uint32_t specularTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
+		uint32_t normalMapTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetNormalMap());
 
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
@@ -1133,19 +1138,21 @@ namespace Atlas
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord             = vertices[i].TexCoords;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID              = entityID;
 
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AmbientColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularColor        = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Shininess            = material == nullptr ? 0.25f           : material->Material->GetShininess();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position              = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                = normalMatrix * vertices[i].Normal;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord              = vertices[i].TexCoords;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent               = vertices[i].Tangent;
 
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseTextureIndex  = diffuseTextureIndex;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularTextureIndex = specularTextureIndex;
-			
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID             = entityID;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AmbientColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Shininess             = material == nullptr ? 0.25f           : material->Material->GetShininess();
+
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseTextureIndex   = diffuseTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularTextureIndex  = specularTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].NormalMapTextureIndex = normalMapTextureIndex;
 
 			s_RendererData.MeshVertexCount++;
 		}

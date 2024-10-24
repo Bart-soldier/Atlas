@@ -18,11 +18,18 @@ namespace Atlas
 			glm::vec3 Position;
 			glm::vec3 Normal;
 			glm::vec2 TexCoords;
+			glm::vec3 Tangent;
 
-			Vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texU, float texV)
-				: Position(glm::vec3(posX, posY, posZ)), Normal(glm::vec3(normX, normY, normZ)), TexCoords(glm::vec2(texU, texV)) {}
-			Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoords)
-				: Position(position), Normal(normal), TexCoords(texCoords) {}
+			Vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texU, float texV,
+				float tanX = 1.0f, float tanY = 0.0f, float tanZ = 0.0f)
+				: Position({ posX, posY, posZ }), Normal({ normX, normY, normZ }), TexCoords({ texU, texV }),
+				  Tangent({tanX, tanY, tanZ})
+			{}
+			Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoords,
+				glm::vec3 tangent = { 1.0f, 0.0f, 0.0f })
+				: Position(position), Normal(normal), TexCoords(texCoords),
+				Tangent(tangent)
+			{}
 		};
 
 		Mesh() { SetMeshPreset(MeshPresets::Square); }
@@ -38,6 +45,9 @@ namespace Atlas
 		const MeshPresets& GetMeshPreset() { return m_MeshPreset; }
 
 	private:
+		void CalculateSquareVertices();
+		void CalculateTangents();
+
 		MeshPresets m_MeshPreset;
 
 		std::vector<Vertex> m_Vertices;

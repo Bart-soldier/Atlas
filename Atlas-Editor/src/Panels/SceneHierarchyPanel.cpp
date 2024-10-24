@@ -529,6 +529,8 @@ namespace Atlas
 				ImGuiUtils::EndCombo();
 			}
 
+			ImGui::Separator();
+
 			// Diffuse component
 			ImGuiUtils::BeginTextureViewer("Diffuse Texture", material->GetDiffuseTexture(), 150.0, 150.0, true);
 
@@ -568,6 +570,8 @@ namespace Atlas
 				}
 			}
 
+			ImGui::Separator();
+
 			// Specular component
 			ImGuiUtils::BeginTextureViewer("Specular Texture", material->GetSpecularTexture(), 150.0, 150.0, true);
 
@@ -600,6 +604,34 @@ namespace Atlas
 					material->SetSpecularColor(specularColor);
 				}
 			}
+
+			ImGui::Separator();
+
+			// Normal map component
+			ImGuiUtils::BeginTextureViewer("Normal Map", material->GetNormalMap(), 150.0, 150.0, true);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path payloadPath(path);
+
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
+					{
+						material->SetNormalMap(texture);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGuiUtils::EndTextureViewer(material->GetNormalMap()))
+			{
+				material->SetNormalMap(nullptr);
+			}
+
+			ImGui::Separator();
 
 			float shininess = material->GetShininess();
 			if (ImGuiUtils::DragFloat("Shininess", shininess, 1.0f, 0.001f, 0.0f, 1.0f))
