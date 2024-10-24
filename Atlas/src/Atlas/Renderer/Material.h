@@ -59,6 +59,9 @@ namespace Atlas
 		void SetSpecularTexture(const Ref<Texture2D>& specularTexture);
 		const Ref<Texture2D>& GetSpecularTexture() { return m_SpecularTexture; }
 
+		void SetNormalMap(const Ref<Texture2D>& normalMap);
+		const Ref<Texture2D>& GetNormalMap() { return m_NormalMap; }
+
 		void SetShininess(const float& shininess) { m_Shininess = shininess; m_MaterialPreset = MaterialPresets::Custom; }
 		const float& GetShininess() { return m_Shininess; }
 
@@ -75,5 +78,6 @@ namespace Atlas
 
 		Ref<Texture2D> m_DiffuseTexture = nullptr;
 		Ref<Texture2D> m_SpecularTexture = nullptr;
+		Ref<Texture2D> m_NormalMap = nullptr;
 	};
 }
