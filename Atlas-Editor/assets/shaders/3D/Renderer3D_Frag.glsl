@@ -145,9 +145,35 @@ void main()
 
 vec2 ParallaxMapping(vec2 texCoord, vec3 viewDirection)
 {
-	float height = texture(u_Textures[v_HeightMapTextureIndex], texCoord).r;
-    vec2 scaledVector = viewDirection.xy / viewDirection.z * (height * u_ParallaxScale);
-    return texCoord - scaledVector;
+    const float minLayers = 8.0;
+	const float maxLayers = 32.0;
+	float numLayers = mix(maxLayers, minLayers, max(dot(vec3(0.0, 0.0, 1.0), viewDirection), 0.0));
+
+    float layerDepth = 1.0 / numLayers;
+    float currentLayerDepth = 0.0;
+
+	vec2 P = viewDirection.xy * u_ParallaxScale; 
+    vec2 deltaTexCoord = P / numLayers;
+
+	vec2  currentTexCoord      = texCoord;
+	float currentDepthMapValue = texture(u_Textures[v_HeightMapTextureIndex], currentTexCoord).r;
+  
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoord -= deltaTexCoord;
+		currentDepthMapValue = texture(u_Textures[v_HeightMapTextureIndex], currentTexCoord).r;
+		currentLayerDepth += layerDepth;
+	}
+
+	vec2 prevTexCoord = currentTexCoord + deltaTexCoord;
+
+	float afterDepth  = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = texture(u_Textures[v_HeightMapTextureIndex], prevTexCoord).r - currentLayerDepth + layerDepth;
+
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoord = prevTexCoord * weight + currentTexCoord * (1.0 - weight);
+
+	return finalTexCoord;
 }
 
 vec3 CalculateAmbientLight(vec3 lightColor, float lightAmbientStrength)
