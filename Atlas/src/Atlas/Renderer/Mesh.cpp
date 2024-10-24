@@ -118,7 +118,7 @@ namespace Atlas
 			glm::vec2 deltaUV2 = vertex3.TexCoords - vertex1.TexCoords;
 
 			float fraction = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-			glm::vec3 tangent   = fraction * ( deltaUV2.y * edge1 - deltaUV1.y * edge2);
+			glm::vec3 tangent = fraction * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
 
 			vertex1.Tangent   = tangent;
 			vertex2.Tangent   = tangent;

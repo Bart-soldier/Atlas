@@ -31,8 +31,8 @@ Entities:
       DiffuseColor: [1, 1, 1]
       SpecularColor: [1, 1, 1]
       Shininess: 0.25
-      DiffuseTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container.png
-      SpecularTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\ContainerSpecular.png
+      DiffuseTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container\Container.png
+      SpecularTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\Container\ContainerSpecular.png
   - Entity: 8499682893995048034
     TagComponent:
       Tag: Camera

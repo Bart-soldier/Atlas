@@ -46,12 +46,14 @@ layout (location = 1)   in VertexData VertexInput;
 layout (location = 11)  in flat uint  v_DiffuseTextureIndex;
 layout (location = 12)  in flat uint  v_SpecularTextureIndex;
 layout (location = 13)  in flat uint  v_NormalMapTextureIndex;
+layout (location = 14)  in flat uint  v_HeightMapTextureIndex;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
 layout (std140, binding = 0) uniform Settings
 {
 	float u_Gamma;
+	float u_ParallaxScale;
 };
 
 layout (std140, binding = 1) uniform Camera
@@ -84,6 +86,7 @@ layout (location = 2) out vec4 o_PostProcessColor;
 /* ----- METHOD DEFINITIONS ----- */
 /* ------------------------------ */
 
+vec2 ParallaxMapping(vec2 texCoord, vec3 viewDirection);
 vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture, vec3 vertexNormal);
 
 /* ------------------------------ */
@@ -92,8 +95,22 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture, vec3 vertexNorma
 
 void main()
 {
-	vec4 diffuseColor  = texture(u_Textures[v_DiffuseTextureIndex] , VertexInput.TexCoord);
-	vec4 specularColor = texture(u_Textures[v_SpecularTextureIndex], VertexInput.TexCoord);
+	vec2 texCoord = VertexInput.TexCoord;
+
+	// Parallax Mapping
+	if(v_HeightMapTextureIndex != 0)
+	{
+		vec3 viewDirection = normalize(transpose(VertexInput.TBN) * (u_CameraPosition.xyz - VertexInput.Position));
+		texCoord = ParallaxMapping(VertexInput.TexCoord, viewDirection);
+	}
+
+	if(texCoord.x > 1.0 || texCoord.y > 1.0 || texCoord.x < 0.0 || texCoord.y < 0.0)
+	{
+		discard;
+	}
+
+	vec4 diffuseColor  = texture(u_Textures[v_DiffuseTextureIndex] , texCoord);
+	vec4 specularColor = texture(u_Textures[v_SpecularTextureIndex], texCoord);
 
 	diffuseColor = vec4(pow(diffuseColor.rgb, vec3(u_Gamma)), diffuseColor.a);
 
@@ -110,7 +127,7 @@ void main()
 	}
 	else
 	{
-		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex] , VertexInput.TexCoord).rgb;
+		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex], texCoord).rgb;
 		vertexNormal = normalMap * 2.0 - 1.0;
 		vertexNormal = normalize(VertexInput.TBN * vertexNormal);
 	}
@@ -125,6 +142,39 @@ void main()
 /* ------------------------------ */
 /* --- METHOD IMPLEMENTATIONS --- */
 /* ------------------------------ */
+
+vec2 ParallaxMapping(vec2 texCoord, vec3 viewDirection)
+{
+    const float minLayers = 8.0;
+	const float maxLayers = 32.0;
+	float numLayers = mix(maxLayers, minLayers, max(dot(vec3(0.0, 0.0, 1.0), viewDirection), 0.0));
+
+    float layerDepth = 1.0 / numLayers;
+    float currentLayerDepth = 0.0;
+
+	vec2 P = viewDirection.xy * u_ParallaxScale; 
+    vec2 deltaTexCoord = P / numLayers;
+
+	vec2  currentTexCoord      = texCoord;
+	float currentDepthMapValue = texture(u_Textures[v_HeightMapTextureIndex], currentTexCoord).r;
+  
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		currentTexCoord -= deltaTexCoord;
+		currentDepthMapValue = texture(u_Textures[v_HeightMapTextureIndex], currentTexCoord).r;
+		currentLayerDepth += layerDepth;
+	}
+
+	vec2 prevTexCoord = currentTexCoord + deltaTexCoord;
+
+	float afterDepth  = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = texture(u_Textures[v_HeightMapTextureIndex], prevTexCoord).r - currentLayerDepth + layerDepth;
+
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoord = prevTexCoord * weight + currentTexCoord * (1.0 - weight);
+
+	return finalTexCoord;
+}
 
 vec3 CalculateAmbientLight(vec3 lightColor, float lightAmbientStrength)
 {

@@ -59,6 +59,8 @@ namespace Atlas
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
 
+		glm::mat3 Model;
+
 		glm::vec3 AmbientColor;
 		glm::vec3 DiffuseColor;
 		glm::vec3 SpecularColor;
@@ -66,6 +68,7 @@ namespace Atlas
 		uint32_t DiffuseTextureIndex;
 		uint32_t SpecularTextureIndex;
 		uint32_t NormalMapTextureIndex;
+		uint32_t HeightMapTextureIndex;
 	};
 
 	struct RendererData
@@ -164,6 +167,7 @@ namespace Atlas
 		struct Settings
 		{
 			float Gamma = 2.2f;
+			float ParallaxScale = 0.1f;
 		};
 		Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
@@ -279,13 +283,15 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Normal"                },
 			{ ShaderDataType::Float2, "a_TexCoord"              },
 			{ ShaderDataType::Float3, "a_Tangent"               },
+			{ ShaderDataType::Mat3,   "a_Model"                 },
 			{ ShaderDataType::Float3, "a_AmbientColor"          },
 			{ ShaderDataType::Float3, "a_DiffuseColor"          },
 			{ ShaderDataType::Float3, "a_SpecularColor"         },
 			{ ShaderDataType::Float,  "a_Shininess"             },
 			{ ShaderDataType::UInt,   "a_DiffuseTextureIndex"   },
 			{ ShaderDataType::UInt,   "a_SpecularTextureIndex"  },
-			{ ShaderDataType::UInt,   "a_NormalMapTextureIndex" }
+			{ ShaderDataType::UInt,   "a_NormalMapTextureIndex" },
+			{ ShaderDataType::UInt,   "a_HeightMapTextureIndex" }
 			});
 		s_RendererData.MeshVertexArray->AddVertexBuffer(s_RendererData.MeshVertexBuffer);
 		s_RendererData.MeshVertexBufferBase = new MeshVertex[s_RendererData.MaxVertices];
@@ -491,6 +497,16 @@ namespace Atlas
 	void Renderer::SetGamma(float gamma)
 	{
 		s_RendererData.SettingsBuffer.Gamma = gamma;
+	}
+
+	const float& Renderer::GetParallaxScale()
+	{
+		return s_RendererData.SettingsBuffer.ParallaxScale;
+	}
+
+	void Renderer::SetParallaxScale(float scale)
+	{
+		s_RendererData.SettingsBuffer.ParallaxScale = scale;
 	}
 
 	void Renderer::BeginRenderPass()
@@ -1121,6 +1137,7 @@ namespace Atlas
 		uint32_t diffuseTextureIndex   = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
 		uint32_t specularTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
 		uint32_t normalMapTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetNormalMap());
+		uint32_t heightMapTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetHeightMap());
 
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
@@ -1145,6 +1162,9 @@ namespace Atlas
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord              = vertices[i].TexCoords;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent               = vertices[i].Tangent;
 
+			//s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                 = glm::transpose(glm::inverse(transform));
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                 = transform;
+
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AmbientColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
@@ -1153,6 +1173,7 @@ namespace Atlas
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseTextureIndex   = diffuseTextureIndex;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularTextureIndex  = specularTextureIndex;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].NormalMapTextureIndex = normalMapTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].HeightMapTextureIndex = heightMapTextureIndex;
 
 			s_RendererData.MeshVertexCount++;
 		}
