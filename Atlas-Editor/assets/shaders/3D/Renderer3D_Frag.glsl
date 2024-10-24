@@ -122,13 +122,11 @@ float CalculateLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirec
 	return cutOff;
 }
 
-vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture)
+vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture, vec3 vertexNormal)
 {
 	vec4  ambientColor  = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4  diffuseColor  = vec4(0.0, 0.0, 0.0, 1.0);
 	vec4  specularColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-	vec3 vertexNormal = normalize(VertexInput.Normal);
 
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
@@ -210,13 +208,24 @@ void main()
 
 	diffuseTexture = vec4(pow(diffuseTexture.rgb, vec3(u_Gamma)), diffuseTexture.a);
 
+	vec3 vertexNormal;
+	if(v_NormalMapTextureIndex == 0)
+	{
+		vertexNormal = normalize(VertexInput.Normal);
+	}
+	else
+	{
+		vec3 normalMap = GetTexture(v_NormalMapTextureIndex).rgb;
+		vertexNormal = normalize(normalMap * 2.0 - 1.0);
+	}
+
 	// Alpha discard on diffuse
 	if (diffuseTexture.a == 0.0)
 	{
 		discard;
 	}
 
-	vec4 fragmentColor = CalculateLights(diffuseTexture, specularTexture);
+	vec4 fragmentColor = CalculateLights(diffuseTexture, specularTexture, vertexNormal);
 
 	o_Color            = fragmentColor;
 	o_EntityID         = v_EntityID;
