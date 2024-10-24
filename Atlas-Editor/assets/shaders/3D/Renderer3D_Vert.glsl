@@ -10,15 +10,19 @@ layout(location = 0)  in int   a_EntityID;
 layout(location = 1)  in vec3  a_Position;
 layout(location = 2)  in vec3  a_Normal;
 layout(location = 3)  in vec2  a_TexCoord;
+layout(location = 4)  in vec3  a_Tangent;
+layout(location = 5)  in vec3  a_Bitangent;
 
-layout(location = 4)  in vec3  a_AmbientColor;
-layout(location = 5)  in vec3  a_DiffuseColor;
-layout(location = 6)  in vec3  a_SpecularColor;
-layout(location = 7)  in float a_Shininess;
+layout(location = 6)  in vec3  a_AmbientColor;
+layout(location = 7)  in vec3  a_DiffuseColor;
+layout(location = 8)  in vec3  a_SpecularColor;
+layout(location = 9)  in float a_Shininess;
 
-layout(location = 8)  in uint  a_DiffuseTextureIndex;
-layout(location = 9)  in uint  a_SpecularTextureIndex;
-layout(location = 10) in uint  a_NormalMapTextureIndex;
+layout(location = 10) in uint  a_DiffuseTextureIndex;
+layout(location = 11) in uint  a_SpecularTextureIndex;
+layout(location = 12) in uint  a_NormalMapTextureIndex;
+
+layout (binding = 0) uniform sampler2D u_Textures[32];
 
 layout (std140, binding = 1) uniform Camera
 {
@@ -33,6 +37,7 @@ struct VertexData
 	vec3  Position;
 	vec3  Normal;
 	vec2  TexCoord;
+	mat3  TBN;
 
 	vec3  AmbientColor;
 	vec3  DiffuseColor;
@@ -42,9 +47,9 @@ struct VertexData
 
 layout (location = 0)  out flat int   v_EntityID;
 layout (location = 1)  out VertexData VertexOutput;
-layout (location = 8)  out flat uint  v_DiffuseTextureIndex;
-layout (location = 9)  out flat uint  v_SpecularTextureIndex;
-layout (location = 10) out flat uint  v_NormalMapTextureIndex;
+layout (location = 11) out flat uint  v_DiffuseTextureIndex;
+layout (location = 12) out flat uint  v_SpecularTextureIndex;
+layout (location = 13) out flat uint  v_NormalMapTextureIndex;
 
 void main()
 {
@@ -62,6 +67,20 @@ void main()
 	v_DiffuseTextureIndex       = a_DiffuseTextureIndex;
 	v_SpecularTextureIndex      = a_SpecularTextureIndex;
 	v_NormalMapTextureIndex     = a_NormalMapTextureIndex;
+
+	vec3 T = normalize(a_Tangent);
+	vec3 B = normalize(a_Bitangent);
+	vec3 N = normalize(a_Normal);
+//	if(a_NormalMapTextureIndex == 0)
+//	{
+//		N = normalize(a_Normal);
+//	}
+//	else
+//	{
+//		vec3 normalMap = texture(u_Textures[a_NormalMapTextureIndex], a_TexCoord).rgb;
+//		N = normalize(normalMap * 2.0 - 1.0);
+//	}
+	VertexOutput.TBN = mat3(T, B, N);
 
 	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 }

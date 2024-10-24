@@ -57,6 +57,8 @@ namespace Atlas
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
+		glm::vec3 Tangent;
+		glm::vec3 Bitangent;
 
 		glm::vec3 AmbientColor;
 		glm::vec3 DiffuseColor;
@@ -277,6 +279,8 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Position"              },
 			{ ShaderDataType::Float3, "a_Normal"                },
 			{ ShaderDataType::Float2, "a_TexCoord"              },
+			{ ShaderDataType::Float3, "a_Tangent"               },
+			{ ShaderDataType::Float3, "a_Bitangent"             },
 			{ ShaderDataType::Float3, "a_AmbientColor"          },
 			{ ShaderDataType::Float3, "a_DiffuseColor"          },
 			{ ShaderDataType::Float3, "a_SpecularColor"         },
@@ -1141,6 +1145,8 @@ namespace Atlas
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position              = transform * glm::vec4(vertices[i].Position, 1.0f);
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                = normalMatrix * vertices[i].Normal;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord              = vertices[i].TexCoords;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent               = vertices[i].Tangent;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Bitangent             = vertices[i].Bitangent;
 
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AmbientColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();

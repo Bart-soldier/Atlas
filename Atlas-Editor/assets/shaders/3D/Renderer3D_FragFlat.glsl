@@ -10,6 +10,7 @@ struct VertexData
 	vec3  Position;
 	vec3  Normal;
 	vec2  TexCoord;
+	mat3  TBN;
 
 	vec3  AmbientColor;
 	vec3  DiffuseColor;
