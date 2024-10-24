@@ -17,8 +17,8 @@ struct VertexData
 	float Shininess;
 };
 
-layout (location = 0) in VertexData VertexInput;
-layout (location = 9) in flat int   v_EntityID;
+layout (location = 0) in flat int   v_EntityID;
+layout (location = 1) in VertexData VertexInput;
 
 layout (std140, binding = 0) uniform Settings
 {

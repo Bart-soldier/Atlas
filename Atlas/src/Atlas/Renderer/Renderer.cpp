@@ -51,6 +51,9 @@ namespace Atlas
 	// 3D
 	struct MeshVertex
 	{
+		// Editor-only
+		int EntityID;
+
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
@@ -61,9 +64,6 @@ namespace Atlas
 		float Shininess;
 		uint32_t DiffuseTextureIndex;
 		uint32_t SpecularTextureIndex;
-
-		// Editor-only
-		int EntityID;
 	};
 
 	struct RendererData
@@ -272,6 +272,7 @@ namespace Atlas
 		// Mesh VBO
 		s_RendererData.MeshVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(MeshVertex));
 		s_RendererData.MeshVertexBuffer->SetLayout({
+			{ ShaderDataType::Int,    "a_EntityID"             },
 			{ ShaderDataType::Float3, "a_Position"             },
 			{ ShaderDataType::Float3, "a_Normal"               },
 			{ ShaderDataType::Float2, "a_TexCoord"             },
@@ -280,8 +281,7 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_SpecularColor"        },
 			{ ShaderDataType::Float,  "a_Shininess"            },
 			{ ShaderDataType::UInt,   "a_DiffuseTextureIndex"  },
-			{ ShaderDataType::UInt,   "a_SpecularTextureIndex" },
-			{ ShaderDataType::Int,    "a_EntityID"             }
+			{ ShaderDataType::UInt,   "a_SpecularTextureIndex" }
 			});
 		s_RendererData.MeshVertexArray->AddVertexBuffer(s_RendererData.MeshVertexBuffer);
 		s_RendererData.MeshVertexBufferBase = new MeshVertex[s_RendererData.MaxVertices];
@@ -419,7 +419,7 @@ namespace Atlas
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
 		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		//s_RendererData.MeshShader      = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -1133,6 +1133,8 @@ namespace Atlas
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID             = entityID;
+
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position             = transform * glm::vec4(vertices[i].Position, 1.0f);
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal               = normalMatrix * vertices[i].Normal;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord             = vertices[i].TexCoords;
@@ -1144,8 +1146,6 @@ namespace Atlas
 
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseTextureIndex  = diffuseTextureIndex;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularTextureIndex = specularTextureIndex;
-			
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID             = entityID;
 
 			s_RendererData.MeshVertexCount++;
 		}

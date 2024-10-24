@@ -32,10 +32,10 @@ struct LightData
 	float SpecularStrength;
 };
 
-layout (location = 0) in VertexData VertexInput;
-layout (location = 7) in flat uint  v_DiffuseTextureIndex;
-layout (location = 8) in flat uint  v_SpecularTextureIndex;
-layout (location = 9) in flat int   v_EntityID;
+layout (location = 0) in flat int   v_EntityID;
+layout (location = 1) in VertexData VertexInput;
+layout (location = 8) in flat uint  v_DiffuseTextureIndex;
+layout (location = 9) in flat uint  v_SpecularTextureIndex;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
