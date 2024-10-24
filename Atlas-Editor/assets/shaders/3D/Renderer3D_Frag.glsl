@@ -100,7 +100,7 @@ void main()
 	// Parallax Mapping
 	if(v_HeightMapTextureIndex != 0)
 	{
-		vec3 viewDirection = normalize(VertexInput.TBN * u_CameraPosition.xyz - VertexInput.TBN * VertexInput.Position);
+		vec3 viewDirection = normalize(transpose(VertexInput.TBN) * (u_CameraPosition.xyz - VertexInput.Position));
 		texCoord = ParallaxMapping(VertexInput.TexCoord, viewDirection);
 	}
 
@@ -127,7 +127,7 @@ void main()
 	}
 	else
 	{
-		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex] , texCoord).rgb;
+		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex], texCoord).rgb;
 		vertexNormal = normalMap * 2.0 - 1.0;
 		vertexNormal = normalize(VertexInput.TBN * vertexNormal);
 	}

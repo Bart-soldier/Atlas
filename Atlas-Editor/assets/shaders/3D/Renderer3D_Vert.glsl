@@ -76,7 +76,6 @@ void main()
 		vec3 N = normalize(a_Normal);
 		// Re-orthogonalize T with respect to N (Gram-Schmidt)
 		T = normalize(T - dot(T, N) * N);
-		// Retrieve perpendicular vector B with the cross product of T and N
 		vec3 B = cross(N, T);
 
 		VertexOutput.TBN = mat3(T, B, N);
