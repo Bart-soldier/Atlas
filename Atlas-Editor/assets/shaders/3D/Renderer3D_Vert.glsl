@@ -48,7 +48,6 @@ layout (location = 0)  out flat int   v_EntityID;
 layout (location = 1)  out VertexData VertexOutput;
 layout (location = 8)  out flat uint  v_DiffuseTextureIndex;
 layout (location = 9)  out flat uint  v_SpecularTextureIndex;
-layout (location = 10) out flat uint  v_NormalMapTextureIndex;
 
 void main()
 {
@@ -64,10 +63,9 @@ void main()
 
 	v_DiffuseTextureIndex       = a_DiffuseTextureIndex;
 	v_SpecularTextureIndex      = a_SpecularTextureIndex;
-	v_NormalMapTextureIndex     = a_NormalMapTextureIndex;
 
 	vec3 vertexNormal;
-	if(v_NormalMapTextureIndex == 0)
+	if(a_NormalMapTextureIndex == 0)
 	{
 		vertexNormal = normalize(a_Normal);
 	}
@@ -78,7 +76,7 @@ void main()
 		vec3 N = normalize(a_Normal);
 		mat3 TBN = mat3(T, B, N);
 
-		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex] , a_TexCoord).rgb;
+		vec3 normalMap = texture(u_Textures[a_NormalMapTextureIndex] , a_TexCoord).rgb;
 		vertexNormal = normalMap * 2.0 - 1.0;
 		vertexNormal = normalize(TBN * vertexNormal);
 	}
