@@ -96,7 +96,7 @@ Entities:
     SpriteRendererComponent:
       Type: 0
       Color: [1, 1, 1, 1]
-      TexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\SpriteSheet.png
+      TexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\SpriteSheets\SpriteSheet.png
       TilingFactor: 1
       SpriteSheet: true
       SubTextureCoords: [0, 1]
@@ -114,7 +114,7 @@ Entities:
     SpriteRendererComponent:
       Type: 0
       Color: [1, 1, 1, 1]
-      TexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\SpriteSheet.png
+      TexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Textures\SpriteSheets\SpriteSheet.png
       TilingFactor: 1
       SpriteSheet: true
       SubTextureCoords: [6, 0]

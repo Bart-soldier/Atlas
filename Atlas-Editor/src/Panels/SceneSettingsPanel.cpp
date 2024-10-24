@@ -149,5 +149,11 @@ namespace Atlas
 		{
 			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);
 		}
+
+		float parallaxScale = Renderer::GetParallaxScale();
+		if (ImGuiUtils::DragFloat("Parallax Scale", parallaxScale, 0.1f, 0.01f))
+		{
+			Renderer::SetParallaxScale(parallaxScale);
+		}
 	}
 }

@@ -46,6 +46,12 @@ namespace Atlas
 		m_MaterialPreset = MaterialPresets::Custom;
 	}
 
+	void Material::SetHeightMap(const Ref<Texture2D>& heightMap)
+	{
+		m_HeightMap = heightMap;
+		m_MaterialPreset = MaterialPresets::Custom;
+	}
+
 	void Material::SetMaterialPreset(const MaterialPresets& materialPreset)
 	{
 		if (m_MaterialPreset == materialPreset)

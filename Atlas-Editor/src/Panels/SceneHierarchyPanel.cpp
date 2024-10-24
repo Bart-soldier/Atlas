@@ -633,6 +633,32 @@ namespace Atlas
 
 			ImGui::Separator();
 
+			// Height map component
+			ImGuiUtils::BeginTextureViewer("Height Map", material->GetHeightMap(), 150.0, 150.0, true);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path payloadPath(path);
+
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
+					{
+						material->SetHeightMap(texture);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGuiUtils::EndTextureViewer(material->GetHeightMap()))
+			{
+				material->SetHeightMap(nullptr);
+			}
+
+			ImGui::Separator();
+
 			float shininess = material->GetShininess();
 			if (ImGuiUtils::DragFloat("Shininess", shininess, 1.0f, 0.001f, 0.0f, 1.0f))
 			{
