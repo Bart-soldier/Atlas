@@ -14,7 +14,6 @@ struct VertexData
 	vec3  Position;
 	vec3  Normal;
 	vec2  TexCoord;
-	mat3  TBN;
 
 	vec3  AmbientColor;
 	vec3  DiffuseColor;
@@ -43,9 +42,9 @@ struct LightData
 
 layout (location = 0)  in flat int   v_EntityID;
 layout (location = 1)  in VertexData VertexInput;
-layout (location = 11) in flat uint  v_DiffuseTextureIndex;
-layout (location = 12) in flat uint  v_SpecularTextureIndex;
-layout (location = 13) in flat uint  v_NormalMapTextureIndex;
+layout (location = 8)  in flat uint  v_DiffuseTextureIndex;
+layout (location = 9)  in flat uint  v_SpecularTextureIndex;
+layout (location = 10) in flat uint  v_NormalMapTextureIndex;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -103,18 +102,7 @@ void main()
 		discard;
 	}
 
-	vec3 vertexNormal;
-	if(v_NormalMapTextureIndex == 0)
-	{
-		vertexNormal = normalize(VertexInput.Normal);
-	}
-	else
-	{
-		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex] , VertexInput.TexCoord).rgb;
-		vertexNormal = normalize(normalMap * 2.0 - 1.0);
-	}
-
-	vec4 fragmentColor = CalculateLights(diffuseTexture, specularTexture, vertexNormal);
+	vec4 fragmentColor = CalculateLights(diffuseTexture, specularTexture, VertexInput.Normal);
 
 	o_Color            = fragmentColor;
 	o_EntityID         = v_EntityID;

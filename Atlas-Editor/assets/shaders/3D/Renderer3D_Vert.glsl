@@ -37,7 +37,6 @@ struct VertexData
 	vec3  Position;
 	vec3  Normal;
 	vec2  TexCoord;
-	mat3  TBN;
 
 	vec3  AmbientColor;
 	vec3  DiffuseColor;
@@ -47,16 +46,15 @@ struct VertexData
 
 layout (location = 0)  out flat int   v_EntityID;
 layout (location = 1)  out VertexData VertexOutput;
-layout (location = 11) out flat uint  v_DiffuseTextureIndex;
-layout (location = 12) out flat uint  v_SpecularTextureIndex;
-layout (location = 13) out flat uint  v_NormalMapTextureIndex;
+layout (location = 8)  out flat uint  v_DiffuseTextureIndex;
+layout (location = 9)  out flat uint  v_SpecularTextureIndex;
+layout (location = 10) out flat uint  v_NormalMapTextureIndex;
 
 void main()
 {
 	v_EntityID                  = a_EntityID;
 
 	VertexOutput.Position       = a_Position;
-	VertexOutput.Normal         = a_Normal;
 	VertexOutput.TexCoord       = a_TexCoord;
 
 	VertexOutput.AmbientColor   = a_AmbientColor;
@@ -68,19 +66,24 @@ void main()
 	v_SpecularTextureIndex      = a_SpecularTextureIndex;
 	v_NormalMapTextureIndex     = a_NormalMapTextureIndex;
 
-	vec3 T = normalize(a_Tangent);
-	vec3 B = normalize(a_Bitangent);
-	vec3 N = normalize(a_Normal);
-//	if(a_NormalMapTextureIndex == 0)
-//	{
-//		N = normalize(a_Normal);
-//	}
-//	else
-//	{
-//		vec3 normalMap = texture(u_Textures[a_NormalMapTextureIndex], a_TexCoord).rgb;
-//		N = normalize(normalMap * 2.0 - 1.0);
-//	}
-	VertexOutput.TBN = mat3(T, B, N);
+	vec3 vertexNormal;
+	if(v_NormalMapTextureIndex == 0)
+	{
+		vertexNormal = normalize(a_Normal);
+	}
+	else
+	{
+		vec3 T = normalize(a_Tangent);
+		vec3 B = normalize(a_Bitangent);
+		vec3 N = normalize(a_Normal);
+		mat3 TBN = mat3(T, B, N);
+
+		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex] , a_TexCoord).rgb;
+		vertexNormal = normalMap * 2.0 - 1.0;
+		vertexNormal = normalize(TBN * vertexNormal);
+	}
+
+	VertexOutput.Normal = vertexNormal;
 
 	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 }
