@@ -12,15 +12,17 @@ layout(location = 2)  in vec3  a_Normal;
 layout(location = 3)  in vec2  a_TexCoord;
 layout(location = 4)  in vec3  a_Tangent;
 
-layout(location = 5)  in vec3  a_AmbientColor;
-layout(location = 6)  in vec3  a_DiffuseColor;
-layout(location = 7)  in vec3  a_SpecularColor;
-layout(location = 8)  in float a_Shininess;
+layout(location = 5)  in mat3  a_Model;
 
-layout(location = 9)  in uint  a_DiffuseTextureIndex;
-layout(location = 10) in uint  a_SpecularTextureIndex;
-layout(location = 11) in uint  a_NormalMapTextureIndex;
-layout(location = 12) in uint  a_HeightMapTextureIndex;
+layout(location = 8)  in vec3  a_AmbientColor;
+layout(location = 9)  in vec3  a_DiffuseColor;
+layout(location = 10) in vec3  a_SpecularColor;
+layout(location = 11) in float a_Shininess;
+
+layout(location = 12) in uint  a_DiffuseTextureIndex;
+layout(location = 13) in uint  a_SpecularTextureIndex;
+layout(location = 14) in uint  a_NormalMapTextureIndex;
+layout(location = 15) in uint  a_HeightMapTextureIndex;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -72,11 +74,18 @@ void main()
 
 	if(a_NormalMapTextureIndex != 0 || a_HeightMapTextureIndex != 0)
 	{
-		vec3 T = normalize(a_Tangent);
-		vec3 N = normalize(a_Normal);
+		vec3 T = normalize(a_Model * a_Tangent);
+		vec3 N = normalize(a_Model * a_Normal);
 		// Re-orthogonalize T with respect to N (Gram-Schmidt)
 		T = normalize(T - dot(T, N) * N);
 		vec3 B = cross(N, T);
+		if (dot(cross(N, T), B) < 0.0)
+		{
+			T = T * -1.0;
+		}
+
+		// TODO: Remove ? Fixes some cube sides
+		B = vec3(B.x > 0 ? B.x : -B.x, B.y > 0 ? B.y : -B.y, B.z > 0 ? B.z : -B.z);
 
 		VertexOutput.TBN = mat3(T, B, N);
 	}
