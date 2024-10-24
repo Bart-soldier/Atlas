@@ -14,6 +14,7 @@ struct VertexData
 	vec3  Position;
 	vec3  Normal;
 	vec2  TexCoord;
+	mat3  TBN;
 
 	vec3  AmbientColor;
 	vec3  DiffuseColor;
@@ -40,10 +41,11 @@ struct LightData
 /* ----------- INPUTS ----------- */
 /* ------------------------------ */
 
-layout (location = 0)  in flat int   v_EntityID;
-layout (location = 1)  in VertexData VertexInput;
-layout (location = 8)  in flat uint  v_DiffuseTextureIndex;
-layout (location = 9)  in flat uint  v_SpecularTextureIndex;
+layout (location = 0)   in flat int   v_EntityID;
+layout (location = 1)   in VertexData VertexInput;
+layout (location = 11)  in flat uint  v_DiffuseTextureIndex;
+layout (location = 12)  in flat uint  v_SpecularTextureIndex;
+layout (location = 13)  in flat uint  v_NormalMapTextureIndex;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -90,18 +92,30 @@ vec4 CalculateLights(vec4 diffuseTexture, vec4 specularTexture, vec3 vertexNorma
 
 void main()
 {
-	vec4 diffuseTexture  = texture(u_Textures[v_DiffuseTextureIndex] , VertexInput.TexCoord);
-	vec4 specularTexture = texture(u_Textures[v_SpecularTextureIndex], VertexInput.TexCoord);
+	vec4 diffuseColor  = texture(u_Textures[v_DiffuseTextureIndex] , VertexInput.TexCoord);
+	vec4 specularColor = texture(u_Textures[v_SpecularTextureIndex], VertexInput.TexCoord);
 
-	diffuseTexture = vec4(pow(diffuseTexture.rgb, vec3(u_Gamma)), diffuseTexture.a);
+	diffuseColor = vec4(pow(diffuseColor.rgb, vec3(u_Gamma)), diffuseColor.a);
 
 	// Alpha discard on diffuse
-	if (diffuseTexture.a == 0.0)
+	if (diffuseColor.a == 0.0)
 	{
 		discard;
 	}
 
-	vec4 fragmentColor = CalculateLights(diffuseTexture, specularTexture, VertexInput.Normal);
+	vec3 vertexNormal;
+	if(v_NormalMapTextureIndex == 0)
+	{
+		vertexNormal = normalize(VertexInput.Normal);
+	}
+	else
+	{
+		vec3 normalMap = texture(u_Textures[v_NormalMapTextureIndex] , VertexInput.TexCoord).rgb;
+		vertexNormal = normalMap * 2.0 - 1.0;
+		vertexNormal = normalize(VertexInput.TBN * vertexNormal);
+	}
+
+	vec4 fragmentColor = CalculateLights(diffuseColor, specularColor, vertexNormal);
 
 	o_Color            = fragmentColor;
 	o_EntityID         = v_EntityID;
