@@ -11,16 +11,15 @@ layout(location = 1)  in vec3  a_Position;
 layout(location = 2)  in vec3  a_Normal;
 layout(location = 3)  in vec2  a_TexCoord;
 layout(location = 4)  in vec3  a_Tangent;
-layout(location = 5)  in vec3  a_Bitangent;
 
-layout(location = 6)  in vec3  a_AmbientColor;
-layout(location = 7)  in vec3  a_DiffuseColor;
-layout(location = 8)  in vec3  a_SpecularColor;
-layout(location = 9)  in float a_Shininess;
+layout(location = 5)  in vec3  a_AmbientColor;
+layout(location = 6)  in vec3  a_DiffuseColor;
+layout(location = 7)  in vec3  a_SpecularColor;
+layout(location = 8)  in float a_Shininess;
 
-layout(location = 10) in uint  a_DiffuseTextureIndex;
-layout(location = 11) in uint  a_SpecularTextureIndex;
-layout(location = 12) in uint  a_NormalMapTextureIndex;
+layout(location = 9)  in uint  a_DiffuseTextureIndex;
+layout(location = 10) in uint  a_SpecularTextureIndex;
+layout(location = 11) in uint  a_NormalMapTextureIndex;
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
