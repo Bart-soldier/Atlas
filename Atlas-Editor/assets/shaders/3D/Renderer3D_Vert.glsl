@@ -71,8 +71,12 @@ void main()
 	if(a_NormalMapTextureIndex != 0)
 	{
 		vec3 T = normalize(a_Tangent);
-		vec3 B = normalize(a_Bitangent);
 		vec3 N = normalize(a_Normal);
+		// Re-orthogonalize T with respect to N (Gram-Schmidt)
+		T = normalize(T - dot(T, N) * N);
+		// Retrieve perpendicular vector B with the cross product of T and N
+		vec3 B = cross(N, T);
+
 		VertexOutput.TBN = mat3(T, B, N);
 	}
 
