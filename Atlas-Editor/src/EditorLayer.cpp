@@ -573,6 +573,14 @@ namespace Atlas
 		squareEntity->AddComponent<MaterialComponent>();
 		squareEntity->GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Gold);
 
+		Entity* planeEntity = newScene->CreateEntity("Plane");
+		TransformComponent* planeTransform = &planeEntity->GetComponent<TransformComponent>();
+		planeTransform->Translation = glm::vec3(0.0f, -1.0f, 0.0f);
+		planeTransform->Scale = glm::vec3(10.0f, 0.1f, 10.0f);
+		planeEntity->AddComponent<MeshComponent>();
+		planeEntity->AddComponent<MaterialComponent>();
+		planeEntity->GetComponent<MaterialComponent>().Material->SetMaterialPreset(Material::MaterialPresets::Default);
+
 		Entity* cameraEntity = newScene->CreateEntity("Camera");
 		cameraEntity->AddComponent<CameraComponent>();
 		cameraEntity->GetComponent<CameraComponent>().Camera.SetProjectionType(Camera::ProjectionType::Perspective);

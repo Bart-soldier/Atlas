@@ -14,10 +14,10 @@ namespace Atlas
 		RED_INTEGER,
 
 		// Depth/stencil
-		DEPTH24STENCIL8,
+		DEPTH24_STENCIL8,
 
-		// Defaults
-		Depth = DEPTH24STENCIL8
+		// Depth
+		DEPTH32F
 	};
 
 	struct FramebufferTextureSpecification

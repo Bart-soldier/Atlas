@@ -17,49 +17,12 @@ struct VertexData
 	float Shininess;
 };
 
-struct LightData
-{
-	vec4 Position;
-	vec4 Color;
-	vec4 Direction; // w is a flag to indicate if light direction is spot direction
-
-	float Radius;
-	float Intensity;
-	vec2 CutOffs; // (inner, outer); negative value means cutoff is disabled
-
-	float AmbientStrength;
-	float DiffuseStrength;
-	float SpecularStrength;
-};
-
 layout (location = 0) in VertexData VertexInput;
-layout (location = 7) in flat uint  v_DiffuseTextureIndex;
-layout (location = 8) in flat uint  v_SpecularTextureIndex;
 layout (location = 9) in flat int   v_EntityID;
-
-layout (binding = 0) uniform sampler2D u_Textures[32];
 
 layout (std140, binding = 0) uniform Settings
 {
 	float u_Gamma;
-};
-
-layout (std140, binding = 1) uniform Camera
-{
-	mat4 u_ViewProjection;
-	mat4 u_Projection;
-	mat4 u_View;
-	vec4 u_CameraPosition;
-};
-
-layout (std140, binding = 2) uniform LightCount
-{
-	uint u_LightCount;
-};
-
-layout (std430, binding = 0) buffer Lights
-{
-	LightData u_Lights[];
 };
 
 layout (location = 0) out vec4 o_Color;

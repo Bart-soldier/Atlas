@@ -68,7 +68,7 @@ namespace Atlas
 
 	struct RendererData
 	{
-		Ref<Framebuffer> Framebuffer;
+		Ref<Framebuffer> RenderFramebuffer;
 
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
@@ -187,12 +187,12 @@ namespace Atlas
 	void Renderer::InitArrays()
 	{
 		FramebufferSpecification fbSpec;
-		// Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::Depth };
+		// Render FB: Color, EntityID, PostProcessing, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
-		fbSpec.Width = app.GetWindow().GetWidth();
+		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
-		s_RendererData.Framebuffer = Framebuffer::Create(fbSpec);
+		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -491,29 +491,29 @@ namespace Atlas
 
 	void Renderer::BeginRenderPass()
 	{
-		s_RendererData.Framebuffer->Bind();
+		s_RendererData.RenderFramebuffer->Bind();
 		// TODO: Link to palette
 		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
 		RenderCommand::Clear();
 
 		// Clear our entity ID attachment to -1
-		s_RendererData.Framebuffer->ClearAttachment(1, -1);
+		s_RendererData.RenderFramebuffer->ClearAttachment(1, -1);
 	}
 
 	void Renderer::EndRenderPass()
 	{
-		s_RendererData.Framebuffer->Unbind();
+		s_RendererData.RenderFramebuffer->Unbind();
 	}
 
 	bool Renderer::ResizeFramebuffer(uint32_t width, uint32_t height)
 	{
 		bool resized = false;
-		FramebufferSpecification spec = s_RendererData.Framebuffer->GetSpecification();
+		FramebufferSpecification spec = s_RendererData.RenderFramebuffer->GetSpecification();
 
 		// Zero sized framebuffer is invalid
 		if (width > 0.0f && height > 0.0f && (spec.Width != width || spec.Height != height))
 		{
-			s_RendererData.Framebuffer->Resize(width, height);
+			s_RendererData.RenderFramebuffer->Resize(width, height);
 			resized = true;
 		}
 
@@ -522,17 +522,17 @@ namespace Atlas
 
 	uint32_t Renderer::GetRenderID()
 	{
-		return s_RendererData.Framebuffer->GetColorAttachmentRendererID();
+		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID();
 	}
 
 	uint32_t Renderer::GetPostProcessRenderID()
 	{
-		return s_RendererData.Framebuffer->GetColorAttachmentRendererID(2);
+		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(2);
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
 	{
-		return s_RendererData.Framebuffer->ReadPixel(1, x, y);
+		return s_RendererData.RenderFramebuffer->ReadPixel(1, x, y);
 	}
 
 	void Renderer::ResetStats()
