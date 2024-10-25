@@ -15,7 +15,7 @@ layout (std140, binding = 3) uniform Settings
 	float u_KernelOffset;
 };
 
-layout (location = 2) out vec4 o_PostProcessColor;
+layout (location = 0) out vec4 o_Color;
 
 void main()
 {
@@ -51,5 +51,5 @@ void main()
         color += sampleTex[i] * kernel[i];
     }
     
-    o_PostProcessColor = vec4(color, 1.0);
+    o_Color = vec4(color, 1.0);
 }

@@ -12,7 +12,7 @@ namespace Atlas
 			None = 0,
 			Inversion,
 			Greyscale,
-			Numerical,
+			Sharpen,
 			Blur,
 			EdgeDetection,
 			GammaCorrection,

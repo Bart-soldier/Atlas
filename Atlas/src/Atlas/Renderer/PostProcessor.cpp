@@ -27,7 +27,7 @@ namespace Atlas
 
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
-		Ref<Shader> NumericalShader;
+		Ref<Shader> SharpenShader;
 		Ref<Shader> BlurShader;
 		Ref<Shader> EdgeDetectionShader;
 		Ref<Shader> GammaCorrectionShader;
@@ -79,7 +79,7 @@ namespace Atlas
 		// Shaders
 		s_PostProcessorData.InversionShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"      );
 		s_PostProcessorData.GreyscaleShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"      );
-		s_PostProcessorData.NumericalShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Numerical.glsl"      );
+		s_PostProcessorData.SharpenShader         = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl"        );
 		s_PostProcessorData.BlurShader            = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"           );
 		s_PostProcessorData.EdgeDetectionShader   = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"  );
 		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
@@ -107,8 +107,8 @@ namespace Atlas
 		case Atlas::PostProcessor::PostProcessingEffect::Greyscale:
 			s_PostProcessorData.GreyscaleShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::Numerical:
-			s_PostProcessorData.NumericalShader->Bind();
+		case Atlas::PostProcessor::PostProcessingEffect::Sharpen:
+			s_PostProcessorData.SharpenShader->Bind();
 			break;
 		case Atlas::PostProcessor::PostProcessingEffect::Blur:
 			s_PostProcessorData.BlurShader->Bind();

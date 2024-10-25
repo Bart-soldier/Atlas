@@ -282,7 +282,7 @@ namespace Atlas
 		{
 			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 			ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-			const char* effectsStrings[] = { "None", "Inversion", "Greyscale", "Numerical", "Blur", "Edge Detection"};
+			const char* effectsStrings[] = { "None", "Inversion", "Greyscale", "Sharpen", "Blur", "Edge Detection"};
 			int removeEffect = -1;
 
 			for (int effectIndex = 0; effectIndex < component.Effects.size(); effectIndex++)
@@ -303,7 +303,7 @@ namespace Atlas
 							currentEffectString = effectsStrings[stringIndex];
 							component.Effects[effectIndex] = (PostProcessor::PostProcessingEffect)stringIndex;
 
-							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
+							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Sharpen)
 							{
 								component.KernelOffsets[effectIndex] = 90.0f;
 							}
@@ -330,7 +330,7 @@ namespace Atlas
 					removeEffect = effectIndex;
 				}
 
-				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Numerical)
+				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Sharpen)
 				{
 					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 90.0f, 1.0f, 1.0f, 0.0f, effectIndex);
 				}
