@@ -10,13 +10,17 @@ namespace Atlas
 		enum class PostProcessingEffect
 		{
 			None = 0,
+			// User-related
 			Inversion,
 			Greyscale,
 			Sharpen,
 			Blur,
 			EdgeDetection,
+
+			// Renderer-related
 			GammaCorrection,
-			ToneMapping
+			ToneMapping,
+			Bloom,
 		};
 
 		struct Settings
@@ -31,5 +35,6 @@ namespace Atlas
 		static void Init();
 
 		static void ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings);
+		static void ApplyAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID);
 	};
 }

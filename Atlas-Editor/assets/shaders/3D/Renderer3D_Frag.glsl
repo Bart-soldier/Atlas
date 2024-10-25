@@ -54,6 +54,7 @@ layout (std140, binding = 0) uniform Settings
 {
 	float u_Gamma;
 	float u_ParallaxScale;
+	float u_BloomThreshold;
 };
 
 layout (std140, binding = 1) uniform Camera
@@ -80,6 +81,7 @@ layout (std430, binding = 0) buffer Lights
 
 layout (location = 0) out vec4 o_Color;
 layout (location = 1) out int  o_EntityID;
+layout (location = 2) out vec4 o_BrightColor;
 
 /* ------------------------------ */
 /* ----- METHOD DEFINITIONS ----- */
@@ -133,8 +135,20 @@ void main()
 
 	vec4 fragmentColor = CalculateLights(diffuseColor, specularColor, vertexNormal);
 
-	o_Color            = vec4(fragmentColor.rgb, diffuseColor.a);
-	o_EntityID         = v_EntityID;
+	float brightness = dot(fragmentColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+	vec4 brightColor;
+	if(brightness > u_BloomThreshold)
+	{
+        brightColor = vec4(fragmentColor.rgb, diffuseColor.a);
+	}
+    else
+	{
+        brightColor = vec4(0.0, 0.0, 0.0, diffuseColor.a);
+	}
+
+	o_Color       = vec4(fragmentColor.rgb, diffuseColor.a);
+	o_EntityID    = v_EntityID;
+	o_BrightColor = brightColor;
 }
 
 /* ------------------------------ */

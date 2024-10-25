@@ -25,13 +25,17 @@ namespace Atlas
 		PostProcessor::Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
 
+		// User-related
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
 		Ref<Shader> SharpenShader;
 		Ref<Shader> BlurShader;
 		Ref<Shader> EdgeDetectionShader;
+		// Renderer-related
 		Ref<Shader> GammaCorrectionShader;
 		Ref<Shader> ToneMappingShader;
+		Ref<Shader> GaussianBlurShader;
+		Ref<Shader> AdditiveBlendingShader;
 	};
 
 	static PostProcessorData s_PostProcessorData;
@@ -77,13 +81,15 @@ namespace Atlas
 		s_PostProcessorData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
 
 		// Shaders
-		s_PostProcessorData.InversionShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"      );
-		s_PostProcessorData.GreyscaleShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"      );
-		s_PostProcessorData.SharpenShader         = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl"        );
-		s_PostProcessorData.BlurShader            = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"           );
-		s_PostProcessorData.EdgeDetectionShader   = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"  );
-		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
-		s_PostProcessorData.ToneMappingShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl"    );
+		s_PostProcessorData.InversionShader        = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"               );
+		s_PostProcessorData.GreyscaleShader        = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"               );
+		s_PostProcessorData.SharpenShader          = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl"                 );
+		s_PostProcessorData.BlurShader             = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"                    );
+		s_PostProcessorData.EdgeDetectionShader    = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"           );
+		s_PostProcessorData.GammaCorrectionShader  = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl"         );
+		s_PostProcessorData.ToneMappingShader      = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl"             );
+		s_PostProcessorData.GaussianBlurShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl"            );
+		s_PostProcessorData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl" );
 	}
 
 	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
@@ -122,7 +128,20 @@ namespace Atlas
 		case Atlas::PostProcessor::PostProcessingEffect::ToneMapping:
 			s_PostProcessorData.ToneMappingShader->Bind();
 			break;
+		case Atlas::PostProcessor::PostProcessingEffect::Bloom:
+			s_PostProcessorData.GaussianBlurShader->Bind();
+			break;
 		}
+
+		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+	}
+
+	void PostProcessor::ApplyAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID)
+	{
+		RenderCommand::BindTextureSlot(0, texture1ID);
+		RenderCommand::BindTextureSlot(1, texture2ID);
+
+		s_PostProcessorData.AdditiveBlendingShader->Bind();
 
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}

@@ -345,7 +345,7 @@ namespace Atlas
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		if (m_SceneState == SceneState::Edit)
+		if (m_SceneState == SceneState::Edit && m_ViewportHovered)
 		{
 			m_EditorCamera.OnEvent(e);
 		}
@@ -770,7 +770,7 @@ namespace Atlas
 		/* ---------- PostProcessing ---------- */
 		ImGui::SameLine();
 		bool ppEnabled = m_EditorCamera.IsPostProcessEnabled();
-		if (ImGui::Checkbox("PP", &ppEnabled))
+		if (ImGui::Checkbox("Apply Cam PP", &ppEnabled))
 		{
 			m_EditorCamera.SetIsPostProcessEnabled(ppEnabled);
 		}

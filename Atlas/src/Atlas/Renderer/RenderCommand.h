@@ -57,6 +57,11 @@ namespace Atlas
 			s_RendererAPI->Clear();
 		}
 
+		static void ClearColor()
+		{
+			s_RendererAPI->ClearColor();
+		}
+
 		static void ClearDepth()
 		{
 			s_RendererAPI->ClearDepth();

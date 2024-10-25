@@ -41,19 +41,19 @@ namespace Atlas
 
 		ImGui::Separator();
 
-		sectionName = "Skybox";
-		open = ImGui::TreeNodeEx(sectionName.c_str(), treeNodeFlags);
-		if (open)
-		{
-			DrawSkybox();
-			ImGui::TreePop();
-		}
-
 		sectionName = "Graphics Settings";
 		open = ImGui::TreeNodeEx(sectionName.c_str(), treeNodeFlags);
 		if (open)
 		{
 			DrawGraphicsSettings();
+			ImGui::TreePop();
+		}
+
+		sectionName = "Skybox";
+		open = ImGui::TreeNodeEx(sectionName.c_str(), treeNodeFlags);
+		if (open)
+		{
+			DrawSkybox();
 			ImGui::TreePop();
 		}
 
@@ -157,6 +157,12 @@ namespace Atlas
 			Renderer::ToggleHDR();
 		}
 
+		bool isBloomEnabled = Renderer::IsBloomEnabled();
+		if (ImGuiUtils::Checkbox("Bloom", isBloomEnabled))
+		{
+			Renderer::ToggleBloom();
+		}
+
 		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))
 		{
 			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);
@@ -172,6 +178,12 @@ namespace Atlas
 		if (ImGuiUtils::DragFloat("Parallax Scale", parallaxScale, 0.1f, 0.01f))
 		{
 			Renderer::SetParallaxScale(parallaxScale);
+		}
+
+		float bloomThreshold = Renderer::GetBloomThreshold();
+		if (ImGuiUtils::DragFloat("Bloom Threshold", bloomThreshold, 1.0f, 0.01f))
+		{
+			Renderer::SetBloomThreshold(bloomThreshold);
 		}
 	}
 }
