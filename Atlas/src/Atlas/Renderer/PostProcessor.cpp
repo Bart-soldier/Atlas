@@ -31,6 +31,7 @@ namespace Atlas
 		Ref<Shader> BlurShader;
 		Ref<Shader> EdgeDetectionShader;
 		Ref<Shader> GammaCorrectionShader;
+		Ref<Shader> ToneMappingShader;
 	};
 
 	static PostProcessorData s_PostProcessorData;
@@ -83,6 +84,7 @@ namespace Atlas
 		s_PostProcessorData.BlurShader            = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"           );
 		s_PostProcessorData.EdgeDetectionShader   = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"  );
 		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
+		s_PostProcessorData.ToneMappingShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl"    );
 	}
 
 	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
@@ -91,6 +93,9 @@ namespace Atlas
 
 		s_PostProcessorData.SettingsBuffer.Strength     = settings.Strength;
 		s_PostProcessorData.SettingsBuffer.KernelOffset = settings.KernelOffset;
+		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
+
+		RenderCommand::BindTextureSlot(0, renderID);
 
 		switch (effect)
 		{
@@ -115,11 +120,11 @@ namespace Atlas
 		case Atlas::PostProcessor::PostProcessingEffect::GammaCorrection:
 			s_PostProcessorData.GammaCorrectionShader->Bind();
 			break;
+		case Atlas::PostProcessor::PostProcessingEffect::ToneMapping:
+			s_PostProcessorData.ToneMappingShader->Bind();
+			break;
 		}
 
-		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
-
-		RenderCommand::BindTextureSlot(0, renderID);
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 }

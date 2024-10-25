@@ -42,6 +42,8 @@ namespace Atlas
 		// Settings
 		static const float& GetGamma();
 		static void SetGamma(float gamma);
+		static const float& GetExposure();
+		static void SetExposure(float exposure);
 		static const float& GetParallaxScale();
 		static void SetParallaxScale(float scale);
 

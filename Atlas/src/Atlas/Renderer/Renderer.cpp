@@ -164,6 +164,7 @@ namespace Atlas
 		struct Settings
 		{
 			float Gamma = 2.2f;
+			float Exposure = 1.0f;
 			float ParallaxScale = 0.1f;
 		};
 		Settings SettingsBuffer;
@@ -191,7 +192,7 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Render FB: Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
@@ -424,8 +425,8 @@ namespace Atlas
 		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -493,6 +494,16 @@ namespace Atlas
 	void Renderer::SetGamma(float gamma)
 	{
 		s_RendererData.SettingsBuffer.Gamma = gamma;
+	}
+
+	const float& Renderer::GetExposure()
+	{
+		return s_RendererData.SettingsBuffer.Exposure;
+	}
+
+	void Renderer::SetExposure(float exposure)
+	{
+		s_RendererData.SettingsBuffer.Exposure = exposure;
 	}
 
 	const float& Renderer::GetParallaxScale()
@@ -583,13 +594,13 @@ namespace Atlas
 
 	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition)
 	{
+		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
+
 		s_RendererData.CameraBuffer.ViewProjection = cameraProjection * cameraView;
 		s_RendererData.CameraBuffer.Projection     = cameraProjection;
 		s_RendererData.CameraBuffer.View           = cameraView;
 		s_RendererData.CameraBuffer.Position       = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
-
-		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
 	}
 
 	void Renderer::SetStorageBuffers(const std::vector<LightData>& lights)
@@ -784,6 +795,7 @@ namespace Atlas
 
 	void Renderer::EndPostProcessing()
 	{
+		//PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
 		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
 
 		RenderCommand::EnableDepthTest();

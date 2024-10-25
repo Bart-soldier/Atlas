@@ -15,7 +15,8 @@ namespace Atlas
 			Numerical,
 			Blur,
 			EdgeDetection,
-			GammaCorrection
+			GammaCorrection,
+			ToneMapping
 		};
 
 		struct Settings

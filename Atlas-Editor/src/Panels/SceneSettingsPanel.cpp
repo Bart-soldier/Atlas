@@ -150,6 +150,12 @@ namespace Atlas
 			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);
 		}
 
+		float exposure = Renderer::GetExposure();
+		if (ImGuiUtils::DragFloat("Exposure", exposure, 1.0f, 0.1f))
+		{
+			Renderer::SetExposure(exposure);
+		}
+
 		float parallaxScale = Renderer::GetParallaxScale();
 		if (ImGuiUtils::DragFloat("Parallax Scale", parallaxScale, 0.1f, 0.01f))
 		{
