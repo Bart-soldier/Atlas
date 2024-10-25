@@ -177,6 +177,7 @@ namespace Atlas
 
 		float Exposure = 1.0f;
 		bool UseFlatShader = false;
+		bool HDR = false;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -539,6 +540,16 @@ namespace Atlas
 		s_RendererData.UseFlatShader = !s_RendererData.UseFlatShader;
 	}
 
+	bool Renderer::IsHDREnabled()
+	{
+		return s_RendererData.HDR;
+	}
+
+	void Renderer::ToggleHDR()
+	{
+		s_RendererData.HDR = !s_RendererData.HDR;
+	}
+
 	void Renderer::BeginRenderPass()
 	{
 		s_RendererData.RenderFramebuffer->Bind();
@@ -825,8 +836,11 @@ namespace Atlas
 
 	void Renderer::EndPostProcessing()
 	{
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
-		TogglePostProcessingFramebuffers();
+		if (!s_RendererData.HDR)
+		{
+			PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
+			TogglePostProcessingFramebuffers();
+		}
 		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
 		TogglePostProcessingFramebuffers();
 

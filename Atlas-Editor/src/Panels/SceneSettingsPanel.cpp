@@ -151,6 +151,12 @@ namespace Atlas
 			Renderer::ToggleFlatShader();
 		}
 
+		bool isHDREnabled = Renderer::IsHDREnabled();
+		if (ImGuiUtils::Checkbox("HDR", isHDREnabled))
+		{
+			Renderer::ToggleHDR();
+		}
+
 		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))
 		{
 			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);

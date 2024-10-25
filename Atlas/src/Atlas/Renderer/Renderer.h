@@ -48,6 +48,8 @@ namespace Atlas
 		static void SetParallaxScale(float scale);
 		static bool IsFlatShaderEnabled();
 		static void ToggleFlatShader();
+		static bool IsHDREnabled();
+		static void ToggleHDR();
 
 		static void BeginRenderPass();
 		static void EndRenderPass();
