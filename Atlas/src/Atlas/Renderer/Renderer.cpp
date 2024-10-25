@@ -171,6 +171,7 @@ namespace Atlas
 		{
 			float Gamma = 2.2f;
 			float ParallaxScale = 0.1f;
+			float BloomThreshold = 1.0f;
 		};
 		Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
@@ -178,6 +179,7 @@ namespace Atlas
 		float Exposure = 1.0f;
 		bool UseFlatShader = false;
 		bool HDR = false;
+		bool Bloom = true;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -200,8 +202,8 @@ namespace Atlas
 	void Renderer::InitArrays()
 	{
 		FramebufferSpecification fbSpec;
-		// Render FB: Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		// Render FB: Color, EntityID, BrightColors, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
@@ -530,6 +532,16 @@ namespace Atlas
 		s_RendererData.SettingsBuffer.ParallaxScale = scale;
 	}
 
+	const float& Renderer::GetBloomThreshold()
+	{
+		return s_RendererData.SettingsBuffer.BloomThreshold;
+	}
+
+	void Renderer::SetBloomThreshold(float threshold)
+	{
+		s_RendererData.SettingsBuffer.BloomThreshold = threshold;
+	}
+
 	bool Renderer::IsFlatShaderEnabled()
 	{
 		return s_RendererData.UseFlatShader;
@@ -550,13 +562,22 @@ namespace Atlas
 		s_RendererData.HDR = !s_RendererData.HDR;
 	}
 
+	bool Renderer::IsBloomEnabled()
+	{
+		return s_RendererData.Bloom;
+	}
+
+	void Renderer::ToggleBloom()
+	{
+		s_RendererData.Bloom = !s_RendererData.Bloom;
+	}
+
 	void Renderer::BeginRenderPass()
 	{
 		s_RendererData.RenderFramebuffer->Bind();
 		s_RendererData.LastRenderFramebuffer = s_RendererData.RenderFramebuffer;
 
-		// TODO: Link to palette
-		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
+		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 		RenderCommand::Clear();
 
 		// Clear our entity ID attachment to -1
@@ -583,9 +604,19 @@ namespace Atlas
 		return resized;
 	}
 
+	uint32_t Renderer::GetDefaultRenderID()
+	{
+		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID();
+	}
+
 	uint32_t Renderer::GetLastFramebufferRenderID()
 	{
 		return s_RendererData.LastRenderFramebuffer->GetColorAttachmentRendererID();
+	}
+
+	uint32_t Renderer::GetBrightnessFramebufferRenderID()
+	{
+		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(2);
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
@@ -832,6 +863,37 @@ namespace Atlas
 
 		s_RendererData.PostProcessFramebufferFront->Bind();
 		s_RendererData.UsingFrontPPFB = true;
+
+		if (s_RendererData.Bloom)
+		{
+			ApplyBloom();
+		}
+	}
+
+	void Renderer::ApplyBloom()
+	{
+		uint32_t bloomSamples = 20;
+		bool firstIteration = true;
+		bool horizontal = true;
+
+		for (uint32_t i = 1; i < bloomSamples; i++)
+		{
+			PostProcessor::ApplyPostProcessingEffect(
+				firstIteration ? Renderer::GetBrightnessFramebufferRenderID() : Renderer::GetLastFramebufferRenderID(),
+				PostProcessor::PostProcessingEffect::Bloom,
+				horizontal ? 1.0f : -1.0f);
+
+			if (firstIteration)
+			{
+				firstIteration = false;
+			}
+
+			horizontal = !horizontal;
+			TogglePostProcessingFramebuffers();
+		}
+
+		PostProcessor::ApplyAdditiveTextureBlending(s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastFramebufferRenderID());
+		TogglePostProcessingFramebuffers();
 	}
 
 	void Renderer::EndPostProcessing()

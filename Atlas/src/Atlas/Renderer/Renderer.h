@@ -46,15 +46,21 @@ namespace Atlas
 		static void SetExposure(float exposure);
 		static const float& GetParallaxScale();
 		static void SetParallaxScale(float scale);
+		static const float& GetBloomThreshold();
+		static void SetBloomThreshold(float threshold);
 		static bool IsFlatShaderEnabled();
 		static void ToggleFlatShader();
 		static bool IsHDREnabled();
 		static void ToggleHDR();
+		static bool IsBloomEnabled();
+		static void ToggleBloom();
 
 		static void BeginRenderPass();
 		static void EndRenderPass();
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
+		static uint32_t GetDefaultRenderID();
 		static uint32_t GetLastFramebufferRenderID();
+		static uint32_t GetBrightnessFramebufferRenderID();
 		static int GetEntityIDFromPixel(int x, int y);
 
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
@@ -64,7 +70,6 @@ namespace Atlas
 
 		static void BeginPostProcessing();
 		static void EndPostProcessing();
-		static void TogglePostProcessingFramebuffers();
 		static void DrawPostProcessing(PostProcessorComponent* postProcessor);
 
 		// Primitives
@@ -129,5 +134,8 @@ namespace Atlas
 
 		static void StartBatch();
 		static void Flush();
+
+		static void TogglePostProcessingFramebuffers();
+		static void ApplyBloom();
 	};
 }
