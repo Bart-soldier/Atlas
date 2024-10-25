@@ -194,14 +194,14 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Render FB: Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Post Process FB: Color
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16 };
 		s_RendererData.PostProcessFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
@@ -804,7 +804,7 @@ namespace Atlas
 
 	void Renderer::EndPostProcessing()
 	{
-		//PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
+		//PostProcessor::ApplyPostProcessingEffect(Renderer::GetRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
 		PostProcessor::ApplyPostProcessingEffect(Renderer::GetRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
 
 		RenderCommand::EnableDepthTest();

@@ -24,8 +24,6 @@ layout (location = 1) in VertexData VertexInput;
 layout (std140, binding = 0) uniform Settings
 {
 	float u_Gamma;
-	float u_Exposure;
-	float u_ParallaxScale;
 };
 
 layout (location = 0) out vec4 o_Color;

@@ -639,6 +639,7 @@ namespace Atlas
 
 		m_ActiveScene = m_EditorScene;
 		m_EditorScenePath = path;
+		m_HoveredEntity = nullptr;
 	}
 
 	void EditorLayer::SaveScene()
