@@ -5,14 +5,12 @@
 
 #version 450 core
 
-layout(location = 0)  in int   a_EntityID;
+layout(location = 0)  in vec4  a_PositionID;
+layout(location = 1)  in vec3  a_Normal;
+layout(location = 2)  in vec2  a_TexCoord;
+layout(location = 3)  in vec3  a_Tangent;
 
-layout(location = 1)  in vec3  a_Position;
-layout(location = 2)  in vec3  a_Normal;
-layout(location = 3)  in vec2  a_TexCoord;
-layout(location = 4)  in vec3  a_Tangent;
-
-layout(location = 5)  in mat3  a_Model;
+layout(location = 4)  in mat4  a_Model;
 
 layout(location = 8)  in vec3  a_AmbientColor;
 layout(location = 9)  in vec3  a_DiffuseColor;
@@ -56,9 +54,9 @@ layout (location = 14)  out flat uint  v_HeightMapTextureIndex;
 
 void main()
 {
-	v_EntityID                  = a_EntityID;
+	v_EntityID                  = int(a_PositionID.w);
 
-	VertexOutput.Position       = a_Position;
+	VertexOutput.Position       = a_PositionID.xyz;
 	VertexOutput.TexCoord       = a_TexCoord;
 	VertexOutput.Normal         = a_Normal;
 
@@ -74,8 +72,8 @@ void main()
 
 	if(a_NormalMapTextureIndex != 0 || a_HeightMapTextureIndex != 0)
 	{
-		vec3 T = normalize(a_Model * a_Tangent);
-		vec3 N = normalize(a_Model * a_Normal);
+		vec3 T = normalize(a_Tangent);
+		vec3 N = normalize(a_Normal);
 		// Re-orthogonalize T with respect to N (Gram-Schmidt)
 		T = normalize(T - dot(T, N) * N);
 		vec3 B = cross(N, T);
@@ -84,11 +82,8 @@ void main()
 			T = T * -1.0;
 		}
 
-		// TODO: Remove ? Fixes some cube sides
-		B = vec3(B.x > 0 ? B.x : -B.x, B.y > 0 ? B.y : -B.y, B.z > 0 ? B.z : -B.z);
-
 		VertexOutput.TBN = mat3(T, B, N);
 	}
 
-	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+	gl_Position = u_ViewProjection * vec4(a_PositionID.xyz, 1.0);
 }
