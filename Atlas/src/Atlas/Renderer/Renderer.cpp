@@ -72,7 +72,10 @@ namespace Atlas
 	struct RendererData
 	{
 		Ref<Framebuffer> RenderFramebuffer;
-		Ref<Framebuffer> PostProcessFramebuffer;
+		Ref<Framebuffer> PostProcessFramebufferFront;
+		Ref<Framebuffer> PostProcessFramebufferBack;
+		bool UsingFrontPPFB = true;
+		Ref<Framebuffer> LastRenderFramebuffer;
 
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
@@ -205,7 +208,8 @@ namespace Atlas
 
 		// Post Process FB: Color
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
-		s_RendererData.PostProcessFramebuffer = Framebuffer::Create(fbSpec);
+		s_RendererData.PostProcessFramebufferFront = Framebuffer::Create(fbSpec);
+		s_RendererData.PostProcessFramebufferBack = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -538,6 +542,8 @@ namespace Atlas
 	void Renderer::BeginRenderPass()
 	{
 		s_RendererData.RenderFramebuffer->Bind();
+		s_RendererData.LastRenderFramebuffer = s_RendererData.RenderFramebuffer;
+
 		// TODO: Link to palette
 		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
 		RenderCommand::Clear();
@@ -566,14 +572,9 @@ namespace Atlas
 		return resized;
 	}
 
-	uint32_t Renderer::GetRenderID()
+	uint32_t Renderer::GetLastFramebufferRenderID()
 	{
-		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID();
-	}
-
-	uint32_t Renderer::GetPostProcessRenderID()
-	{
-		return s_RendererData.PostProcessFramebuffer->GetColorAttachmentRendererID();
+		return s_RendererData.LastRenderFramebuffer->GetColorAttachmentRendererID();
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
@@ -818,18 +819,36 @@ namespace Atlas
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
 
-		s_RendererData.PostProcessFramebuffer->Bind();
-		RenderCommand::Clear();
+		s_RendererData.PostProcessFramebufferFront->Bind();
+		s_RendererData.UsingFrontPPFB = true;
 	}
 
 	void Renderer::EndPostProcessing()
 	{
-		//PostProcessor::ApplyPostProcessingEffect(Renderer::GetRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
+		TogglePostProcessingFramebuffers();
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		TogglePostProcessingFramebuffers();
 
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 		s_RendererData.RenderFramebuffer->Bind();
+	}
+
+	void Renderer::TogglePostProcessingFramebuffers()
+	{
+		if (s_RendererData.UsingFrontPPFB)
+		{
+			s_RendererData.PostProcessFramebufferBack->Bind();
+			s_RendererData.LastRenderFramebuffer = s_RendererData.PostProcessFramebufferFront;
+			s_RendererData.UsingFrontPPFB = false;
+		}
+		else
+		{
+			s_RendererData.PostProcessFramebufferFront->Bind();
+			s_RendererData.LastRenderFramebuffer = s_RendererData.PostProcessFramebufferBack;
+			s_RendererData.UsingFrontPPFB = true;
+		}
 	}
 
 	void Renderer::DrawPostProcessing(PostProcessorComponent* postProcessor)
@@ -838,7 +857,11 @@ namespace Atlas
 		{
 			for (int i = 0; i < postProcessor->Effects.size(); i++)
 			{
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+				if (postProcessor->Effects[i] != PostProcessor::PostProcessingEffect::None)
+				{
+					PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+					TogglePostProcessingFramebuffers();
+				}
 			}
 		}
 	}
