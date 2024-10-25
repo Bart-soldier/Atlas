@@ -133,7 +133,7 @@ void main()
 
 	vec4 fragmentColor = CalculateLights(diffuseColor, specularColor, vertexNormal);
 
-	o_Color            = fragmentColor;
+	o_Color            = vec4(fragmentColor.rgb, diffuseColor.a);
 	o_EntityID         = v_EntityID;
 }
 
