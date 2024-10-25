@@ -145,6 +145,12 @@ namespace Atlas
 
 	void SceneSettingsPanel::DrawGraphicsSettings()
 	{
+		bool isFlatShaderEnabled = Renderer::IsFlatShaderEnabled();
+		if (ImGuiUtils::Checkbox("Flat Shader", isFlatShaderEnabled))
+		{
+			Renderer::ToggleFlatShader();
+		}
+
 		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))
 		{
 			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);

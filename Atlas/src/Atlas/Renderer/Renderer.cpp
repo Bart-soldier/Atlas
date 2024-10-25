@@ -114,6 +114,7 @@ namespace Atlas
 		Ref<VertexBuffer> MeshVertexBuffer;
 		Ref<IndexBuffer> MeshIndexBuffer;
 		Ref<Shader> MeshShader;
+		Ref<Shader> FlatMeshShader;
 		
 		uint32_t MeshVertexCount = 0;
 		uint32_t MeshIndexCount = 0;
@@ -166,11 +167,13 @@ namespace Atlas
 		struct Settings
 		{
 			float Gamma = 2.2f;
-			float Exposure = 1.0f;
 			float ParallaxScale = 0.1f;
 		};
 		Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
+
+		float Exposure = 1.0f;
+		bool UseFlatShader = false;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -194,14 +197,14 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Render FB: Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Post Process FB: Color
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
 		s_RendererData.PostProcessFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
@@ -432,7 +435,7 @@ namespace Atlas
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
 		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		s_RendererData.FlatMeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -504,12 +507,12 @@ namespace Atlas
 
 	const float& Renderer::GetExposure()
 	{
-		return s_RendererData.SettingsBuffer.Exposure;
+		return s_RendererData.Exposure;
 	}
 
 	void Renderer::SetExposure(float exposure)
 	{
-		s_RendererData.SettingsBuffer.Exposure = exposure;
+		s_RendererData.Exposure = exposure;
 	}
 
 	const float& Renderer::GetParallaxScale()
@@ -520,6 +523,16 @@ namespace Atlas
 	void Renderer::SetParallaxScale(float scale)
 	{
 		s_RendererData.SettingsBuffer.ParallaxScale = scale;
+	}
+
+	bool Renderer::IsFlatShaderEnabled()
+	{
+		return s_RendererData.UseFlatShader;
+	}
+
+	void Renderer::ToggleFlatShader()
+	{
+		s_RendererData.UseFlatShader = !s_RendererData.UseFlatShader;
 	}
 
 	void Renderer::BeginRenderPass()
@@ -737,7 +750,14 @@ namespace Atlas
 			}
 
 			// Shader
-			s_RendererData.MeshShader->Bind();
+			if (s_RendererData.UseFlatShader)
+			{
+				s_RendererData.FlatMeshShader->Bind();
+			}
+			else
+			{
+				s_RendererData.MeshShader->Bind();
+			}
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);

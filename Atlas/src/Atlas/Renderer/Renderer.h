@@ -46,6 +46,8 @@ namespace Atlas
 		static void SetExposure(float exposure);
 		static const float& GetParallaxScale();
 		static void SetParallaxScale(float scale);
+		static bool IsFlatShaderEnabled();
+		static void ToggleFlatShader();
 
 		static void BeginRenderPass();
 		static void EndRenderPass();

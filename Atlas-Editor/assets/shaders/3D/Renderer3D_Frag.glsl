@@ -53,7 +53,6 @@ layout (binding = 0) uniform sampler2D u_Textures[32];
 layout (std140, binding = 0) uniform Settings
 {
 	float u_Gamma;
-	float u_Exposure;
 	float u_ParallaxScale;
 };
 
