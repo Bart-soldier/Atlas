@@ -30,11 +30,9 @@ layout (std140, binding = 0) uniform Settings
 
 layout (location = 0) out vec4 o_Color;
 layout (location = 1) out int  o_EntityID;
-layout (location = 2) out vec4 o_PostProcessColor;
 
 void main()
 {
 	o_Color            = vec4(pow(VertexInput.DiffuseColor.rgb, vec3(u_Gamma)), 1.0);
 	o_EntityID         = v_EntityID;
-	o_PostProcessColor = o_Color;
 }

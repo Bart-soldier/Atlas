@@ -51,7 +51,8 @@ namespace Atlas
 	// 3D
 	struct MeshVertex
 	{
-		glm::vec4 PositionID; // xyz is position and w is EntityID (editor-only)
+		glm::vec3 Position;
+		float EntityID;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
@@ -276,7 +277,7 @@ namespace Atlas
 		// Mesh VBO
 		s_RendererData.MeshVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(MeshVertex));
 		s_RendererData.MeshVertexBuffer->SetLayout({
-			{ ShaderDataType::Float4, "a_PositionID"            },
+			{ ShaderDataType::Float4, "a_PositionID"            }, // xyz is Position and w is EntityID (editor-only)
 			{ ShaderDataType::Float3, "a_Normal"                },
 			{ ShaderDataType::Float2, "a_TexCoord"              },
 			{ ShaderDataType::Float3, "a_Tangent"               },
@@ -796,7 +797,7 @@ namespace Atlas
 	void Renderer::EndPostProcessing()
 	{
 		//PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
 
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
@@ -1163,8 +1164,8 @@ namespace Atlas
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].PositionID            = transform * glm::vec4(vertices[i].Position, 1.0f);
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].PositionID.w          = entityID;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position              = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID              = entityID;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                = normalMatrix * vertices[i].Normal;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord              = vertices[i].TexCoords;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent               = vertices[i].Tangent;

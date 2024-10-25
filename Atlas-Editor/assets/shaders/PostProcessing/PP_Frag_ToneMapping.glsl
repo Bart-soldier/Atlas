@@ -15,12 +15,12 @@ layout (std140, binding = 3) uniform Settings
 	float u_KernelOffset;
 };
 
-layout (location = 2) out vec4 o_Color;
+layout (location = 2) out vec4 o_PostProcessColor;
 
 void main()
 {
 	vec3 hdrColor = texture(u_screenTexture, v_TexCoords).rgb;
 	vec3 toneMap = vec3(1.0) - exp(-hdrColor * u_Strength);
 
-	o_Color = vec4(toneMap, 1.0);
+	o_PostProcessColor = vec4(toneMap, 1.0);
 }

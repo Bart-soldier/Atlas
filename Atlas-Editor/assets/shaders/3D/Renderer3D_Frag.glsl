@@ -81,7 +81,6 @@ layout (std430, binding = 0) buffer Lights
 
 layout (location = 0) out vec4 o_Color;
 layout (location = 1) out int  o_EntityID;
-layout (location = 2) out vec4 o_PostProcessColor;
 
 /* ------------------------------ */
 /* ----- METHOD DEFINITIONS ----- */
@@ -137,7 +136,6 @@ void main()
 
 	o_Color            = fragmentColor;
 	o_EntityID         = v_EntityID;
-	o_PostProcessColor = o_Color;
 }
 
 /* ------------------------------ */

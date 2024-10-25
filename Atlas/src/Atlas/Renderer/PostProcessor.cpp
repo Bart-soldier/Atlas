@@ -57,9 +57,8 @@ namespace Atlas
 
 		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, s_PostProcessorData.RenderVertices * sizeof(RenderVertex));
 		vertexBuffer->SetLayout({
-			{ ShaderDataType::Float2, "a_Position"  },
-			{ ShaderDataType::Float2, "a_TexCoords" }
-			});
+			{ ShaderDataType::Float4, "a_VertexData" } // xy is Position and zw is Texcoords
+		});
 		s_PostProcessorData.RenderVertexArray->AddVertexBuffer(vertexBuffer);
 
 		// Render IBO / EBO
