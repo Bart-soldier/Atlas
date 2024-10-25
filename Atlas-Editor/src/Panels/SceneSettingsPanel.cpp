@@ -145,9 +145,27 @@ namespace Atlas
 
 	void SceneSettingsPanel::DrawGraphicsSettings()
 	{
+		bool isFlatShaderEnabled = Renderer::IsFlatShaderEnabled();
+		if (ImGuiUtils::Checkbox("Flat Shader", isFlatShaderEnabled))
+		{
+			Renderer::ToggleFlatShader();
+		}
+
+		bool isHDREnabled = Renderer::IsHDREnabled();
+		if (ImGuiUtils::Checkbox("HDR", isHDREnabled))
+		{
+			Renderer::ToggleHDR();
+		}
+
 		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))
 		{
 			Renderer::SetGamma(m_GammaCorrection ? 2.2f : 1.0f);
+		}
+
+		float exposure = Renderer::GetExposure();
+		if (ImGuiUtils::DragFloat("Exposure", exposure, 1.0f, 0.1f))
+		{
+			Renderer::SetExposure(exposure);
 		}
 
 		float parallaxScale = Renderer::GetParallaxScale();

@@ -27,10 +27,11 @@ namespace Atlas
 
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
-		Ref<Shader> NumericalShader;
+		Ref<Shader> SharpenShader;
 		Ref<Shader> BlurShader;
 		Ref<Shader> EdgeDetectionShader;
 		Ref<Shader> GammaCorrectionShader;
+		Ref<Shader> ToneMappingShader;
 	};
 
 	static PostProcessorData s_PostProcessorData;
@@ -56,9 +57,8 @@ namespace Atlas
 
 		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, s_PostProcessorData.RenderVertices * sizeof(RenderVertex));
 		vertexBuffer->SetLayout({
-			{ ShaderDataType::Float2, "a_Position"  },
-			{ ShaderDataType::Float2, "a_TexCoords" }
-			});
+			{ ShaderDataType::Float4, "a_VertexData" } // xy is Position and zw is Texcoords
+		});
 		s_PostProcessorData.RenderVertexArray->AddVertexBuffer(vertexBuffer);
 
 		// Render IBO / EBO
@@ -79,10 +79,11 @@ namespace Atlas
 		// Shaders
 		s_PostProcessorData.InversionShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"      );
 		s_PostProcessorData.GreyscaleShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"      );
-		s_PostProcessorData.NumericalShader       = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Numerical.glsl"      );
+		s_PostProcessorData.SharpenShader         = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl"        );
 		s_PostProcessorData.BlurShader            = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"           );
 		s_PostProcessorData.EdgeDetectionShader   = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"  );
 		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
+		s_PostProcessorData.ToneMappingShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl"    );
 	}
 
 	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
@@ -91,6 +92,9 @@ namespace Atlas
 
 		s_PostProcessorData.SettingsBuffer.Strength     = settings.Strength;
 		s_PostProcessorData.SettingsBuffer.KernelOffset = settings.KernelOffset;
+		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
+
+		RenderCommand::BindTextureSlot(0, renderID);
 
 		switch (effect)
 		{
@@ -103,8 +107,8 @@ namespace Atlas
 		case Atlas::PostProcessor::PostProcessingEffect::Greyscale:
 			s_PostProcessorData.GreyscaleShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::Numerical:
-			s_PostProcessorData.NumericalShader->Bind();
+		case Atlas::PostProcessor::PostProcessingEffect::Sharpen:
+			s_PostProcessorData.SharpenShader->Bind();
 			break;
 		case Atlas::PostProcessor::PostProcessingEffect::Blur:
 			s_PostProcessorData.BlurShader->Bind();
@@ -115,11 +119,11 @@ namespace Atlas
 		case Atlas::PostProcessor::PostProcessingEffect::GammaCorrection:
 			s_PostProcessorData.GammaCorrectionShader->Bind();
 			break;
+		case Atlas::PostProcessor::PostProcessingEffect::ToneMapping:
+			s_PostProcessorData.ToneMappingShader->Bind();
+			break;
 		}
 
-		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
-
-		RenderCommand::BindTextureSlot(0, renderID);
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 }

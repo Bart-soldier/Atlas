@@ -48,7 +48,6 @@ void main()
 
 layout (location = 0) out vec4 o_Color;
 layout (location = 1) out int  o_EntityID;
-layout (location = 2) out vec4 o_PostProcessColor;
 
 struct VertexOutput
 {
@@ -115,5 +114,4 @@ void main()
 
 	o_Color            = vec4(pow(texColor.rgb, vec3(u_Gamma)), texColor.a);
 	o_EntityID         = v_EntityID;
-	o_PostProcessColor = o_Color;
 }

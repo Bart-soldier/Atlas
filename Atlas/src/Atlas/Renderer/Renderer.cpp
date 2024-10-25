@@ -51,7 +51,8 @@ namespace Atlas
 	// 3D
 	struct MeshVertex
 	{
-		glm::vec4 PositionID; // xyz is position and w is EntityID (editor-only)
+		glm::vec3 Position;
+		float EntityID;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
@@ -71,6 +72,10 @@ namespace Atlas
 	struct RendererData
 	{
 		Ref<Framebuffer> RenderFramebuffer;
+		Ref<Framebuffer> PostProcessFramebufferFront;
+		Ref<Framebuffer> PostProcessFramebufferBack;
+		bool UsingFrontPPFB = true;
+		Ref<Framebuffer> LastRenderFramebuffer;
 
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
@@ -112,6 +117,7 @@ namespace Atlas
 		Ref<VertexBuffer> MeshVertexBuffer;
 		Ref<IndexBuffer> MeshIndexBuffer;
 		Ref<Shader> MeshShader;
+		Ref<Shader> FlatMeshShader;
 		
 		uint32_t MeshVertexCount = 0;
 		uint32_t MeshIndexCount = 0;
@@ -169,6 +175,10 @@ namespace Atlas
 		Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
 
+		float Exposure = 1.0f;
+		bool UseFlatShader = false;
+		bool HDR = false;
+
 		// Misc.
 		Renderer::Statistics Stats;
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
@@ -191,11 +201,16 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Render FB: Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
+
+		// Post Process FB: Color
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
+		s_RendererData.PostProcessFramebufferFront = Framebuffer::Create(fbSpec);
+		s_RendererData.PostProcessFramebufferBack = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -275,7 +290,7 @@ namespace Atlas
 		// Mesh VBO
 		s_RendererData.MeshVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(MeshVertex));
 		s_RendererData.MeshVertexBuffer->SetLayout({
-			{ ShaderDataType::Float4, "a_PositionID"            },
+			{ ShaderDataType::Float4, "a_PositionID"            }, // xyz is Position and w is EntityID (editor-only)
 			{ ShaderDataType::Float3, "a_Normal"                },
 			{ ShaderDataType::Float2, "a_TexCoord"              },
 			{ ShaderDataType::Float3, "a_Tangent"               },
@@ -425,7 +440,7 @@ namespace Atlas
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
 		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		s_RendererData.FlatMeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -495,6 +510,16 @@ namespace Atlas
 		s_RendererData.SettingsBuffer.Gamma = gamma;
 	}
 
+	const float& Renderer::GetExposure()
+	{
+		return s_RendererData.Exposure;
+	}
+
+	void Renderer::SetExposure(float exposure)
+	{
+		s_RendererData.Exposure = exposure;
+	}
+
 	const float& Renderer::GetParallaxScale()
 	{
 		return s_RendererData.SettingsBuffer.ParallaxScale;
@@ -505,9 +530,31 @@ namespace Atlas
 		s_RendererData.SettingsBuffer.ParallaxScale = scale;
 	}
 
+	bool Renderer::IsFlatShaderEnabled()
+	{
+		return s_RendererData.UseFlatShader;
+	}
+
+	void Renderer::ToggleFlatShader()
+	{
+		s_RendererData.UseFlatShader = !s_RendererData.UseFlatShader;
+	}
+
+	bool Renderer::IsHDREnabled()
+	{
+		return s_RendererData.HDR;
+	}
+
+	void Renderer::ToggleHDR()
+	{
+		s_RendererData.HDR = !s_RendererData.HDR;
+	}
+
 	void Renderer::BeginRenderPass()
 	{
 		s_RendererData.RenderFramebuffer->Bind();
+		s_RendererData.LastRenderFramebuffer = s_RendererData.RenderFramebuffer;
+
 		// TODO: Link to palette
 		RenderCommand::SetClearColor({ 0.090f, 0.114f, 0.133f, 1.0f });
 		RenderCommand::Clear();
@@ -536,14 +583,9 @@ namespace Atlas
 		return resized;
 	}
 
-	uint32_t Renderer::GetRenderID()
+	uint32_t Renderer::GetLastFramebufferRenderID()
 	{
-		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID();
-	}
-
-	uint32_t Renderer::GetPostProcessRenderID()
-	{
-		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(2);
+		return s_RendererData.LastRenderFramebuffer->GetColorAttachmentRendererID();
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
@@ -583,13 +625,13 @@ namespace Atlas
 
 	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition)
 	{
+		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
+
 		s_RendererData.CameraBuffer.ViewProjection = cameraProjection * cameraView;
 		s_RendererData.CameraBuffer.Projection     = cameraProjection;
 		s_RendererData.CameraBuffer.View           = cameraView;
 		s_RendererData.CameraBuffer.Position       = cameraPosition;
 		s_RendererData.CameraUniformBuffer->SetData(&s_RendererData.CameraBuffer, sizeof(RendererData::CameraData));
-
-		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
 	}
 
 	void Renderer::SetStorageBuffers(const std::vector<LightData>& lights)
@@ -720,7 +762,14 @@ namespace Atlas
 			}
 
 			// Shader
-			s_RendererData.MeshShader->Bind();
+			if (s_RendererData.UseFlatShader)
+			{
+				s_RendererData.FlatMeshShader->Bind();
+			}
+			else
+			{
+				s_RendererData.MeshShader->Bind();
+			}
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);
@@ -780,14 +829,40 @@ namespace Atlas
 	{
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
+
+		s_RendererData.PostProcessFramebufferFront->Bind();
+		s_RendererData.UsingFrontPPFB = true;
 	}
 
 	void Renderer::EndPostProcessing()
 	{
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		if (!s_RendererData.HDR)
+		{
+			PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
+			TogglePostProcessingFramebuffers();
+		}
+		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		TogglePostProcessingFramebuffers();
 
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+		s_RendererData.RenderFramebuffer->Bind();
+	}
+
+	void Renderer::TogglePostProcessingFramebuffers()
+	{
+		if (s_RendererData.UsingFrontPPFB)
+		{
+			s_RendererData.PostProcessFramebufferBack->Bind();
+			s_RendererData.LastRenderFramebuffer = s_RendererData.PostProcessFramebufferFront;
+			s_RendererData.UsingFrontPPFB = false;
+		}
+		else
+		{
+			s_RendererData.PostProcessFramebufferFront->Bind();
+			s_RendererData.LastRenderFramebuffer = s_RendererData.PostProcessFramebufferBack;
+			s_RendererData.UsingFrontPPFB = true;
+		}
 	}
 
 	void Renderer::DrawPostProcessing(PostProcessorComponent* postProcessor)
@@ -796,7 +871,11 @@ namespace Atlas
 		{
 			for (int i = 0; i < postProcessor->Effects.size(); i++)
 			{
-				PostProcessor::ApplyPostProcessingEffect(Renderer::GetPostProcessRenderID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+				if (postProcessor->Effects[i] != PostProcessor::PostProcessingEffect::None)
+				{
+					PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastFramebufferRenderID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+					TogglePostProcessingFramebuffers();
+				}
 			}
 		}
 	}
@@ -1151,8 +1230,8 @@ namespace Atlas
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].PositionID            = transform * glm::vec4(vertices[i].Position, 1.0f);
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].PositionID.w          = entityID;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position              = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID              = entityID;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                = normalMatrix * vertices[i].Normal;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord              = vertices[i].TexCoords;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent               = vertices[i].Tangent;

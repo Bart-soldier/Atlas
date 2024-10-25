@@ -9,6 +9,73 @@ namespace Atlas
 
 	namespace Utils
 	{
+		static bool IsDepthFormat(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::DEPTH24_STENCIL8:  return true;
+			case FramebufferTextureFormat::DEPTH32F:          return true;
+			}
+
+			return false;
+		}
+
+		static GLenum AtlasFBTextureFormatToGLAttachementType(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH_STENCIL_ATTACHMENT;
+			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_ATTACHMENT;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Format not supported for depth/stencil framebuffers!");
+			return 0;
+		}
+
+		static GLenum GLInternalFormatToGLType(GLenum format)
+		{
+			switch (format)
+			{
+			case GL_RGBA8:
+			case GL_RGBA16:
+			case GL_R32I:    return GL_UNSIGNED_BYTE;
+			case GL_RGBA16F: return GL_FLOAT;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffers!");
+			return 0;
+		}
+
+		static GLenum AtlasFBTextureFormatToGLDataFormat(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::RGBA8:
+			case FramebufferTextureFormat::RGBA16:
+			case FramebufferTextureFormat::RGBA16F:     return GL_RGBA;
+			case FramebufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffers!");
+			return 0;
+		}
+
+		static GLenum AtlasFBTextureFormatToGLInternalFormat(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::RGBA8:            return GL_RGBA8;
+			case FramebufferTextureFormat::RGBA16:           return GL_RGBA16;
+			case FramebufferTextureFormat::RGBA16F:          return GL_RGBA16F;
+			case FramebufferTextureFormat::RED_INTEGER:      return GL_R32I;
+			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
+			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_COMPONENT32F;
+			}
+
+			ATLAS_CORE_ASSERT(false, "Format not supported for framebuffers!");
+			return 0;
+		}
+
 		static GLenum TextureTarget(bool multisampled)
 		{
 			return multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
@@ -33,7 +100,7 @@ namespace Atlas
 			}
 			else
 			{
-				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GLInternalFormatToGLType(internalFormat), nullptr);
 
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -64,57 +131,6 @@ namespace Atlas
 			}
 
 			glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, TextureTarget(multisampled), id, 0);
-		}
-
-		static bool IsDepthFormat(FramebufferTextureFormat format)
-		{
-			switch (format)
-			{
-			case FramebufferTextureFormat::DEPTH24_STENCIL8:  return true;
-			case FramebufferTextureFormat::DEPTH32F:          return true;
-			}
-
-			return false;
-		}
-
-		static GLenum AtlasFBTextureFormatToGLAttachementType(FramebufferTextureFormat format)
-		{
-			switch (format)
-			{
-			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH_STENCIL_ATTACHMENT;
-			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_ATTACHMENT;
-			}
-
-			ATLAS_CORE_ASSERT(false, "Format not supported for depth/stencil framebuffers!");
-			return 0;
-		}
-
-		static GLenum AtlasFBTextureFormatToGLDataFormat(FramebufferTextureFormat format)
-		{
-			switch (format)
-			{
-			case FramebufferTextureFormat::RGBA8:       return GL_RGBA;
-			case FramebufferTextureFormat::RGBA16:      return GL_RGBA;
-			case FramebufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
-			}
-
-			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffers!");
-			return 0;
-		}
-
-		static GLenum AtlasFBTextureFormatToGLInternalFormat(FramebufferTextureFormat format)
-		{
-			switch (format)
-			{
-			case FramebufferTextureFormat::RGBA8:            return GL_RGBA8;
-			case FramebufferTextureFormat::RGBA16:           return GL_RGBA16;
-			case FramebufferTextureFormat::RED_INTEGER:      return GL_R32I;
-			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
-			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_COMPONENT32F;
-			}
-
-			ATLAS_CORE_ASSERT(false, "Format not supported for framebuffers!");
-			return 0;
 		}
 	}
 

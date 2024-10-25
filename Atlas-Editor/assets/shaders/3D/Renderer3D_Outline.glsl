@@ -34,7 +34,6 @@ void main()
 
 layout (location = 0) out vec4 o_Color;
 layout (location = 1) out int  o_EntityID;
-layout (location = 2) out vec4 o_PostProcessColor;
 
 layout (location = 0) in      vec4 v_Color;
 layout (location = 1) in flat int  v_EntityID;
@@ -53,5 +52,4 @@ void main()
 
 	o_Color            = vec4(pow(v_Color.rgb, vec3(u_Gamma)), v_Color.a);
 	o_EntityID         = v_EntityID;
-	o_PostProcessColor = o_Color;
 }

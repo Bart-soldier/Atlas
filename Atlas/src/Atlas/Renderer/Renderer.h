@@ -42,14 +42,19 @@ namespace Atlas
 		// Settings
 		static const float& GetGamma();
 		static void SetGamma(float gamma);
+		static const float& GetExposure();
+		static void SetExposure(float exposure);
 		static const float& GetParallaxScale();
 		static void SetParallaxScale(float scale);
+		static bool IsFlatShaderEnabled();
+		static void ToggleFlatShader();
+		static bool IsHDREnabled();
+		static void ToggleHDR();
 
 		static void BeginRenderPass();
 		static void EndRenderPass();
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
-		static uint32_t GetRenderID();
-		static uint32_t GetPostProcessRenderID();
+		static uint32_t GetLastFramebufferRenderID();
 		static int GetEntityIDFromPixel(int x, int y);
 
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
@@ -59,6 +64,7 @@ namespace Atlas
 
 		static void BeginPostProcessing();
 		static void EndPostProcessing();
+		static void TogglePostProcessingFramebuffers();
 		static void DrawPostProcessing(PostProcessorComponent* postProcessor);
 
 		// Primitives

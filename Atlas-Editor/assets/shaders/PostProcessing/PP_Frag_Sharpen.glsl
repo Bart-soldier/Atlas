@@ -15,7 +15,7 @@ layout (std140, binding = 3) uniform Settings
 	float u_KernelOffset;
 };
 
-layout (location = 2) out vec4 o_Color;
+layout (location = 0) out vec4 o_Color;
 
 void main()
 {
