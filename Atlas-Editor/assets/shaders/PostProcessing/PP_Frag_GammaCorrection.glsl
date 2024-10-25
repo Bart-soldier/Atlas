@@ -15,18 +15,18 @@ layout (std140, binding = 3) uniform Settings
 	float u_KernelOffset;
 };
 
-layout (location = 2) out vec4 o_PostProcessColor;
+layout (location = 0) out vec4 o_Color;
 
 void main()
 {
-//    vec4 color = texture(u_screenTexture, v_TexCoords);
-//
-//	o_Color = vec4(pow(color.rgb, vec3(1.0/u_Strength)), color.a);
+    vec4 color = texture(u_screenTexture, v_TexCoords);
+
+	o_Color = vec4(pow(color.rgb, vec3(1.0/u_Strength)), color.a);
 
 	// TODO: Remove and keep above code when multiple PP is fixed
-	vec3 hdrColor = texture(u_screenTexture, v_TexCoords).rgb;
-	vec3 toneMap = vec3(1.0) - exp(-hdrColor * 1.0);
-
-	toneMap = pow(toneMap, vec3(1.0/u_Strength));
-	o_PostProcessColor = vec4(toneMap, 1.0);
+//	vec3 hdrColor = texture(u_screenTexture, v_TexCoords).rgb;
+//	vec3 toneMap = vec3(1.0) - exp(-hdrColor * 1.0);
+//
+//	toneMap = pow(toneMap, vec3(1.0/u_Strength));
+//	o_Color = vec4(toneMap, 1.0);
 }

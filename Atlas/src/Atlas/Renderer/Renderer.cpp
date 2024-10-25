@@ -72,6 +72,7 @@ namespace Atlas
 	struct RendererData
 	{
 		Ref<Framebuffer> RenderFramebuffer;
+		Ref<Framebuffer> PostProcessFramebuffer;
 
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
@@ -193,11 +194,15 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Render FB: Color, EntityID, PostProcessing, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width  = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
+
+		// Post Process FB: Color
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
+		s_RendererData.PostProcessFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -426,8 +431,8 @@ namespace Atlas
 		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
+		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -555,7 +560,7 @@ namespace Atlas
 
 	uint32_t Renderer::GetPostProcessRenderID()
 	{
-		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(2);
+		return s_RendererData.PostProcessFramebuffer->GetColorAttachmentRendererID();
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
@@ -792,6 +797,9 @@ namespace Atlas
 	{
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
+
+		s_RendererData.PostProcessFramebuffer->Bind();
+		RenderCommand::Clear();
 	}
 
 	void Renderer::EndPostProcessing()
@@ -801,6 +809,7 @@ namespace Atlas
 
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+		s_RendererData.RenderFramebuffer->Bind();
 	}
 
 	void Renderer::DrawPostProcessing(PostProcessorComponent* postProcessor)
