@@ -179,9 +179,9 @@ namespace Atlas
 		Ref<UniformBuffer> SettingsUniformBuffer;
 
 		float Exposure = 1.0f;
-		bool UseFlatShader = false;
 		bool HDR = false;
 		bool Bloom = true;
+		Renderer::RenderBuffers DisplayedRenderBuffer = Renderer::RenderBuffers::Final;
 
 		// Misc.
 		Renderer::Statistics Stats;
@@ -547,16 +547,6 @@ namespace Atlas
 		s_RendererData.SettingsBuffer.BloomThreshold = threshold;
 	}
 
-	bool Renderer::IsFlatShaderEnabled()
-	{
-		return s_RendererData.UseFlatShader;
-	}
-
-	void Renderer::ToggleFlatShader()
-	{
-		s_RendererData.UseFlatShader = !s_RendererData.UseFlatShader;
-	}
-
 	bool Renderer::IsHDREnabled()
 	{
 		return s_RendererData.HDR;
@@ -575,6 +565,16 @@ namespace Atlas
 	void Renderer::ToggleBloom()
 	{
 		s_RendererData.Bloom = !s_RendererData.Bloom;
+	}
+
+	void Renderer::SetDisplayedBuffer(RenderBuffers bufferType)
+	{
+		s_RendererData.DisplayedRenderBuffer = bufferType;
+	}
+
+	const Renderer::RenderBuffers& Renderer::GetDisplayedBuffer()
+	{
+		return s_RendererData.DisplayedRenderBuffer;
 	}
 
 	void Renderer::BeginRenderingPass()
@@ -598,7 +598,8 @@ namespace Atlas
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
-		PostProcessor::ApplyDeferredShading(GetPositionFramebufferRenderID(), GetNormalFramebufferRenderID(), GetAlbedoFramebufferRenderID(), GetMaterialFramebufferRenderID());
+		PostProcessor::ApplyDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
+											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material));
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 
@@ -622,9 +623,16 @@ namespace Atlas
 		return resized;
 	}
 
-	uint32_t Renderer::GetDefaultRenderID()
+	uint32_t Renderer::GetDisplayedRenderBufferID()
 	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID();
+		if (s_RendererData.DisplayedRenderBuffer == RenderBuffers::Final || s_RendererData.DisplayedRenderBuffer == RenderBuffers::EntityID)
+		{
+			return GetLastDrawnFramebufferID();
+		}
+		else
+		{
+			return GetFramebufferRenderID(s_RendererData.DisplayedRenderBuffer);
+		}
 	}
 
 	uint32_t Renderer::GetLastDrawnFramebufferID()
@@ -632,29 +640,9 @@ namespace Atlas
 		return s_RendererData.LastDrawnFramebuffer->GetColorAttachmentRendererID();
 	}
 
-	uint32_t Renderer::GetPositionFramebufferRenderID()
+	uint32_t Renderer::GetFramebufferRenderID(RenderBuffers bufferType)
 	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2);
-	}
-
-	uint32_t Renderer::GetNormalFramebufferRenderID()
-	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(3);
-	}
-
-	uint32_t Renderer::GetAlbedoFramebufferRenderID()
-	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(4);
-	}
-
-	uint32_t Renderer::GetMaterialFramebufferRenderID()
-	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(5);
-	}
-
-	uint32_t Renderer::GetBrightColorsFramebufferRenderID()
-	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(6);
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID((uint32_t)bufferType);
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
@@ -832,14 +820,7 @@ namespace Atlas
 			}
 
 			// Shader
-			if (s_RendererData.UseFlatShader)
-			{
-				s_RendererData.FlatMeshShader->Bind();
-			}
-			else
-			{
-				s_RendererData.MeshShader->Bind();
-			}
+			s_RendererData.MeshShader->Bind();
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);
@@ -918,7 +899,7 @@ namespace Atlas
 		for (uint32_t i = 1; i < bloomSamples; i++)
 		{
 			PostProcessor::ApplyPostProcessingEffect(
-				firstIteration ? Renderer::GetBrightColorsFramebufferRenderID() : Renderer::GetLastDrawnFramebufferID(),
+				firstIteration ? Renderer::GetFramebufferRenderID(RenderBuffers::BrightColors) : Renderer::GetLastDrawnFramebufferID(),
 				PostProcessor::PostProcessingEffect::Bloom,
 				horizontal ? 1.0f : -1.0f);
 

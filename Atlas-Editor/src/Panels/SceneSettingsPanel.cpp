@@ -145,10 +145,26 @@ namespace Atlas
 
 	void SceneSettingsPanel::DrawGraphicsSettings()
 	{
-		bool isFlatShaderEnabled = Renderer::IsFlatShaderEnabled();
-		if (ImGuiUtils::Checkbox("Flat Shader", isFlatShaderEnabled))
+		const char* bufferTypeStrings[] = { "Final", "EntityID", "Position", "Normal", "Albedo", "Material", "BrightColors" };
+		const char* currentBufferTypeString = bufferTypeStrings[(int)Renderer::GetDisplayedBuffer()];
+		if (ImGuiUtils::BeginCombo("Render Buffer", *currentBufferTypeString))
 		{
-			Renderer::ToggleFlatShader();
+			for (int i = 0; i < 7; i++)
+			{
+				bool isSelected = currentBufferTypeString == bufferTypeStrings[i];
+				if (ImGui::Selectable(bufferTypeStrings[i], isSelected))
+				{
+					currentBufferTypeString = bufferTypeStrings[i];
+					Renderer::SetDisplayedBuffer((Renderer::RenderBuffers)i);
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGuiUtils::EndCombo();
 		}
 
 		bool isHDREnabled = Renderer::IsHDREnabled();
