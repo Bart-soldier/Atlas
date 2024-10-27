@@ -375,8 +375,6 @@ namespace Atlas
 
 	void Scene::DrawSceneDeferred(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
 	{
-		Renderer::DisableStencilWriting();
-
 		//std::map<float, entt::entity> transparentEntities;
 		//bool isSelectedEntityTransparent = false;
 ;
@@ -384,10 +382,10 @@ namespace Atlas
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
 			for (auto entity : view)
 			{
-				//if (selectedEntity != nullptr && entity == *selectedEntity)
-				//{
-				//	continue;
-				//}
+				if (selectedEntity != nullptr && entity == *selectedEntity)
+				{
+					continue;
+				}
 
 				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
 
@@ -396,9 +394,10 @@ namespace Atlas
 		}
 
 		//if (selectedEntity && !isSelectedEntityTransparent)
-		//{
-		//	DrawSelectedEntityAndOutline(selectedEntity);
-		//}
+		if (selectedEntity)
+		{
+			DrawSelectedEntity(selectedEntity);
+		}
 
 		//if (transparentEntities.size())
 		//{
@@ -416,14 +415,10 @@ namespace Atlas
 		//		}
 		//	}
 		//}
-
-		Renderer::EnableStencilWriting();
 	}
 
 	void Scene::DrawSceneForward(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
 	{
-		Renderer::DisableStencilWriting();
-
 		std::map<float, entt::entity> transparentEntities;
 		bool isSelectedEntityTransparent = false;
 
@@ -471,7 +466,12 @@ namespace Atlas
 
 		if (selectedEntity && !isSelectedEntityTransparent)
 		{
-			DrawSelectedEntityAndOutline(selectedEntity);
+			if (selectedEntity->TryGetComponent<MeshComponent>() == nullptr)
+			{
+				DrawSelectedEntity(selectedEntity);
+			}
+
+			DrawSelectedEntityOutline(selectedEntity);
 		}
 
 		if (transparentEntities.size())
@@ -482,7 +482,12 @@ namespace Atlas
 			{
 				if (isSelectedEntityTransparent && it->second == *selectedEntity)
 				{
-					DrawSelectedEntityAndOutline(selectedEntity);
+					if (selectedEntity->TryGetComponent<MeshComponent>() == nullptr)
+					{
+						DrawSelectedEntity(selectedEntity);
+					}
+
+					DrawSelectedEntityOutline(selectedEntity);
 				}
 				else
 				{
@@ -490,8 +495,6 @@ namespace Atlas
 				}
 			}
 		}
-
-		Renderer::EnableStencilWriting();
 	}
 
 	void Scene::DrawEntity(Entity* entity)
@@ -512,7 +515,7 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawSelectedEntityAndOutline(Entity* entity)
+	void Scene::DrawSelectedEntity(Entity* entity)
 	{
 		Renderer::NextBatch();
 
@@ -521,6 +524,10 @@ namespace Atlas
 		Renderer::NextBatch();
 
 		Renderer::DisableStencilWriting();
+	}
+
+	void Scene::DrawSelectedEntityOutline(Entity* entity)
+	{
 		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
 
 		glm::mat4 transform = GetEntityTransform(entity);

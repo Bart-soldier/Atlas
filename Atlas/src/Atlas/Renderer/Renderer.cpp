@@ -581,7 +581,10 @@ namespace Atlas
 	{
 		s_RendererData.GBufferFramebuffer->Bind();
 		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
+
+		EnableStencilWriting();
 		RenderCommand::Clear();
+		DisableStencilWriting();
 		s_RendererData.GBufferFramebuffer->ClearAttachment(s_RendererData.EntityIDAttachmentIndex, -1);
 
 		s_RendererData.LastDrawnFramebuffer = s_RendererData.GBufferFramebuffer;
