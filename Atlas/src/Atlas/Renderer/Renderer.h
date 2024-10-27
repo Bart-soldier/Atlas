@@ -60,7 +60,6 @@ namespace Atlas
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
 		static uint32_t GetDefaultRenderID();
 		static uint32_t GetLastFramebufferRenderID();
-		static uint32_t GetBrightnessFramebufferRenderID();
 		static int GetEntityIDFromPixel(int x, int y);
 
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
@@ -134,6 +133,11 @@ namespace Atlas
 
 		static void StartBatch();
 		static void Flush();
+
+		static uint32_t GetPositionFramebufferRenderID();
+		static uint32_t GetNormalShininessFramebufferRenderID();
+		static uint32_t GetAlbedoSpecularFramebufferRenderID();
+		static uint32_t GetBrightnessFramebufferRenderID();
 
 		static void TogglePostProcessingFramebuffers();
 		static void ApplyBloom();

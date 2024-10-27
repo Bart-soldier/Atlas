@@ -71,7 +71,7 @@ namespace Atlas
 
 	struct RendererData
 	{
-		Ref<Framebuffer> RenderFramebuffer;
+		Ref<Framebuffer> GBufferFramebuffer;
 		Ref<Framebuffer> PostProcessFramebufferFront;
 		Ref<Framebuffer> PostProcessFramebufferBack;
 		bool UsingFrontPPFB = true;
@@ -202,12 +202,12 @@ namespace Atlas
 	void Renderer::InitArrays()
 	{
 		FramebufferSpecification fbSpec;
-		// Render FB: Color, EntityID, BrightColors, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		// Render GBuffer: Position, Normal, Color, EntityID, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
-		fbSpec.Width  = app.GetWindow().GetWidth();
+		fbSpec.Width = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
-		s_RendererData.RenderFramebuffer = Framebuffer::Create(fbSpec);
+		s_RendererData.GBufferFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Post Process FB: Color
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
@@ -441,7 +441,7 @@ namespace Atlas
 		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_Frag.glsl");
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_GBuffer.glsl");
 		s_RendererData.FlatMeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
@@ -574,30 +574,30 @@ namespace Atlas
 
 	void Renderer::BeginRenderPass()
 	{
-		s_RendererData.RenderFramebuffer->Bind();
-		s_RendererData.LastRenderFramebuffer = s_RendererData.RenderFramebuffer;
+		s_RendererData.GBufferFramebuffer->Bind();
+		s_RendererData.LastRenderFramebuffer = s_RendererData.GBufferFramebuffer;
 
 		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 		RenderCommand::Clear();
 
 		// Clear our entity ID attachment to -1
-		s_RendererData.RenderFramebuffer->ClearAttachment(1, -1);
+		s_RendererData.GBufferFramebuffer->ClearAttachment(3, -1);
 	}
 
 	void Renderer::EndRenderPass()
 	{
-		s_RendererData.RenderFramebuffer->Unbind();
+		s_RendererData.GBufferFramebuffer->Unbind();
 	}
 
 	bool Renderer::ResizeFramebuffer(uint32_t width, uint32_t height)
 	{
 		bool resized = false;
-		FramebufferSpecification spec = s_RendererData.RenderFramebuffer->GetSpecification();
+		FramebufferSpecification spec = s_RendererData.GBufferFramebuffer->GetSpecification();
 
 		// Zero sized framebuffer is invalid
 		if (width > 0.0f && height > 0.0f && (spec.Width != width || spec.Height != height))
 		{
-			s_RendererData.RenderFramebuffer->Resize(width, height);
+			s_RendererData.GBufferFramebuffer->Resize(width, height);
 			resized = true;
 		}
 
@@ -606,7 +606,7 @@ namespace Atlas
 
 	uint32_t Renderer::GetDefaultRenderID()
 	{
-		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID();
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID();
 	}
 
 	uint32_t Renderer::GetLastFramebufferRenderID()
@@ -614,14 +614,29 @@ namespace Atlas
 		return s_RendererData.LastRenderFramebuffer->GetColorAttachmentRendererID();
 	}
 
+	uint32_t Renderer::GetPositionFramebufferRenderID()
+	{
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(0);
+	}
+
+	uint32_t Renderer::GetNormalShininessFramebufferRenderID()
+	{
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(1);
+	}
+
+	uint32_t Renderer::GetAlbedoSpecularFramebufferRenderID()
+	{
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2);
+	}
+
 	uint32_t Renderer::GetBrightnessFramebufferRenderID()
 	{
-		return s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(2);
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2);
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
 	{
-		return s_RendererData.RenderFramebuffer->ReadPixel(1, x, y);
+		return s_RendererData.GBufferFramebuffer->ReadPixel(3, x, y);
 	}
 
 	void Renderer::ResetStats()
@@ -864,10 +879,13 @@ namespace Atlas
 		s_RendererData.PostProcessFramebufferFront->Bind();
 		s_RendererData.UsingFrontPPFB = true;
 
-		if (s_RendererData.Bloom)
-		{
-			ApplyBloom();
-		}
+		PostProcessor::ApplyDeferredShading(GetPositionFramebufferRenderID(), GetNormalShininessFramebufferRenderID(), GetAlbedoSpecularFramebufferRenderID());
+		TogglePostProcessingFramebuffers();
+
+		//if (s_RendererData.Bloom)
+		//{
+		//	ApplyBloom();
+		//}
 	}
 
 	void Renderer::ApplyBloom()
@@ -892,7 +910,7 @@ namespace Atlas
 			TogglePostProcessingFramebuffers();
 		}
 
-		PostProcessor::ApplyAdditiveTextureBlending(s_RendererData.RenderFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastFramebufferRenderID());
+		PostProcessor::ApplyAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastFramebufferRenderID());
 		TogglePostProcessingFramebuffers();
 	}
 
@@ -908,7 +926,7 @@ namespace Atlas
 
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-		s_RendererData.RenderFramebuffer->Bind();
+		s_RendererData.GBufferFramebuffer->Bind();
 	}
 
 	void Renderer::TogglePostProcessingFramebuffers()
