@@ -76,7 +76,6 @@ void main()
 	if (circle == 0.0)
 		discard;
 
-    // Set output color
     o_Color            = vec4(pow(Input.Color.rgb, vec3(u_Gamma)), Input.Color.a);
 	o_Color.a         *= circle;
 	o_EntityID         = v_EntityID;

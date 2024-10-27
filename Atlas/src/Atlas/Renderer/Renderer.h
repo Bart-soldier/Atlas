@@ -55,11 +55,12 @@ namespace Atlas
 		static bool IsBloomEnabled();
 		static void ToggleBloom();
 
-		static void BeginRenderPass();
-		static void EndRenderPass();
+		static void BeginRenderingPass();
+		static void EndRenderingPass();
+		static void DeferredRenderingPass();
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
 		static uint32_t GetDefaultRenderID();
-		static uint32_t GetLastFramebufferRenderID();
+		static uint32_t GetLastDrawnFramebufferID();
 		static int GetEntityIDFromPixel(int x, int y);
 
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);

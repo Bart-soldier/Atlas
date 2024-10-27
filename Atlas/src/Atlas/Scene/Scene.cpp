@@ -163,7 +163,7 @@ namespace Atlas
 			UpdateLights();
 
 			Renderer::BeginScene(camera, cameraTransform, m_Lights);
-			DrawScene(cameraTransform.Translation, false, nullptr);
+			DrawSceneDeferred(cameraTransform.Translation, false, nullptr);
 			Renderer::EndScene();
 
 			Renderer::DrawSkybox(m_Skybox);
@@ -176,23 +176,40 @@ namespace Atlas
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity* selectedEntity)
 	{
-		UpdateLights();
-
-		Renderer::BeginScene(camera, m_Lights);
-		DrawScene(camera.GetPosition(), true, selectedEntity);
-		Renderer::EndScene();
-
-		Renderer::DrawSkybox(m_Skybox);
-
-		Renderer::BeginPostProcessing();
-		if (camera.IsPostProcessEnabled())
 		{
-			if (m_PrimaryCamera)
-			{
-				Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
-			}
+			ATLAS_PROFILE_SCOPE("Lights Prep");
+			UpdateLights();
 		}
-		Renderer::EndPostProcessing();
+
+		{
+			ATLAS_PROFILE_SCOPE("Deferred Rendering");
+			Renderer::BeginScene(camera, m_Lights);
+			DrawSceneDeferred(camera.GetPosition(), true, selectedEntity);
+			Renderer::NextBatch();
+
+			Renderer::DrawSkybox(m_Skybox);
+
+			Renderer::DeferredRenderingPass();
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Forward Rendering");
+			DrawSceneForward(camera.GetPosition(), true, selectedEntity);
+			Renderer::EndScene();
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Post Processing");
+			Renderer::BeginPostProcessing();
+			if (camera.IsPostProcessEnabled())
+			{
+				if (m_PrimaryCamera)
+				{
+					Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+				}
+			}
+			Renderer::EndPostProcessing();
+		}
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -356,7 +373,54 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawScene(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
+	void Scene::DrawSceneDeferred(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
+	{
+		Renderer::DisableStencilWriting();
+
+		//std::map<float, entt::entity> transparentEntities;
+		//bool isSelectedEntityTransparent = false;
+;
+		{
+			auto view = m_Registry.view<TransformComponent, MeshComponent>();
+			for (auto entity : view)
+			{
+				//if (selectedEntity != nullptr && entity == *selectedEntity)
+				//{
+				//	continue;
+				//}
+
+				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+
+				DrawComponent<MeshComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), mesh);
+			}
+		}
+
+		//if (selectedEntity && !isSelectedEntityTransparent)
+		//{
+		//	DrawSelectedEntityAndOutline(selectedEntity);
+		//}
+
+		//if (transparentEntities.size())
+		//{
+		//	Renderer::NextBatch();
+
+		//	for (std::map<float, entt::entity>::reverse_iterator it = transparentEntities.rbegin(); it != transparentEntities.rend(); ++it)
+		//	{
+		//		if (isSelectedEntityTransparent && it->second == *selectedEntity)
+		//		{
+		//			DrawSelectedEntityAndOutline(selectedEntity);
+		//		}
+		//		else
+		//		{
+		//			DrawEntity(GetEntity(it->second));
+		//		}
+		//	}
+		//}
+
+		Renderer::EnableStencilWriting();
+	}
+
+	void Scene::DrawSceneForward(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
 	{
 		Renderer::DisableStencilWriting();
 
@@ -389,23 +453,8 @@ namespace Atlas
 				}
 			}
 		}
-;
-		{
-			auto view = m_Registry.view<TransformComponent, MeshComponent>();
-			for (auto entity : view)
-			{
-				if (selectedEntity != nullptr && entity == *selectedEntity)
-				{
-					continue;
-				}
 
-				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-
-				DrawComponent<MeshComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), mesh);
-			}
-		}
-
-		if(isEditor)
+		if (isEditor)
 		{
 			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 			for (auto entity : view)

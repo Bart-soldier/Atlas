@@ -33,7 +33,7 @@ layout (location = 0) in vec2 v_TexCoords;
 // 0: Position
 // 1: Normal
 // 2: Albedo
-// 3: R: Specular, G: Shininess
+// 3: RGB: Specular, A: Shininess
 layout (binding = 0) uniform sampler2D u_ScreenTextures[4];
 
 layout (std140, binding = 0) uniform Settings
@@ -71,7 +71,7 @@ layout (location = 0) out vec4 o_Color;
 /* ----- METHOD DEFINITIONS ----- */
 /* ------------------------------ */
 
-vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float specular, float shininess);
+vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 specular, float shininess);
 
 /* ------------------------------ */
 /* ------------ MAIN ------------ */
@@ -82,8 +82,8 @@ void main()
 	vec3 position   = texture(u_ScreenTextures[0], v_TexCoords).rgb;
 	vec3 normal     = texture(u_ScreenTextures[1], v_TexCoords).rgb;
 	vec3 albedo     = texture(u_ScreenTextures[2], v_TexCoords).rgb;
-	float specular  = texture(u_ScreenTextures[3], v_TexCoords).r;
-	float shininess = texture(u_ScreenTextures[3], v_TexCoords).g;
+	vec3 specular   = texture(u_ScreenTextures[3], v_TexCoords).rgb;
+	float shininess = texture(u_ScreenTextures[3], v_TexCoords).a;
 
 	vec3 fragmentColor = CalculateLights(position, normal, albedo, specular, shininess);
 
@@ -116,7 +116,7 @@ vec3 CalculateDiffuseLight(vec3 albedo, vec3 lightColor, float lightDiffuseStren
 	return lightColor * lightDiffuseStrength * diffuseImpact * albedo;
 }
 
-vec3 CalculateSpecularLight(float specular, vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal, vec3 vertexPosition, float shininess)
+vec3 CalculateSpecularLight(vec3 specular, vec3 lightColor, float lightSpecularStrength, vec3 lightDirection, vec3 vertexNormal, vec3 vertexPosition, float shininess)
 {
 	vec3 viewDirection  = normalize(u_CameraPosition.xyz - vertexPosition);
 	
@@ -128,7 +128,7 @@ vec3 CalculateSpecularLight(float specular, vec3 lightColor, float lightSpecular
 	vec3 halfwayDirection = normalize(lightDirection + viewDirection);
 	float specularFactor  = pow(max(dot(vertexNormal, halfwayDirection), 0.0), shininess * 128);
 
-	return lightColor * lightSpecularStrength * specularFactor * specular;
+	return lightColor * lightSpecularStrength * (specularFactor * specular);
 }
 
 float CalculateLightAttenuation(float lightRadius, vec3 lightPosition, vec3 vertexPosition)
@@ -160,7 +160,7 @@ float CalculateLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirec
 	return cutOff;
 }
 
-vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float specular, float shininess)
+vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 specular, float shininess)
 {
 	vec3 ambientColor  = vec3(0.0);
 	vec3 diffuseColor  = vec3(0.0);

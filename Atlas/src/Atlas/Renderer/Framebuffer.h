@@ -62,9 +62,17 @@ namespace Atlas
 
 		virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
+		virtual void CopyColor(Ref<Framebuffer> framebuffer) = 0;
+		virtual void CopyDepth(Ref<Framebuffer> framebuffer) = 0;
 		virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
 
+		virtual void EnableColorAttachment(uint32_t attachmentIndex) = 0;
+		virtual void EnableColorAttachments(std::initializer_list<uint32_t> attachmentIndices) = 0;
+		virtual void EnableAllColorAttachments() = 0;
+
+		virtual uint32_t GetRendererID() const = 0;
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
+		virtual uint32_t GetDepthAttachmentRendererID() const = 0;
 
 		virtual const FramebufferSpecification& GetSpecification() const = 0;
 

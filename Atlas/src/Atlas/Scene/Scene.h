@@ -48,7 +48,8 @@ namespace Atlas
 
 	private:
 		void UpdateLights();
-		void DrawScene(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity);
+		void DrawSceneDeferred(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity);
+		void DrawSceneForward(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity);
 		void DrawEntity(Entity* entity);
 		void DrawSelectedEntityAndOutline(Entity* entity);
 

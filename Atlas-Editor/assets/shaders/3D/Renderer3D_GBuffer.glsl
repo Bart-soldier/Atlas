@@ -54,11 +54,11 @@ layout (std140, binding = 1) uniform Camera
 /* ----------- OUTPUTS ---------- */
 /* ------------------------------ */
 
-layout (location = 0) out vec4 o_Position;
-layout (location = 1) out vec4 o_Normal;
-layout (location = 2) out vec4 o_Albedo;
-layout (location = 3) out vec4 o_Material; // R: Specular, G: Shininess
-layout (location = 4) out int  o_EntityID;
+layout (location = 1) out int  o_EntityID;
+layout (location = 2) out vec4 o_Position;
+layout (location = 3) out vec4 o_Normal;
+layout (location = 4) out vec4 o_Albedo;
+layout (location = 5) out vec4 o_Material; // RGB: Specular, A: Shininess
 
 /* ------------------------------ */
 /* ----- METHOD DEFINITIONS ----- */
@@ -81,11 +81,11 @@ void main()
 	vec3 normal   = GetNormalOutput(texCoord);
 	vec4 material = GetMaterialOutput(texCoord);
 
+	o_EntityID = v_EntityID;
 	o_Position = vec4(VertexInput.Position, 1.0);
 	o_Normal   = vec4(normal, 1.0);
 	o_Albedo   = albedo;
 	o_Material = material;
-	o_EntityID = v_EntityID;
 }
 
 /* ------------------------------ */
@@ -181,8 +181,9 @@ vec3 GetNormalOutput(vec2 texCoord)
 
 vec4 GetMaterialOutput(vec2 texCoord)
 {
-	float specular  = texture(u_Textures[v_SpecularTextureIndex], texCoord).r;
-	float shininess = VertexInput.Shininess;
+	vec3 specular  = pow(texture(u_Textures[v_SpecularTextureIndex], texCoord).rgb, vec3(u_Gamma)) * pow(VertexInput.SpecularColor, vec3(u_Gamma));
+	//float shininess = VertexInput.Shininess;
+	float shininess = 1.0;
 
-	return vec4(specular, shininess, 1.0, 1.0);
+	return vec4(specular, shininess);
 }
