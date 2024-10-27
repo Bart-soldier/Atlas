@@ -66,6 +66,7 @@ layout (std430, binding = 0) buffer Lights
 /* ------------------------------ */
 
 layout (location = 0) out vec4 o_Color;
+layout (location = 1) out vec4 o_BrightColor;
 
 /* ------------------------------ */
 /* ----- METHOD DEFINITIONS ----- */
@@ -87,18 +88,19 @@ void main()
 
 	vec3 fragmentColor = CalculateLights(position, normal, albedo, specular, shininess);
 
-//	float brightness = dot(fragmentColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-//	vec4 brightColor;
-//	if(brightness > u_BloomThreshold)
-//	{
-//        brightColor = vec4(fragmentColor.rgb, diffuseColor.a);
-//	}
-//    else
-//	{
-//        brightColor = vec4(0.0, 0.0, 0.0, diffuseColor.a);
-//	}
+	float brightness = dot(fragmentColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+	vec4 brightColor;
+	if(brightness > u_BloomThreshold)
+	{
+        brightColor = vec4(fragmentColor.rgb, 1.0);
+	}
+    else
+	{
+        brightColor = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 
 	o_Color = vec4(fragmentColor.rgb, 1.0);
+	o_BrightColor = brightColor;
 }
 
 /* ------------------------------ */

@@ -139,7 +139,7 @@ namespace Atlas
 		static uint32_t GetNormalFramebufferRenderID();
 		static uint32_t GetAlbedoFramebufferRenderID();
 		static uint32_t GetMaterialFramebufferRenderID();
-		static uint32_t GetBrightnessFramebufferRenderID();
+		static uint32_t GetBrightColorsFramebufferRenderID();
 
 		static void TogglePostProcessingFramebuffers();
 		static void ApplyBloom();

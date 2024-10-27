@@ -206,8 +206,8 @@ namespace Atlas
 	void Renderer::InitArrays()
 	{
 		FramebufferSpecification fbSpec;
-		// Render GBuffer: Color, EntityID, Position, Normal, Albedo, Material, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		// Render GBuffer: Color, EntityID, Position, Normal, Albedo, Material, Bright Color, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
@@ -594,7 +594,7 @@ namespace Atlas
 
 	void Renderer::DeferredRenderingPass()
 	{
-		s_RendererData.GBufferFramebuffer->EnableColorAttachment(0);
+		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 6});
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
@@ -652,9 +652,9 @@ namespace Atlas
 		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(5);
 	}
 
-	uint32_t Renderer::GetBrightnessFramebufferRenderID()
+	uint32_t Renderer::GetBrightColorsFramebufferRenderID()
 	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2); // TODO: Fix
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(6);
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
@@ -903,10 +903,10 @@ namespace Atlas
 		s_RendererData.PostProcessFramebufferFront->Bind();
 		s_RendererData.UsingFrontPPFB = true;
 
-		//if (s_RendererData.Bloom)
-		//{
-		//	ApplyBloom();
-		//}
+		if (s_RendererData.Bloom)
+		{
+			ApplyBloom();
+		}
 	}
 
 	void Renderer::ApplyBloom()
@@ -918,7 +918,7 @@ namespace Atlas
 		for (uint32_t i = 1; i < bloomSamples; i++)
 		{
 			PostProcessor::ApplyPostProcessingEffect(
-				firstIteration ? Renderer::GetBrightnessFramebufferRenderID() : Renderer::GetLastDrawnFramebufferID(),
+				firstIteration ? Renderer::GetBrightColorsFramebufferRenderID() : Renderer::GetLastDrawnFramebufferID(),
 				PostProcessor::PostProcessingEffect::Bloom,
 				horizontal ? 1.0f : -1.0f);
 
