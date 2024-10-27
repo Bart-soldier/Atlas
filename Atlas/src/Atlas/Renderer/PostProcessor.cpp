@@ -148,11 +148,12 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalShininessTexID, const uint32_t& albedoSpecularTexID)
+	void PostProcessor::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID)
 	{
 		RenderCommand::BindTextureSlot(0, positionTexID);
-		RenderCommand::BindTextureSlot(1, normalShininessTexID);
-		RenderCommand::BindTextureSlot(2, albedoSpecularTexID);
+		RenderCommand::BindTextureSlot(1, normalTexID);
+		RenderCommand::BindTextureSlot(2, albedoTexID);
+		RenderCommand::BindTextureSlot(3, materialTexID);
 
 		s_PostProcessorData.DeferredLightingShader->Bind();
 

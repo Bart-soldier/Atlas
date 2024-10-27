@@ -135,8 +135,9 @@ namespace Atlas
 		static void Flush();
 
 		static uint32_t GetPositionFramebufferRenderID();
-		static uint32_t GetNormalShininessFramebufferRenderID();
-		static uint32_t GetAlbedoSpecularFramebufferRenderID();
+		static uint32_t GetNormalFramebufferRenderID();
+		static uint32_t GetAlbedoFramebufferRenderID();
+		static uint32_t GetMaterialFramebufferRenderID();
 		static uint32_t GetBrightnessFramebufferRenderID();
 
 		static void TogglePostProcessingFramebuffers();

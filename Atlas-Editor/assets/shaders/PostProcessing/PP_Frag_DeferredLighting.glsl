@@ -31,9 +31,10 @@ struct LightData
 layout (location = 0) in vec2 v_TexCoords;
 
 // 0: Position
-// 1: RGB: Normal, A: Shininess
-// 2: RGB: Albedo, A: Specular
-layout (binding = 0) uniform sampler2D u_ScreenTextures[3];
+// 1: Normal
+// 2: Albedo
+// 3: R: Specular, G: Shininess
+layout (binding = 0) uniform sampler2D u_ScreenTextures[4];
 
 layout (std140, binding = 0) uniform Settings
 {
@@ -81,8 +82,8 @@ void main()
 	vec3 position   = texture(u_ScreenTextures[0], v_TexCoords).rgb;
 	vec3 normal     = texture(u_ScreenTextures[1], v_TexCoords).rgb;
 	vec3 albedo     = texture(u_ScreenTextures[2], v_TexCoords).rgb;
-	float specular  = texture(u_ScreenTextures[2], v_TexCoords).a;
-	float shininess = texture(u_ScreenTextures[1], v_TexCoords).a;
+	float specular  = texture(u_ScreenTextures[3], v_TexCoords).r;
+	float shininess = texture(u_ScreenTextures[3], v_TexCoords).g;
 
 	vec3 fragmentColor = CalculateLights(position, normal, albedo, specular, shininess);
 

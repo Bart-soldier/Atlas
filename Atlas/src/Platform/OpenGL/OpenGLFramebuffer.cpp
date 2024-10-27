@@ -194,8 +194,8 @@ namespace Atlas
 
 		if (m_ColorAttachments.size() > 1)
 		{
-			ATLAS_CORE_ASSERT(m_ColorAttachments.size() <= 4);
-			GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+			ATLAS_CORE_ASSERT(m_ColorAttachments.size() <= 5);
+			GLenum buffers[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
 			glDrawBuffers(m_ColorAttachments.size(), buffers);
 		}
 		else if (m_ColorAttachments.empty())

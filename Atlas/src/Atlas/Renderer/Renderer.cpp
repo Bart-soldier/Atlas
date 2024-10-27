@@ -76,6 +76,7 @@ namespace Atlas
 		Ref<Framebuffer> PostProcessFramebufferBack;
 		bool UsingFrontPPFB = true;
 		Ref<Framebuffer> LastRenderFramebuffer;
+		uint32_t EntityIDAttachment;
 
 		// Per draw call
 		static const uint32_t MaxTriangles = 20000;
@@ -202,12 +203,13 @@ namespace Atlas
 	void Renderer::InitArrays()
 	{
 		FramebufferSpecification fbSpec;
-		// Render GBuffer: Position, Normal, Color, EntityID, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		// Render GBuffer: Position, Normal, Color, Material, EntityID, Depth
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
 		s_RendererData.GBufferFramebuffer = Framebuffer::Create(fbSpec);
+		s_RendererData.EntityIDAttachment = 4;
 
 		// Post Process FB: Color
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
@@ -581,7 +583,7 @@ namespace Atlas
 		RenderCommand::Clear();
 
 		// Clear our entity ID attachment to -1
-		s_RendererData.GBufferFramebuffer->ClearAttachment(3, -1);
+		s_RendererData.GBufferFramebuffer->ClearAttachment(s_RendererData.EntityIDAttachment, -1);
 	}
 
 	void Renderer::EndRenderPass()
@@ -619,24 +621,29 @@ namespace Atlas
 		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(0);
 	}
 
-	uint32_t Renderer::GetNormalShininessFramebufferRenderID()
+	uint32_t Renderer::GetNormalFramebufferRenderID()
 	{
 		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(1);
 	}
 
-	uint32_t Renderer::GetAlbedoSpecularFramebufferRenderID()
+	uint32_t Renderer::GetAlbedoFramebufferRenderID()
 	{
 		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2);
+	}
+
+	uint32_t Renderer::GetMaterialFramebufferRenderID()
+	{
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(4);
 	}
 
 	uint32_t Renderer::GetBrightnessFramebufferRenderID()
 	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2);
+		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(2); // TODO: Fix
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
 	{
-		return s_RendererData.GBufferFramebuffer->ReadPixel(3, x, y);
+		return s_RendererData.GBufferFramebuffer->ReadPixel(s_RendererData.EntityIDAttachment, x, y);
 	}
 
 	void Renderer::ResetStats()
@@ -879,7 +886,7 @@ namespace Atlas
 		s_RendererData.PostProcessFramebufferFront->Bind();
 		s_RendererData.UsingFrontPPFB = true;
 
-		PostProcessor::ApplyDeferredShading(GetPositionFramebufferRenderID(), GetNormalShininessFramebufferRenderID(), GetAlbedoSpecularFramebufferRenderID());
+		PostProcessor::ApplyDeferredShading(GetPositionFramebufferRenderID(), GetNormalFramebufferRenderID(), GetAlbedoFramebufferRenderID(), GetMaterialFramebufferRenderID());
 		TogglePostProcessingFramebuffers();
 
 		//if (s_RendererData.Bloom)

@@ -55,17 +55,19 @@ layout (std140, binding = 1) uniform Camera
 /* ------------------------------ */
 
 layout (location = 0) out vec4 o_Position;
-layout (location = 1) out vec4 o_NormalShininess; // rgb for normal and a for shininess
-layout (location = 2) out vec4 o_AlbedoSpecular; // rgb for albedo and a for specular
-layout (location = 3) out int  o_EntityID;
+layout (location = 1) out vec4 o_Normal;
+layout (location = 2) out vec4 o_Albedo;
+layout (location = 3) out vec4 o_Material; // R: Specular, G: Shininess
+layout (location = 4) out int  o_EntityID;
 
 /* ------------------------------ */
 /* ----- METHOD DEFINITIONS ----- */
 /* ------------------------------ */
 
 vec2 GetFinalTexCoords();
-vec4 GetAlbedoSpecularOutput(vec2 texCoord);
-vec4 GetNormalShininessOutput(vec2 texCoord);
+vec4 GetAlbedoOutput(vec2 texCoord);
+vec3 GetNormalOutput(vec2 texCoord);
+vec4 GetMaterialOutput(vec2 texCoord);
 
 /* ------------------------------ */
 /* ------------ MAIN ------------ */
@@ -75,13 +77,15 @@ void main()
 {
 	vec2 texCoord = GetFinalTexCoords();
 
-	vec4 albedoSpecular  = GetAlbedoSpecularOutput(texCoord);
-	vec4 normalShininess = GetNormalShininessOutput(texCoord);
+	vec4 albedo   = GetAlbedoOutput(texCoord);
+	vec3 normal   = GetNormalOutput(texCoord);
+	vec4 material = GetMaterialOutput(texCoord);
 
-	o_Position        = vec4(VertexInput.Position, 1.0);
-	o_NormalShininess = normalShininess;
-	o_AlbedoSpecular  = albedoSpecular;
-	o_EntityID        = v_EntityID;
+	o_Position = vec4(VertexInput.Position, 1.0);
+	o_Normal   = vec4(normal, 1.0);
+	o_Albedo   = albedo;
+	o_Material = material;
+	o_EntityID = v_EntityID;
 }
 
 /* ------------------------------ */
@@ -143,7 +147,7 @@ vec2 GetFinalTexCoords()
 	return texCoord;
 }
 
-vec4 GetAlbedoSpecularOutput(vec2 texCoord)
+vec4 GetAlbedoOutput(vec2 texCoord)
 {
 	vec4 diffuseColor = texture(u_Textures[v_DiffuseTextureIndex] , texCoord);
 
@@ -154,13 +158,10 @@ vec4 GetAlbedoSpecularOutput(vec2 texCoord)
 
 	diffuseColor = vec4(pow(diffuseColor.rgb, vec3(u_Gamma)) * pow(VertexInput.DiffuseColor.rgb, vec3(u_Gamma)), diffuseColor.a);
 
-	float specularFactor = texture(u_Textures[v_SpecularTextureIndex], texCoord).r;
-	diffuseColor.a = specularFactor;
-
 	return diffuseColor;
 }
 
-vec4 GetNormalShininessOutput(vec2 texCoord)
+vec3 GetNormalOutput(vec2 texCoord)
 {
 	vec3 vertexNormal;
 
@@ -175,5 +176,13 @@ vec4 GetNormalShininessOutput(vec2 texCoord)
 		vertexNormal = normalize(VertexInput.TBN * vertexNormal);
 	}
 
-	return vec4(vertexNormal, VertexInput.Shininess);
+	return vertexNormal;
+}
+
+vec4 GetMaterialOutput(vec2 texCoord)
+{
+	float specular  = texture(u_Textures[v_SpecularTextureIndex], texCoord).r;
+	float shininess = VertexInput.Shininess;
+
+	return vec4(specular, shininess, 1.0, 1.0);
 }
