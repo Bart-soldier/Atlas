@@ -187,8 +187,6 @@ namespace Atlas
 			DrawSceneDeferred(camera.GetPosition(), true, selectedEntity);
 			Renderer::NextBatch();
 
-			Renderer::DrawSkybox(m_Skybox);
-
 			Renderer::DeferredRenderingPass();
 		}
 
@@ -196,6 +194,8 @@ namespace Atlas
 			ATLAS_PROFILE_SCOPE("Forward Rendering");
 			DrawSceneForward(camera.GetPosition(), true, selectedEntity);
 			Renderer::EndScene();
+
+			Renderer::DrawSkybox(m_Skybox);
 		}
 
 		{
