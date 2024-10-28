@@ -480,17 +480,6 @@ namespace Atlas
 		delete[] s_RendererData.MeshOutlineIndexBufferBase;
 	}
 
-	void Renderer::EnableStencilWriting()
-	{
-		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::Always, 1, 0xFF);
-		RenderCommand::SetStencilMask(0xFF);
-	}
-
-	void Renderer::DisableStencilWriting()
-	{
-		RenderCommand::SetStencilMask(0x00);
-	}
-
 	uint32_t Renderer::GetLightStorageBufferCapacity()
 	{
 		return s_RendererData.LightStorageBufferCapacity;
@@ -582,9 +571,9 @@ namespace Atlas
 		s_RendererData.GBufferFramebuffer->Bind();
 		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
 
-		EnableStencilWriting();
+		RenderCommand::SetStencilMask(0xFF);
 		RenderCommand::Clear();
-		DisableStencilWriting();
+		RenderCommand::SetStencilMask(0x00);
 		s_RendererData.GBufferFramebuffer->ClearAttachment(s_RendererData.EntityIDAttachmentIndex, -1);
 
 		s_RendererData.LastDrawnFramebuffer = s_RendererData.GBufferFramebuffer;

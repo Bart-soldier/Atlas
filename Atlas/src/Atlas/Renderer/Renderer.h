@@ -42,9 +42,6 @@ namespace Atlas
 		static void Init();
 		static void Shutdown();
 
-		static void EnableStencilWriting();
-		static void DisableStencilWriting();
-
 		static uint32_t GetLightStorageBufferCapacity();
 
 		static RendererAPI::PolygonMode GetPolygonMode();

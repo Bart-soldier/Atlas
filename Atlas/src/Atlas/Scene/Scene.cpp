@@ -519,21 +519,21 @@ namespace Atlas
 	{
 		Renderer::NextBatch();
 
-		Renderer::EnableStencilWriting();
 		DrawEntity(entity);
-		Renderer::NextBatch();
 
-		Renderer::DisableStencilWriting();
+		RenderCommand::SetStencilMask(0xFF);
+		Renderer::NextBatch();
+		RenderCommand::SetStencilMask(0x00);
 	}
 
 	void Scene::DrawSelectedEntityOutline(Entity* entity)
 	{
-		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
+		Renderer::NextBatch();
 
 		glm::mat4 transform = GetEntityTransform(entity);
 		glm::vec3 scale = m_Registry.get<TransformComponent>(entity->GetHandle()).Scale;
 		float outlineSize = 0.1f;
-		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z));
+		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z)); // TODO: Fix; ex: bunny
 		glm::vec4 selectionColor = { 0.400f, 0.733f, 0.417f, 1.0f }; // TODO: Link to palette (selection green)
 
 		if (entity->HasComponent<SpriteRendererComponent>())
@@ -549,7 +549,9 @@ namespace Atlas
 			Renderer::DrawCircle(transform, selectionColor, 0.1f, 0.0f, (int)entity->GetHandle());
 		}
 
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
 		Renderer::NextBatch();
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::Always, 1, 0xFF);
 	}
 
 	glm::mat4 Scene::GetEntityTransform(Entity* entity)
