@@ -371,12 +371,8 @@ namespace Atlas
 			lightData.Position         = glm::vec4(transform.Translation, 1.0f);
 			lightData.Color            = glm::vec4(light.Light->GetColor(), 1.0f);
 			lightData.Direction        = lightDirection;
-			lightData.Radius           = light.Light->GetRadius();
 			lightData.Intensity        = light.Light->GetIntensity();
 			lightData.CutOffs          = light.Light->GetCutOff().x >= 0 ? glm::cos(glm::radians(light.Light->GetCutOff())) : light.Light->GetCutOff();
-			lightData.AmbientStrength  = light.Light->GetAmbientStrength();
-			lightData.DiffuseStrength  = light.Light->GetDiffuseStrength();
-			lightData.SpecularStrength = light.Light->GetSpecularStrength();
 			m_Lights.push_back(lightData);
 		}
 	}

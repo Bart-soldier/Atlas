@@ -246,13 +246,8 @@ namespace Atlas
 			out << YAML::Key << "CastType" << YAML::Value << (int)light->GetCastType();
 
 			out << YAML::Key << "Color" << YAML::Value << light->GetColor();
-			out << YAML::Key << "Radius" << YAML::Value << light->GetRadius();
 			out << YAML::Key << "Intensity" << YAML::Value << light->GetIntensity();
 			out << YAML::Key << "CutOff" << YAML::Value << light->GetCutOff();
-
-			out << YAML::Key << "AmbientStrength" << YAML::Value << light->GetAmbientStrength();
-			out << YAML::Key << "DiffuseStrength" << YAML::Value << light->GetDiffuseStrength();
-			out << YAML::Key << "SpecularStrength" << YAML::Value << light->GetSpecularStrength();
 
 			out << YAML::EndMap; // LightSourceComponent
 		}
@@ -517,11 +512,6 @@ namespace Atlas
 						src.Light->SetColor(lightSourceComponent["Color"].as<glm::vec3>());
 					}
 
-					if (lightSourceComponent["Radius"])
-					{
-						src.Light->SetRadius(lightSourceComponent["Radius"].as<float>());
-					}
-
 					if (lightSourceComponent["Intensity"])
 					{
 						src.Light->SetIntensity(lightSourceComponent["Intensity"].as<float>());
@@ -530,21 +520,6 @@ namespace Atlas
 					if (lightSourceComponent["CutOff"])
 					{
 						src.Light->SetCutOff(lightSourceComponent["CutOff"].as<glm::vec2>());
-					}
-
-					if (lightSourceComponent["AmbientStrength"])
-					{
-						src.Light->SetAmbientStrength(lightSourceComponent["AmbientStrength"].as<float>());
-					}
-
-					if (lightSourceComponent["DiffuseStrength"])
-					{
-						src.Light->SetDiffuseStrength(lightSourceComponent["DiffuseStrength"].as<float>());
-					}
-
-					if (lightSourceComponent["SpecularStrength"])
-					{
-						src.Light->SetSpecularStrength(lightSourceComponent["SpecularStrength"].as<float>());
 					}
 				}
 			}

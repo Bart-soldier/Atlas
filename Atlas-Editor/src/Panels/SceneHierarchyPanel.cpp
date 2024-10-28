@@ -726,24 +726,6 @@ namespace Atlas
 				light->SetIntensity(intensity);
 			}
 
-			float ambientStrength = light->GetAmbientStrength();
-			if (ImGuiUtils::DragFloat("Ambient Strength", ambientStrength, 0.1f, 0.001f, 0.0f, 1.0f))
-			{
-				light->SetAmbientStrength(ambientStrength);
-			}
-
-			float diffuseStrength = light->GetDiffuseStrength();
-			if (ImGuiUtils::DragFloat("Diffuse Strength", diffuseStrength, 0.5f, 0.001f, 0.0f, 1.0f))
-			{
-				light->SetDiffuseStrength(diffuseStrength);
-			}
-
-			float specularStrength = light->GetSpecularStrength();
-			if (ImGuiUtils::DragFloat("Specular Strength", specularStrength, 1.0f, 0.001f, 0.0f, 1.0f))
-			{
-				light->SetSpecularStrength(specularStrength);
-			}
-
 			ImGui::Separator();
 
 			const char* castTypeStrings[] = { "Directional Light", "Point Light", "Spotlight"};
@@ -766,15 +748,6 @@ namespace Atlas
 				}
 
 				ImGuiUtils::EndCombo();
-			}
-
-			if (light->GetCastType() != Light::CastType::DirectionalLight)
-			{
-				float range = light->GetRadius();
-				if (ImGuiUtils::DragFloat("Radius", range, 0.01f, 0.01f, 0.0001f))
-				{
-					light->SetRadius(range);
-				}
 			}
 
 			if (light->GetCastType() == Light::CastType::Spotlight)

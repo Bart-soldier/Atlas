@@ -19,12 +19,8 @@ namespace Atlas
 			glm::vec4 Position;
 			glm::vec4 Color;
 			glm::vec4 Direction; // w is a flag to indicate if light direction is spot direction
-			float Radius;
 			float Intensity;
 			glm::vec2 CutOffs; // (inner, outer); negative value means cutoff is disabled
-			float AmbientStrength;
-			float DiffuseStrength;
-			float SpecularStrength;
 			float Padding; // DO NOT USE: For shader alignment
 		};
 

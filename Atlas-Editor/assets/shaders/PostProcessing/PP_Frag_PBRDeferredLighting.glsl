@@ -15,13 +15,8 @@ struct LightData
 	vec4 Color;
 	vec4 Direction; // w is a flag to indicate if light direction is spot direction
 
-	float Radius;
 	float Intensity;
 	vec2 CutOffs; // (inner, outer); negative value means cutoff is disabled
-
-	float AmbientStrength;
-	float DiffuseStrength;
-	float SpecularStrength;
 };
 
 /* ------------------------------ */
@@ -130,6 +125,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 	
     return num / denom;
 }
+
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
@@ -140,6 +136,12 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
+float CalculateLightAttenuation(vec3 lightPosition, vec3 vertexPosition)
+{
+	float dist  = length(lightPosition - vertexPosition);
+	return 1.0 / (dist * dist);
+}
+
 vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float metallic, float roughness, float ambientOcclusion)
 {
 	vec3 Lo = vec3(0.0);
@@ -147,26 +149,27 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
 		LightData light = u_Lights[lightIndex];
+		vec3 radiance = light.Color.rgb * light.Intensity * CalculateLightAttenuation(light.Position.xyz, vertexPosition);
 
-		//vec3 lightColor = pow(light.Color.rgb, vec3(u_Gamma)) * light.Intensity; // TODO: Change ?
+		vec3 viewDirection  = normalize(u_CameraPosition.xyz - vertexPosition);
 
-		vec3 V = normalize(u_CameraPosition.xyz - vertexPosition);
-		vec3 L = normalize(light.Position.xyz - vertexPosition);
-		vec3 H = normalize(V + L);
+		vec3 lightDirection = normalize(light.Position.xyz - vertexPosition);
+		if(light.Direction.w != 0)
+		{
+			lightDirection = normalize(-light.Direction.xyz); // For directional light ; light direction is spot direction
+		}
 
-		float dist        = length(light.Position.xyz - vertexPosition);
-		float attenuation = 1.0 / (dist * dist);
-		vec3 radiance     = light.Color.rgb * attenuation;
+		vec3 H = normalize(viewDirection + lightDirection);
 
 		vec3 F0 = vec3(0.04);
 		     F0 = mix(F0, albedo, metallic);
-		vec3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
+		vec3 F  = fresnelSchlick(max(dot(H, viewDirection), 0.0), F0);
 
 		float NDF = DistributionGGX(vertexNormal, H, roughness);
-		float G   = GeometrySmith(vertexNormal, V, L, roughness);
+		float G   = GeometrySmith(vertexNormal, viewDirection, lightDirection, roughness);
 
 		vec3 numerator    = NDF * G * F;
-		float denominator = 4.0 * max(dot(vertexNormal, V), 0.0) * max(dot(vertexNormal, L), 0.0) + 0.0001;
+		float denominator = 4.0 * max(dot(vertexNormal, viewDirection), 0.0) * max(dot(vertexNormal, lightDirection), 0.0) + 0.0001;
 		vec3 specular     = numerator / denominator;
 
 		vec3 kS = F;
@@ -174,32 +177,8 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
   
 		kD *= 1.0 - metallic;
 
-		float NdotL = max(dot(vertexNormal, L), 0.0);
+		float NdotL = max(dot(vertexNormal, lightDirection), 0.0);
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
-
-//		vec3 lightDirection;
-//		if(light.Direction.w == 0)
-//		{
-//			lightDirection = normalize(light.Position.xyz - vertexPosition);
-//		}
-//		else
-//		{
-//			lightDirection = normalize(-light.Direction.xyz); // For directional light ; light direction is spot direction
-//		}
-//		
-//		float attenuation = CalculateLightAttenuation(light.Radius, light.Position.xyz, vertexPosition);
-//		float lightCutOff = CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - vertexPosition), light.Direction.xyz);
-//
-//		vec3 ambientLight  = CalculateAmbientLight (albedo,   lightColor, light.AmbientStrength                                               , ambientOcclusion);
-//		vec3 diffuseLight  = CalculateDiffuseLight (albedo,   lightColor, light.DiffuseStrength , lightDirection, vertexNormal                                  );
-//		vec3 specularLight = CalculateSpecularLight(specular, lightColor, light.SpecularStrength, lightDirection, vertexNormal, vertexPosition, shininess       );
-//		ambientLight  *= attenuation;
-//		diffuseLight  *= attenuation * lightCutOff;
-//		specularLight *= attenuation * lightCutOff;
-//
-//		ambientColor  += ambientLight;
-//		diffuseColor  += diffuseLight;
-//		specularColor += specularLight;
 	}
 
 	vec3 ambient = vec3(0.03) * albedo * ambientOcclusion;
