@@ -201,6 +201,5 @@ vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 s
 		specularColor += specularLight;
 	}
 
-	//return ambientColor + diffuseColor + specularColor;
-	return ambientColor;
+	return ambientColor + diffuseColor + specularColor;
 }
