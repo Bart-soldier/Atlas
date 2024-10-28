@@ -62,12 +62,12 @@ namespace Atlas
 		glm::vec3 Color;
 		float Metallic;
 		float Roughness;
-		uint32_t AlbedoTextureIndex;
-		uint32_t NormalTextureIndex;
-		uint32_t MetallicTextureIndex;
-		uint32_t RoughnessTextureIndex;
-		uint32_t AOTextureIndex;
-		uint32_t DisplacementTextureIndex;
+		float AlbedoTextureIndex;
+		float NormalTextureIndex;
+		float MetallicTextureIndex;
+		float RoughnessTextureIndex;
+		float AOTextureIndex;
+		float DisplacementTextureIndex;
 	};
 
 	struct RendererData

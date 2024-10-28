@@ -152,7 +152,7 @@ vec2 GetFinalTexCoords()
 
 vec4 GetAlbedoOutput(vec2 texCoord)
 {
-	vec4 diffuseColor = texture(u_Textures[uint(v_Albedo_Normal_Metallic_TexIndex.x)] , texCoord);
+	vec4 diffuseColor = texture(u_Textures[int(v_Albedo_Normal_Metallic_TexIndex.x)], texCoord);
 
 	if (diffuseColor.a == 0.0)
 	{
@@ -168,7 +168,7 @@ vec3 GetNormalOutput(vec2 texCoord)
 {
 	vec3 vertexNormal = normalize(v_Normal);
 
-	uint normalTexIndex = uint(v_Albedo_Normal_Metallic_TexIndex.y);
+	int normalTexIndex = int(v_Albedo_Normal_Metallic_TexIndex.y);
 
 	if(normalTexIndex != 0)
 	{
@@ -184,7 +184,7 @@ float GetMetallicOutput(vec2 texCoord)
 {
 	float metallic = v_Metallic;
 
-	uint metallicTexIndex = uint(v_Albedo_Normal_Metallic_TexIndex.z);
+	int metallicTexIndex = int(v_Albedo_Normal_Metallic_TexIndex.z);
 
 	if(metallicTexIndex != 0)
 	{
@@ -198,7 +198,7 @@ float GetRoughnessOutput(vec2 texCoord)
 {
 	float roughness = v_Roughness;
 
-	uint roughnessTexIndex = uint(v_Roughness_AO_Displacement_TexIndex.x);
+	int roughnessTexIndex = int(v_Roughness_AO_Displacement_TexIndex.x);
 
 	if(roughnessTexIndex != 0)
 	{
@@ -212,7 +212,7 @@ float GetAOOutput(vec2 texCoord)
 {
 	float ao = 1.0;
 
-	uint aoTexIndex = uint(v_Roughness_AO_Displacement_TexIndex.y);
+	int aoTexIndex = int(v_Roughness_AO_Displacement_TexIndex.y);
 
 	if(aoTexIndex != 0)
 	{
