@@ -205,35 +205,58 @@ namespace Atlas
 			out << YAML::EndMap; // MeshComponent
 		}
 
-		//if (entity.HasComponent<MaterialComponent>())
-		//{
-		//	out << YAML::Key << "MaterialComponent";
-		//	out << YAML::BeginMap; // MaterialComponent
+		if (entity.HasComponent<MaterialComponent>())
+		{
+			out << YAML::Key << "MaterialComponent";
+			out << YAML::BeginMap; // MaterialComponent
 
-		//	auto& materialComponent = entity.GetComponent<MaterialComponent>();
-		//	auto& material = materialComponent.Material;
+			auto& materialComponent = entity.GetComponent<MaterialComponent>();
+			auto& material = materialComponent.Material;
 
-		//	out << YAML::Key << "Preset" << YAML::Value << (int)material->GetMaterialPreset();
+			out << YAML::Key << "Preset" << YAML::Value << (int)material->GetMaterialPreset();
 
-		//	out << YAML::Key << "AmbientColor" << YAML::Value << material->GetDiffuseColor();
-		//	out << YAML::Key << "DiffuseColor" << YAML::Value << material->GetDiffuseColor();
-		//	out << YAML::Key << "SpecularColor" << YAML::Value << material->GetDiffuseColor();
-		//	out << YAML::Key << "Shininess" << YAML::Value << material->GetMetallic();
+			out << YAML::Key << "Color"     << YAML::Value << material->GetColor();
+			out << YAML::Key << "Metallic"  << YAML::Value << material->GetMetallic();
+			out << YAML::Key << "Roughness" << YAML::Value << material->GetRoughness();
 
-		//	auto& diffuseTexture = material->GetAlbedoTexture();
-		//	if (diffuseTexture)
-		//	{
-		//		out << YAML::Key << "DiffuseTexturePath" << YAML::Value << diffuseTexture->GetPath().string();
-		//	}
+			auto& albedoTexture = material->GetAlbedoTexture();
+			if (albedoTexture)
+			{
+				out << YAML::Key << "AlbedoTexturePath" << YAML::Value << albedoTexture->GetPath().string();
+			}
 
-		//	auto& specularTexture = material->GetMetallicTexture();
-		//	if (specularTexture)
-		//	{
-		//		out << YAML::Key << "SpecularTexturePath" << YAML::Value << specularTexture->GetPath().string();
-		//	}
+			auto& normalTexture = material->GetNormalTexture();
+			if (normalTexture)
+			{
+				out << YAML::Key << "NormalTexturePath" << YAML::Value << normalTexture->GetPath().string();
+			}
 
-		//	out << YAML::EndMap; // MaterialComponent
-		//}
+			auto& metallicTexture = material->GetMetallicTexture();
+			if (metallicTexture)
+			{
+				out << YAML::Key << "MetallicTexturePath" << YAML::Value << metallicTexture->GetPath().string();
+			}
+
+			auto& roughnessTexture = material->GetRoughnessTexture();
+			if (roughnessTexture)
+			{
+				out << YAML::Key << "RoughnessTexturePath" << YAML::Value << roughnessTexture->GetPath().string();
+			}
+
+			auto& aoTexture = material->GetAOTexture();
+			if (aoTexture)
+			{
+				out << YAML::Key << "AOTexturePath" << YAML::Value << aoTexture->GetPath().string();
+			}
+
+			auto& displacementTexture = material->GetDisplacementTexture();
+			if (displacementTexture)
+			{
+				out << YAML::Key << "DisplacementTexturePath" << YAML::Value << displacementTexture->GetPath().string();
+			}
+
+			out << YAML::EndMap; // MaterialComponent
+		}
 
 		if (entity.HasComponent<LightSourceComponent>())
 		{
@@ -452,50 +475,73 @@ namespace Atlas
 					auto& src = deserializedEntity->AddComponent<MeshComponent>();
 				}
 
-				//auto materialComponent = entity["MaterialComponent"];
-				//if (materialComponent)
-				//{
-				//	auto& src = deserializedEntity->AddComponent<MaterialComponent>();
+				auto materialComponent = entity["MaterialComponent"];
+				if (materialComponent)
+				{
+					auto& src = deserializedEntity->AddComponent<MaterialComponent>();
 
-				//	if (materialComponent["Preset"])
-				//	{
-				//		src.Material->SetMaterialPreset((Material::MaterialPresets)materialComponent["Preset"].as<int>());
-				//	}
+					if (materialComponent["Preset"])
+					{
+						src.Material->SetMaterialPreset((Material::MaterialPresets)materialComponent["Preset"].as<int>());
+					}
 
-				//	if (materialComponent["AmbientColor"])
-				//	{
-				//		src.Material->SetColor(materialComponent["AmbientColor"].as<glm::vec3>());
-				//	}
+					if (materialComponent["Color"])
+					{
+						src.Material->SetColor(materialComponent["Color"].as<glm::vec3>());
+					}
 
-				//	if (materialComponent["DiffuseColor"])
-				//	{
-				//		src.Material->SetDiffuseColor(materialComponent["DiffuseColor"].as<glm::vec3>());
-				//	}
+					if (materialComponent["Metallic"])
+					{
+						src.Material->SetMetallic(materialComponent["Metallic"].as<float>());
+					}
 
-				//	if (materialComponent["SpecularColor"])
-				//	{
-				//		src.Material->SetSpecularColor(materialComponent["SpecularColor"].as<glm::vec3>());
-				//	}
+					if (materialComponent["Roughness"])
+					{
+						src.Material->SetRoughness(materialComponent["Roughness"].as<float>());
+					}
 
-				//	if (materialComponent["Shininess"])
-				//	{
-				//		src.Material->SetMetallic(materialComponent["Shininess"].as<float>());
-				//	}
+					if (materialComponent["AlbedoTexturePath"])
+					{
+						std::string texturePath = materialComponent["AlbedoTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material->SetAlbedoTexture(Texture2D::Create(path.string()));
+					}
 
-				//	if (materialComponent["DiffuseTexturePath"])
-				//	{
-				//		std::string texturePath = materialComponent["DiffuseTexturePath"].as<std::string>();
-				//		auto path = Project::GetAssetFileSystemPath(texturePath);
-				//		src.Material->SetAlbedoTexture(Texture2D::Create(path.string()));
-				//	}
+					if (materialComponent["NormalTexturePath"])
+					{
+						std::string texturePath = materialComponent["NormalTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material->SetNormalTexture(Texture2D::Create(path.string()));
+					}
 
-				//	if (materialComponent["SpecularTexturePath"])
-				//	{
-				//		std::string texturePath = materialComponent["SpecularTexturePath"].as<std::string>();
-				//		auto path = Project::GetAssetFileSystemPath(texturePath);
-				//		src.Material->SetMetallicTexture(Texture2D::Create(path.string()));
-				//	}
-				//}
+					if (materialComponent["MetallicTexturePath"])
+					{
+						std::string texturePath = materialComponent["MetallicTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material->SetMetallicTexture(Texture2D::Create(path.string()));
+					}
+
+					if (materialComponent["RoughnessTexturePath"])
+					{
+						std::string texturePath = materialComponent["RoughnessTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material->SetRoughnessTexture(Texture2D::Create(path.string()));
+					}
+
+					if (materialComponent["AOTexturePath"])
+					{
+						std::string texturePath = materialComponent["AOTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material->SetAOTexture(Texture2D::Create(path.string()));
+					}
+
+					if (materialComponent["DisplacementTexturePath"])
+					{
+						std::string texturePath = materialComponent["DisplacementTexturePath"].as<std::string>();
+						auto path = Project::GetAssetFileSystemPath(texturePath);
+						src.Material->SetDisplacementTexture(Texture2D::Create(path.string()));
+					}
+				}
 
 				auto lightSourceComponent = entity["LightSourceComponent"];
 				if (lightSourceComponent)
