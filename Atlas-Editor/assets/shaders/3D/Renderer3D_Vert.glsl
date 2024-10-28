@@ -5,22 +5,18 @@
 
 #version 450 core
 
-layout(location = 0)  in vec4  a_PositionID; // xyz is position and w is EntityID (editor-only)
-layout(location = 1)  in vec3  a_Normal;
-layout(location = 2)  in vec2  a_TexCoord;
-layout(location = 3)  in vec3  a_Tangent;
+layout(location = 0)  in vec4 a_Position_ID;                        // XYZ: Position, W: EntityID (editor-only)
+layout(location = 1)  in vec3 a_Normal;
+layout(location = 2)  in vec2 a_TexCoord;
+layout(location = 3)  in vec3 a_Tangent;
 
-layout(location = 4)  in mat4  a_Model;
+layout(location = 4)  in mat4 a_Model;
 
-layout(location = 8)  in vec3  a_AmbientColor;
-layout(location = 9)  in vec3  a_DiffuseColor;
-layout(location = 10) in vec3  a_SpecularColor;
-layout(location = 11) in float a_Shininess;
+layout(location = 8)  in vec3 a_Color;
+layout(location = 9)  in vec2 a_Metallic_Roughness;                 // X: Metallic,  Y: Roughness
 
-layout(location = 12) in uint  a_DiffuseTextureIndex;
-layout(location = 13) in uint  a_SpecularTextureIndex;
-layout(location = 14) in uint  a_NormalMapTextureIndex;
-layout(location = 15) in uint  a_HeightMapTextureIndex;
+layout(location = 10) in vec3 a_Albedo_Normal_Metallic_TexIndex;    // X: Albedo,    Y: Normal, Z: Metallic
+layout(location = 11) in vec3 a_Roughness_AO_Displacement_TexIndex; // X: Roughness, Y: AO,     Z: Displacement
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -32,58 +28,55 @@ layout (std140, binding = 1) uniform Camera
 	vec4 u_CameraPosition;
 };
 
-struct VertexData
-{
-	vec3  Position;
-	vec3  Normal;
-	vec2  TexCoord;
-	mat3  TBN;
-
-	vec3  AmbientColor;
-	vec3  DiffuseColor;
-	vec3  SpecularColor;
-	float Shininess;
-};
+//struct VertexData
+//{
+//	vec3  Position;
+//	vec3  Normal;
+//	vec2  TexCoord;
+//	mat3  TBN;
+//
+//	vec3  Color;
+//	float Metallic;
+//	float Roughness;
+//};
 
 layout (location = 0)   out flat int   v_EntityID;
-layout (location = 1)   out VertexData VertexOutput;
-layout (location = 11)  out flat uint  v_DiffuseTextureIndex;
-layout (location = 12)  out flat uint  v_SpecularTextureIndex;
-layout (location = 13)  out flat uint  v_NormalMapTextureIndex;
-layout (location = 14)  out flat uint  v_HeightMapTextureIndex;
+layout (location = 1)   out      vec3  v_Position;
+layout (location = 2)   out      vec3  v_Normal;
+layout (location = 3)   out      vec2  v_TexCoord;
+layout (location = 4)   out      vec3  v_Color;
+layout (location = 5)   out      float v_Metallic;
+layout (location = 6)   out      float v_Roughness;
+layout (location = 7)   out      mat3  v_TBN;
+layout (location = 10)  out flat vec3  v_Albedo_Normal_Metallic_TexIndex;
+layout (location = 11)  out flat vec3  v_Roughness_AO_Displacement_TexIndex;
 
 void main()
 {
-	v_EntityID                  = int(a_PositionID.w);
+	v_EntityID                           = int(a_Position_ID.w);
 
-	VertexOutput.Position       = a_PositionID.xyz;
-	VertexOutput.TexCoord       = a_TexCoord;
-	VertexOutput.Normal         = a_Normal;
+	v_Position                           = a_Position_ID.xyz;
+	v_Normal                             = a_Normal;
+	v_TexCoord                           = a_TexCoord;
 
-	VertexOutput.AmbientColor   = a_AmbientColor;
-	VertexOutput.DiffuseColor   = a_DiffuseColor;
-	VertexOutput.SpecularColor  = a_SpecularColor;
-	VertexOutput.Shininess      = a_Shininess;
+	v_Color                              = a_Color;
+	v_Metallic                           = a_Metallic_Roughness.x;
+	v_Roughness                          = a_Metallic_Roughness.y;
 
-	v_DiffuseTextureIndex       = a_DiffuseTextureIndex;
-	v_SpecularTextureIndex      = a_SpecularTextureIndex;
-	v_NormalMapTextureIndex     = a_NormalMapTextureIndex;
-	v_HeightMapTextureIndex     = a_HeightMapTextureIndex;
+	v_Albedo_Normal_Metallic_TexIndex    = a_Albedo_Normal_Metallic_TexIndex;
+	v_Roughness_AO_Displacement_TexIndex = a_Roughness_AO_Displacement_TexIndex;
 
-	if(a_NormalMapTextureIndex != 0 || a_HeightMapTextureIndex != 0)
+	vec3 T = normalize(a_Tangent);
+	vec3 N = normalize(a_Normal);
+	// Re-orthogonalize T with respect to N (Gram-Schmidt)
+	T = normalize(T - dot(T, N) * N);
+	vec3 B = cross(N, T);
+	if (dot(cross(N, T), B) < 0.0)
 	{
-		vec3 T = normalize(a_Tangent);
-		vec3 N = normalize(a_Normal);
-		// Re-orthogonalize T with respect to N (Gram-Schmidt)
-		T = normalize(T - dot(T, N) * N);
-		vec3 B = cross(N, T);
-		if (dot(cross(N, T), B) < 0.0)
-		{
-			T = T * -1.0;
-		}
-
-		VertexOutput.TBN = mat3(T, B, N);
+		T = T * -1.0;
 	}
 
-	gl_Position = u_ViewProjection * vec4(a_PositionID.xyz, 1.0);
+	v_TBN = mat3(T, B, N);
+
+	gl_Position = u_ViewProjection * vec4(a_Position_ID.xyz, 1.0);
 }

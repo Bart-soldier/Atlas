@@ -41,32 +41,33 @@ namespace Atlas
 
 		Material();
 		Material(const MaterialPresets& materialPreset);
-		Material(const glm::vec4& color, const glm::vec3& ambientColor, const glm::vec3& diffuseColor, const glm::vec3& specularColor, const float& shininess);
-		Material(const Ref<Texture2D>& diffuseTexture, const Ref<Texture2D>& specularTexture);
+		Material(const glm::vec4& color, const float& metallic, const float& roughness);
+		Material(const Ref<Texture2D>& albedoTexture,    const Ref<Texture2D>& normalTexture, const Ref<Texture2D>& metallicTexture,
+			     const Ref<Texture2D>& roughnessTexture, const Ref<Texture2D>& aoTexture,     const Ref<Texture2D>& displacementTexture);
 
 		virtual ~Material() = default;
 
-		void SetAmbientColor(const glm::vec3& ambientTint) { m_AmbientColor = ambientTint; m_MaterialPreset = MaterialPresets::Custom; }
-		const glm::vec3& GetAmbientColor() { return m_AmbientColor; }
-		void SetDiffuseColor(const glm::vec3& diffuseTint) { m_DiffuseColor = diffuseTint; m_MaterialPreset = MaterialPresets::Custom; }
-		const glm::vec3& GetDiffuseColor() { return m_DiffuseColor; }
-		void SetSpecularColor(const glm::vec3& specularTint) { m_SpecularColor = specularTint; m_MaterialPreset = MaterialPresets::Custom; }
-		const glm::vec3& GetSpecularColor() { return m_SpecularColor; }
+		// Material Properties
+		void SetColor(const glm::vec3& ambientTint) { m_Color = ambientTint; m_MaterialPreset = MaterialPresets::Custom; }
+		const glm::vec3& GetColor() { return m_Color; }
+		void SetMetallic(const float& metallic) { m_Metallic = metallic; m_MaterialPreset = MaterialPresets::Custom; }
+		const float& GetMetallic() { return m_Metallic; }
+		void SetRoughness(const float& roughness) { m_Roughness = roughness; m_MaterialPreset = MaterialPresets::Custom; }
+		const float& GetRoughness() { return m_Roughness; }
 
-		void SetDiffuseTexture(const Ref<Texture2D>& diffuseTexture);
-		const Ref<Texture2D>& GetDiffuseTexture() { return m_DiffuseTexture; }
-
-		void SetSpecularTexture(const Ref<Texture2D>& specularTexture);
-		const Ref<Texture2D>& GetSpecularTexture() { return m_SpecularTexture; }
-
-		void SetNormalMap(const Ref<Texture2D>& normalMap);
-		const Ref<Texture2D>& GetNormalMap() { return m_NormalMap; }
-
-		void SetHeightMap(const Ref<Texture2D>& heightMap);
-		const Ref<Texture2D>& GetHeightMap() { return m_HeightMap; }
-
-		void SetShininess(const float& shininess) { m_Shininess = shininess; m_MaterialPreset = MaterialPresets::Custom; }
-		const float& GetShininess() { return m_Shininess; }
+		// Material Textures
+		void SetAlbedoTexture(const Ref<Texture2D>& albedoTexture);
+		const Ref<Texture2D>& GetAlbedoTexture() { return m_AlbedoTexture; }
+		void SetNormalTexture(const Ref<Texture2D>& normalTexture);
+		const Ref<Texture2D>& GetNormalTexture() { return m_NormalTexture; }
+		void SetMetallicTexture(const Ref<Texture2D>& metallicTexture);
+		const Ref<Texture2D>& GetMetallicTexture() { return m_MetallicTexture; }
+		void SetRoughnessTexture(const Ref<Texture2D>& roughnessTexture);
+		const Ref<Texture2D>& GetRoughnessTexture() { return m_RoughnessTexture; }
+		void SetAOTexture(const Ref<Texture2D>& aoTexture);
+		const Ref<Texture2D>& GetAOTexture() { return m_AOTexture; }
+		void SetDisplacementTexture(const Ref<Texture2D>& displacementTexture);
+		const Ref<Texture2D>& GetDisplacementTexture() { return m_DisplacementTexture; }
 
 		void SetMaterialPreset(const MaterialPresets& materialPreset);
 		const MaterialPresets& GetMaterialPreset() { return m_MaterialPreset; }
@@ -74,14 +75,15 @@ namespace Atlas
 	private:
 		MaterialPresets m_MaterialPreset = MaterialPresets::Default;
 
-		glm::vec3 m_AmbientColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 m_DiffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		glm::vec3 m_SpecularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		float m_Shininess = 0.25f;
+		glm::vec3 m_Color = glm::vec3(1.0f, 1.0f, 1.0f);
+		float m_Metallic = 0.25f;
+		float m_Roughness = 0.25f;
 
-		Ref<Texture2D> m_DiffuseTexture = nullptr;
-		Ref<Texture2D> m_SpecularTexture = nullptr;
-		Ref<Texture2D> m_NormalMap = nullptr;
-		Ref<Texture2D> m_HeightMap = nullptr;
+		Ref<Texture2D> m_AlbedoTexture       = nullptr;
+		Ref<Texture2D> m_NormalTexture       = nullptr;
+		Ref<Texture2D> m_MetallicTexture     = nullptr;
+		Ref<Texture2D> m_RoughnessTexture    = nullptr;
+		Ref<Texture2D> m_AOTexture           = nullptr;
+		Ref<Texture2D> m_DisplacementTexture = nullptr;
 	};
 }
