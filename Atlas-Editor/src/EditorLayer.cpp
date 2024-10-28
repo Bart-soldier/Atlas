@@ -75,7 +75,7 @@ namespace Atlas
 
 		{
 			ATLAS_PROFILE_SCOPE("Renderer Prep");
-			Renderer::BeginRenderPass();
+			Renderer::BeginRenderingPass();
 		}
 
 		switch (m_SceneState)
@@ -110,7 +110,7 @@ namespace Atlas
 			m_HoveredEntity = pixelData == -1 ? nullptr : m_ActiveScene->GetEntity((entt::entity)pixelData);
 		}
 
-		Renderer::EndRenderPass();
+		Renderer::EndRenderingPass();
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -277,7 +277,7 @@ namespace Atlas
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-		uint32_t textureID = Renderer::GetLastFramebufferRenderID();
+		uint32_t textureID = Renderer::GetDisplayedRenderBufferID();
 
 		ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 

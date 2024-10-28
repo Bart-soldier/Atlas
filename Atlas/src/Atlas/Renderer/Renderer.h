@@ -28,11 +28,19 @@ namespace Atlas
 			float Padding; // DO NOT USE: For shader alignment
 		};
 
+		enum class RenderBuffers
+		{
+			Final        = 0,
+			EntityID     = 1,
+			Position     = 2,
+			Normal       = 3,
+			Albedo       = 4,
+			Material     = 5,
+			BrightColors = 6
+		};
+
 		static void Init();
 		static void Shutdown();
-
-		static void EnableStencilWriting();
-		static void DisableStencilWriting();
 
 		static uint32_t GetLightStorageBufferCapacity();
 
@@ -48,19 +56,18 @@ namespace Atlas
 		static void SetParallaxScale(float scale);
 		static const float& GetBloomThreshold();
 		static void SetBloomThreshold(float threshold);
-		static bool IsFlatShaderEnabled();
-		static void ToggleFlatShader();
 		static bool IsHDREnabled();
 		static void ToggleHDR();
 		static bool IsBloomEnabled();
 		static void ToggleBloom();
+		static void SetDisplayedBuffer(RenderBuffers bufferType);
+		static const RenderBuffers& GetDisplayedBuffer();
 
-		static void BeginRenderPass();
-		static void EndRenderPass();
+		static void BeginRenderingPass();
+		static void EndRenderingPass();
+		static void DeferredRenderingPass();
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
-		static uint32_t GetDefaultRenderID();
-		static uint32_t GetLastFramebufferRenderID();
-		static uint32_t GetBrightnessFramebufferRenderID();
+		static uint32_t GetDisplayedRenderBufferID();
 		static int GetEntityIDFromPixel(int x, int y);
 
 		static void BeginScene(const Camera& camera, const TransformComponent& cameraTransform, const std::vector<LightData>& lights);
@@ -134,6 +141,9 @@ namespace Atlas
 
 		static void StartBatch();
 		static void Flush();
+
+		static uint32_t GetLastDrawnFramebufferID();
+		static uint32_t GetFramebufferRenderID(RenderBuffers bufferType);
 
 		static void TogglePostProcessingFramebuffers();
 		static void ApplyBloom();

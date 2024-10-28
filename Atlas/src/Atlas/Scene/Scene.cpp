@@ -163,7 +163,7 @@ namespace Atlas
 			UpdateLights();
 
 			Renderer::BeginScene(camera, cameraTransform, m_Lights);
-			DrawScene(cameraTransform.Translation, false, nullptr);
+			DrawSceneDeferred(cameraTransform.Translation, false, nullptr);
 			Renderer::EndScene();
 
 			Renderer::DrawSkybox(m_Skybox);
@@ -176,23 +176,40 @@ namespace Atlas
 
 	void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera, Entity* selectedEntity)
 	{
-		UpdateLights();
-
-		Renderer::BeginScene(camera, m_Lights);
-		DrawScene(camera.GetPosition(), true, selectedEntity);
-		Renderer::EndScene();
-
-		Renderer::DrawSkybox(m_Skybox);
-
-		Renderer::BeginPostProcessing();
-		if (camera.IsPostProcessEnabled())
 		{
-			if (m_PrimaryCamera)
-			{
-				Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
-			}
+			ATLAS_PROFILE_SCOPE("Lights Prep");
+			UpdateLights();
 		}
-		Renderer::EndPostProcessing();
+
+		{
+			ATLAS_PROFILE_SCOPE("Deferred Rendering");
+			Renderer::BeginScene(camera, m_Lights);
+			DrawSceneDeferred(camera.GetPosition(), true, selectedEntity);
+			Renderer::NextBatch();
+
+			Renderer::DeferredRenderingPass();
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Forward Rendering");
+			DrawSceneForward(camera.GetPosition(), true, selectedEntity);
+			Renderer::EndScene();
+
+			Renderer::DrawSkybox(m_Skybox);
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Post Processing");
+			Renderer::BeginPostProcessing();
+			if (camera.IsPostProcessEnabled())
+			{
+				if (m_PrimaryCamera)
+				{
+					Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+				}
+			}
+			Renderer::EndPostProcessing();
+		}
 	}
 
 	void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -356,10 +373,52 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawScene(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
+	void Scene::DrawSceneDeferred(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
 	{
-		Renderer::DisableStencilWriting();
+		//std::map<float, entt::entity> transparentEntities;
+		//bool isSelectedEntityTransparent = false;
+;
+		{
+			auto view = m_Registry.view<TransformComponent, MeshComponent>();
+			for (auto entity : view)
+			{
+				if (selectedEntity != nullptr && entity == *selectedEntity)
+				{
+					continue;
+				}
 
+				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+
+				DrawComponent<MeshComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), mesh);
+			}
+		}
+
+		//if (selectedEntity && !isSelectedEntityTransparent)
+		if (selectedEntity)
+		{
+			DrawSelectedEntity(selectedEntity);
+		}
+
+		//if (transparentEntities.size())
+		//{
+		//	Renderer::NextBatch();
+
+		//	for (std::map<float, entt::entity>::reverse_iterator it = transparentEntities.rbegin(); it != transparentEntities.rend(); ++it)
+		//	{
+		//		if (isSelectedEntityTransparent && it->second == *selectedEntity)
+		//		{
+		//			DrawSelectedEntityAndOutline(selectedEntity);
+		//		}
+		//		else
+		//		{
+		//			DrawEntity(GetEntity(it->second));
+		//		}
+		//	}
+		//}
+	}
+
+	void Scene::DrawSceneForward(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity)
+	{
 		std::map<float, entt::entity> transparentEntities;
 		bool isSelectedEntityTransparent = false;
 
@@ -389,23 +448,8 @@ namespace Atlas
 				}
 			}
 		}
-;
-		{
-			auto view = m_Registry.view<TransformComponent, MeshComponent>();
-			for (auto entity : view)
-			{
-				if (selectedEntity != nullptr && entity == *selectedEntity)
-				{
-					continue;
-				}
 
-				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-
-				DrawComponent<MeshComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), mesh);
-			}
-		}
-
-		if(isEditor)
+		if (isEditor)
 		{
 			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
 			for (auto entity : view)
@@ -422,7 +466,12 @@ namespace Atlas
 
 		if (selectedEntity && !isSelectedEntityTransparent)
 		{
-			DrawSelectedEntityAndOutline(selectedEntity);
+			if (selectedEntity->TryGetComponent<MeshComponent>() == nullptr)
+			{
+				DrawSelectedEntity(selectedEntity);
+			}
+
+			DrawSelectedEntityOutline(selectedEntity);
 		}
 
 		if (transparentEntities.size())
@@ -433,7 +482,12 @@ namespace Atlas
 			{
 				if (isSelectedEntityTransparent && it->second == *selectedEntity)
 				{
-					DrawSelectedEntityAndOutline(selectedEntity);
+					if (selectedEntity->TryGetComponent<MeshComponent>() == nullptr)
+					{
+						DrawSelectedEntity(selectedEntity);
+					}
+
+					DrawSelectedEntityOutline(selectedEntity);
 				}
 				else
 				{
@@ -441,8 +495,6 @@ namespace Atlas
 				}
 			}
 		}
-
-		Renderer::EnableStencilWriting();
 	}
 
 	void Scene::DrawEntity(Entity* entity)
@@ -463,21 +515,25 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawSelectedEntityAndOutline(Entity* entity)
+	void Scene::DrawSelectedEntity(Entity* entity)
 	{
 		Renderer::NextBatch();
 
-		Renderer::EnableStencilWriting();
 		DrawEntity(entity);
-		Renderer::NextBatch();
 
-		Renderer::DisableStencilWriting();
-		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
+		RenderCommand::SetStencilMask(0xFF);
+		Renderer::NextBatch();
+		RenderCommand::SetStencilMask(0x00);
+	}
+
+	void Scene::DrawSelectedEntityOutline(Entity* entity)
+	{
+		Renderer::NextBatch();
 
 		glm::mat4 transform = GetEntityTransform(entity);
 		glm::vec3 scale = m_Registry.get<TransformComponent>(entity->GetHandle()).Scale;
 		float outlineSize = 0.1f;
-		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z));
+		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z)); // TODO: Fix; ex: bunny
 		glm::vec4 selectionColor = { 0.400f, 0.733f, 0.417f, 1.0f }; // TODO: Link to palette (selection green)
 
 		if (entity->HasComponent<SpriteRendererComponent>())
@@ -493,7 +549,9 @@ namespace Atlas
 			Renderer::DrawCircle(transform, selectionColor, 0.1f, 0.0f, (int)entity->GetHandle());
 		}
 
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);
 		Renderer::NextBatch();
+		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::Always, 1, 0xFF);
 	}
 
 	glm::mat4 Scene::GetEntityTransform(Entity* entity)

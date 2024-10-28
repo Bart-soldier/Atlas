@@ -96,6 +96,7 @@ namespace Atlas
 
 		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilMask(0x00);
 
 		glEnable(GL_LINE_SMOOTH);
 	}

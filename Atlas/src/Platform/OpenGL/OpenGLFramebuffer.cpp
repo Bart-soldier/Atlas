@@ -192,17 +192,7 @@ namespace Atlas
 				m_Specification.Width, m_Specification.Height);
 		}
 
-		if (m_ColorAttachments.size() > 1)
-		{
-			ATLAS_CORE_ASSERT(m_ColorAttachments.size() <= 4);
-			GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-			glDrawBuffers(m_ColorAttachments.size(), buffers);
-		}
-		else if (m_ColorAttachments.empty())
-		{
-			// Only depth-pass
-			glDrawBuffer(GL_NONE);
-		}
+		EnableAllColorAttachments();
 
 		ATLAS_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
 
@@ -245,6 +235,18 @@ namespace Atlas
 
 	}
 
+	void OpenGLFramebuffer::CopyColor(Ref<Framebuffer> framebuffer)
+	{
+		glBlitNamedFramebuffer(framebuffer->GetRendererID(), GetRendererID(),
+			0, 0, m_Specification.Width, m_Specification.Height, 0, 0, framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+
+	void OpenGLFramebuffer::CopyDepth(Ref<Framebuffer> framebuffer)
+	{
+		glBlitNamedFramebuffer(framebuffer->GetRendererID(), GetRendererID(),
+			0, 0, m_Specification.Width, m_Specification.Height, 0, 0, framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	}
+
 	void OpenGLFramebuffer::ClearAttachment(uint32_t attachmentIndex, int value)
 	{
 		ATLAS_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size());
@@ -252,6 +254,56 @@ namespace Atlas
 		auto& spec = m_ColorAttachmentSpecifications[attachmentIndex];
 		glClearTexImage(m_ColorAttachments[attachmentIndex], 0,
 			Utils::AtlasFBTextureFormatToGLDataFormat(spec.TextureFormat), GL_INT, &value);
+	}
+
+	void OpenGLFramebuffer::EnableColorAttachment(uint32_t attachmentIndex)
+	{
+		ATLAS_CORE_ASSERT(m_ColorAttachments.size() >= 1);
+
+		GLenum buffer = GL_COLOR_ATTACHMENT0 + attachmentIndex;
+		glDrawBuffer(buffer);
+	}
+
+	void OpenGLFramebuffer::EnableColorAttachments(std::initializer_list<uint32_t> attachmentIndices)
+	{
+		ATLAS_CORE_ASSERT(attachmentIndices.size() <= m_ColorAttachments.size());
+
+		if (attachmentIndices.size() >= 1)
+		{
+			ATLAS_CORE_ASSERT(m_ColorAttachments.size() <= 8);
+
+			std::vector<GLenum> buffers;
+			buffers.reserve(8);
+
+			for (uint32_t index : attachmentIndices)
+			{
+				ATLAS_CORE_ASSERT(index < 8);
+				buffers.push_back(GL_COLOR_ATTACHMENT0 + index);
+			}
+
+			glDrawBuffers(buffers.size(), buffers.data());
+		}
+		else
+		{
+			// Only depth-pass
+			glDrawBuffer(GL_NONE);
+		}
+	}
+
+	void OpenGLFramebuffer::EnableAllColorAttachments()
+	{
+		if (m_ColorAttachments.size() > 1)
+		{
+			ATLAS_CORE_ASSERT(m_ColorAttachments.size() <= 8);
+			GLenum buffers[8] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
+								  GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7 };
+			glDrawBuffers(m_ColorAttachments.size(), buffers);
+		}
+		else if (m_ColorAttachments.empty())
+		{
+			// Only depth-pass
+			glDrawBuffer(GL_NONE);
+		}
 	}
 
 	void OpenGLFramebuffer::Reset()

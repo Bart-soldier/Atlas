@@ -36,6 +36,7 @@ namespace Atlas
 		Ref<Shader> ToneMappingShader;
 		Ref<Shader> GaussianBlurShader;
 		Ref<Shader> AdditiveBlendingShader;
+		Ref<Shader> DeferredLightingShader;
 	};
 
 	static PostProcessorData s_PostProcessorData;
@@ -90,6 +91,7 @@ namespace Atlas
 		s_PostProcessorData.ToneMappingShader      = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl"             );
 		s_PostProcessorData.GaussianBlurShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl"            );
 		s_PostProcessorData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl" );
+		s_PostProcessorData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_DeferredLighting.glsl"        );
 	}
 
 	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
@@ -142,6 +144,18 @@ namespace Atlas
 		RenderCommand::BindTextureSlot(1, texture2ID);
 
 		s_PostProcessorData.AdditiveBlendingShader->Bind();
+
+		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+	}
+
+	void PostProcessor::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID)
+	{
+		RenderCommand::BindTextureSlot(0, positionTexID);
+		RenderCommand::BindTextureSlot(1, normalTexID);
+		RenderCommand::BindTextureSlot(2, albedoTexID);
+		RenderCommand::BindTextureSlot(3, materialTexID);
+
+		s_PostProcessorData.DeferredLightingShader->Bind();
 
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
