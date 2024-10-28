@@ -39,6 +39,7 @@ namespace Atlas
 			case GL_RGBA8:
 			case GL_RGBA16:
 			case GL_R32I:    return GL_UNSIGNED_BYTE;
+			case GL_R32F:
 			case GL_RGBA16F: return GL_FLOAT;
 			}
 
@@ -53,7 +54,8 @@ namespace Atlas
 			case FramebufferTextureFormat::RGBA8:
 			case FramebufferTextureFormat::RGBA16:
 			case FramebufferTextureFormat::RGBA16F:     return GL_RGBA;
-			case FramebufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
+			case FramebufferTextureFormat::RED32I:      return GL_RED_INTEGER;
+			case FramebufferTextureFormat::RED32F:      return GL_RED;
 			}
 
 			ATLAS_CORE_ASSERT(false, "Format not supported for color framebuffers!");
@@ -67,7 +69,8 @@ namespace Atlas
 			case FramebufferTextureFormat::RGBA8:            return GL_RGBA8;
 			case FramebufferTextureFormat::RGBA16:           return GL_RGBA16;
 			case FramebufferTextureFormat::RGBA16F:          return GL_RGBA16F;
-			case FramebufferTextureFormat::RED_INTEGER:      return GL_R32I;
+			case FramebufferTextureFormat::RED32I:           return GL_R32I;
+			case FramebufferTextureFormat::RED32F:           return GL_R32F;
 			case FramebufferTextureFormat::DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
 			case FramebufferTextureFormat::DEPTH32F:         return GL_DEPTH_COMPONENT32F;
 			}
@@ -232,7 +235,6 @@ namespace Atlas
 		int pixelData;
 		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
 		return pixelData;
-
 	}
 
 	void OpenGLFramebuffer::CopyColor(Ref<Framebuffer> framebuffer)

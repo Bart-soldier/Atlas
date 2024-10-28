@@ -145,11 +145,11 @@ namespace Atlas
 
 	void SceneSettingsPanel::DrawGraphicsSettings()
 	{
-		const char* bufferTypeStrings[] = { "Final", "EntityID", "Position", "Normal", "Albedo", "Material", "BrightColors" };
+		const char* bufferTypeStrings[] = { "Final", "EntityID", "Position", "Normal", "Albedo", "Material", "BrightColors", "SSAO" };
 		const char* currentBufferTypeString = bufferTypeStrings[(int)Renderer::GetDisplayedBuffer()];
 		if (ImGuiUtils::BeginCombo("Render Buffer", *currentBufferTypeString))
 		{
-			for (int i = 0; i < 7; i++)
+			for (int i = 0; i < 8; i++)
 			{
 				bool isSelected = currentBufferTypeString == bufferTypeStrings[i];
 				if (ImGui::Selectable(bufferTypeStrings[i], isSelected))
@@ -177,6 +177,12 @@ namespace Atlas
 		if (ImGuiUtils::Checkbox("Bloom", isBloomEnabled))
 		{
 			Renderer::ToggleBloom();
+		}
+
+		bool isSSAOEnabled = Renderer::IsSSAOEnabled();
+		if (ImGuiUtils::Checkbox("SSAO", isSSAOEnabled))
+		{
+			Renderer::ToggleSSAO();
 		}
 
 		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))

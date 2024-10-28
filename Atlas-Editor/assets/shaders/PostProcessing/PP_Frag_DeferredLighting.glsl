@@ -34,7 +34,8 @@ layout (location = 0) in vec2 v_TexCoords;
 // 1: Normal
 // 2: Albedo
 // 3: RGB: Specular, A: Shininess
-layout (binding = 0) uniform sampler2D u_ScreenTextures[4];
+// 4: R(1-Channel Texture): SSAO
+layout (binding = 0) uniform sampler2D u_ScreenTextures[5];
 
 layout (std140, binding = 0) uniform Settings
 {
@@ -72,7 +73,7 @@ layout (location = 1) out vec4 o_BrightColor;
 /* ----- METHOD DEFINITIONS ----- */
 /* ------------------------------ */
 
-vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 specular, float shininess);
+vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 specular, float shininess, float ambientOcclusion);
 
 /* ------------------------------ */
 /* ------------ MAIN ------------ */
@@ -80,13 +81,14 @@ vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 s
 
 void main()
 {
-	vec3 position   = texture(u_ScreenTextures[0], v_TexCoords).rgb;
-	vec3 normal     = texture(u_ScreenTextures[1], v_TexCoords).rgb;
-	vec3 albedo     = texture(u_ScreenTextures[2], v_TexCoords).rgb;
-	vec3 specular   = texture(u_ScreenTextures[3], v_TexCoords).rgb;
-	float shininess = texture(u_ScreenTextures[3], v_TexCoords).a;
+	vec3 position          = texture(u_ScreenTextures[0], v_TexCoords).rgb;
+	vec3 normal            = texture(u_ScreenTextures[1], v_TexCoords).rgb;
+	vec3 albedo            = texture(u_ScreenTextures[2], v_TexCoords).rgb;
+	vec3 specular          = texture(u_ScreenTextures[3], v_TexCoords).rgb;
+	float shininess        = texture(u_ScreenTextures[3], v_TexCoords).a;
+	float ambientOcclusion = texture(u_ScreenTextures[4], v_TexCoords).r;
 
-	vec3 fragmentColor = CalculateLights(position, normal, albedo, specular, shininess);
+	vec3 fragmentColor = CalculateLights(position, normal, albedo, specular, shininess, ambientOcclusion);
 
 	float brightness = dot(fragmentColor.rgb, vec3(0.2126, 0.7152, 0.0722));
 	vec4 brightColor;
@@ -107,9 +109,9 @@ void main()
 /* --- METHOD IMPLEMENTATIONS --- */
 /* ------------------------------ */
 
-vec3 CalculateAmbientLight(vec3 albedo, vec3 lightColor, float lightAmbientStrength)
+vec3 CalculateAmbientLight(vec3 albedo, vec3 lightColor, float lightAmbientStrength, float ambientOcclusion)
 {
-	return lightColor * lightAmbientStrength * albedo;
+	return lightColor * lightAmbientStrength * albedo * ambientOcclusion;
 }
 
 vec3 CalculateDiffuseLight(vec3 albedo, vec3 lightColor, float lightDiffuseStrength, vec3 lightDirection, vec3 vertexNormal)
@@ -162,7 +164,7 @@ float CalculateLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirec
 	return cutOff;
 }
 
-vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 specular, float shininess)
+vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 specular, float shininess, float ambientOcclusion)
 {
 	vec3 ambientColor  = vec3(0.0);
 	vec3 diffuseColor  = vec3(0.0);
@@ -187,9 +189,9 @@ vec3 CalculateLights(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, vec3 s
 		float attenuation = CalculateLightAttenuation(light.Radius, light.Position.xyz, vertexPosition);
 		float lightCutOff = CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - vertexPosition), light.Direction.xyz);
 
-		vec3 ambientLight  = CalculateAmbientLight (albedo,   lightColor, light.AmbientStrength                               );
-		vec3 diffuseLight  = CalculateDiffuseLight (albedo,   lightColor, light.DiffuseStrength , lightDirection, vertexNormal);
-		vec3 specularLight = CalculateSpecularLight(specular, lightColor, light.SpecularStrength, lightDirection, vertexNormal, vertexPosition, shininess);
+		vec3 ambientLight  = CalculateAmbientLight (albedo,   lightColor, light.AmbientStrength                                               , ambientOcclusion);
+		vec3 diffuseLight  = CalculateDiffuseLight (albedo,   lightColor, light.DiffuseStrength , lightDirection, vertexNormal                                  );
+		vec3 specularLight = CalculateSpecularLight(specular, lightColor, light.SpecularStrength, lightDirection, vertexNormal, vertexPosition, shininess       );
 		ambientLight  *= attenuation;
 		diffuseLight  *= attenuation * lightCutOff;
 		specularLight *= attenuation * lightCutOff;

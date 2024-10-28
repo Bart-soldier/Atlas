@@ -1,6 +1,8 @@
 #include "atlaspch.h"
 #include "Atlas/Renderer/PostProcessor.h"
 
+#include <random>
+
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Buffer.h"
 #include "Atlas/Renderer/UniformBuffer.h"
@@ -9,6 +11,14 @@
 
 namespace Atlas
 {
+	namespace Utils
+	{
+		static float lerp(float a, float b, float f)
+		{
+			return a + f * (b - a);
+		}
+	}
+
 	struct RenderVertex
 	{
 		glm::vec2 Position;
@@ -20,6 +30,12 @@ namespace Atlas
 		static const uint32_t RenderVertices = 4;
 		static const uint32_t RenderIndices  = 6;
 		Ref<VertexArray> RenderVertexArray;
+
+		// SSAO
+		std::vector<glm::vec3> SSAOSamples;
+		Ref<Texture2D> SSAONoise;
+		uint32_t SSAOSampleSize;
+		Ref<UniformBuffer> SSAOSamplesUniformBuffer;
 
 		// Post Processing Settings
 		PostProcessor::Settings SettingsBuffer;
@@ -37,6 +53,8 @@ namespace Atlas
 		Ref<Shader> GaussianBlurShader;
 		Ref<Shader> AdditiveBlendingShader;
 		Ref<Shader> DeferredLightingShader;
+		Ref<Shader> SSAOShader;
+		Ref<Shader> SSAOBlurShader;
 	};
 
 	static PostProcessorData s_PostProcessorData;
@@ -79,7 +97,10 @@ namespace Atlas
 		s_PostProcessorData.RenderVertexArray->SetIndexBuffer(indexBuffer);
 
 		// Uniform Buffers
-		s_PostProcessorData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
+		s_PostProcessorData.SettingsUniformBuffer    = UniformBuffer::Create(sizeof(Settings)      , 3);
+		s_PostProcessorData.SSAOSamplesUniformBuffer = UniformBuffer::Create(sizeof(glm::vec3) * 64, 4);
+
+		GenerateSSAOData();
 
 		// Shaders
 		s_PostProcessorData.InversionShader        = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"               );
@@ -92,6 +113,8 @@ namespace Atlas
 		s_PostProcessorData.GaussianBlurShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl"            );
 		s_PostProcessorData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl" );
 		s_PostProcessorData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_DeferredLighting.glsl"        );
+		s_PostProcessorData.SSAOShader             = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO.glsl"                    );
+		s_PostProcessorData.SSAOBlurShader         = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl"                    );
 	}
 
 	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
@@ -148,15 +171,94 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID)
+	void PostProcessor::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
+											 const uint32_t& ssaoTexID)
 	{
 		RenderCommand::BindTextureSlot(0, positionTexID);
 		RenderCommand::BindTextureSlot(1, normalTexID);
 		RenderCommand::BindTextureSlot(2, albedoTexID);
 		RenderCommand::BindTextureSlot(3, materialTexID);
+		RenderCommand::BindTextureSlot(4, ssaoTexID);
 
 		s_PostProcessorData.DeferredLightingShader->Bind();
 
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+	}
+
+	void PostProcessor::ApplySSAO(const uint32_t& positionTexID, const uint32_t& normalTexID)
+	{
+		s_PostProcessorData.SettingsBuffer.Strength = s_PostProcessorData.SSAOSampleSize;
+		s_PostProcessorData.SettingsBuffer.KernelOffset = 0.5f;
+		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
+
+		RenderCommand::BindTextureSlot(0, positionTexID);
+		RenderCommand::BindTextureSlot(1, normalTexID);
+
+		s_PostProcessorData.SSAOShader->Bind();
+
+		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+	}
+
+	void PostProcessor::ApplySSAOBlur(const uint32_t& ssaoTexID)
+	{
+		RenderCommand::BindTextureSlot(0, ssaoTexID);
+
+		s_PostProcessorData.SSAOBlurShader->Bind();
+
+		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+	}
+
+	void PostProcessor::GenerateSSAOData()
+	{
+		std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+		std::default_random_engine generator;
+		s_PostProcessorData.SSAOSampleSize = 64;
+
+		s_PostProcessorData.SSAOSamples.reserve(s_PostProcessorData.SSAOSampleSize);
+
+		for (unsigned int i = 0; i < s_PostProcessorData.SSAOSampleSize; ++i)
+		{
+			glm::vec3 sample(
+				randomFloats(generator) * 2.0 - 1.0,
+				randomFloats(generator) * 2.0 - 1.0,
+				randomFloats(generator)
+			);
+
+			sample = glm::normalize(sample);
+			sample *= randomFloats(generator);
+
+			float scale = (float)i / (float)s_PostProcessorData.SSAOSampleSize;
+			scale = Utils::lerp(0.1f, 1.0f, scale * scale);
+			sample *= scale;
+
+			s_PostProcessorData.SSAOSamples.push_back(sample);
+		}
+
+		std::vector<glm::vec3> ssaoNoise;
+		ssaoNoise.reserve(16);
+
+		for (unsigned int i = 0; i < 16; i++)
+		{
+			glm::vec3 noise(
+				randomFloats(generator) * 2.0 - 1.0,
+				randomFloats(generator) * 2.0 - 1.0,
+				0.0f);
+			ssaoNoise.push_back(noise);
+		}
+
+		TextureSpecification noiseTextureSpecification = TextureSpecification();
+		noiseTextureSpecification.Width  = 4;
+		noiseTextureSpecification.Height = 4;
+		noiseTextureSpecification.Format = ImageFormat::RGB16F;
+		noiseTextureSpecification.GenerateMips = false;
+		noiseTextureSpecification.MinFilter = ResizeFilter::Nearest;
+		noiseTextureSpecification.MagFilter = ResizeFilter::Nearest;
+		noiseTextureSpecification.WrapS = Wrap::ClampToEdge;
+		noiseTextureSpecification.WrapT = Wrap::ClampToEdge;
+
+		s_PostProcessorData.SSAONoise = Texture2D::Create(noiseTextureSpecification);
+		s_PostProcessorData.SSAONoise->SetData(ssaoNoise.data(), ssaoNoise.size() * sizeof(glm::vec3));
+
+		s_PostProcessorData.SSAOSamplesUniformBuffer->SetData(s_PostProcessorData.SSAOSamples.data(), sizeof(glm::vec3) * s_PostProcessorData.SSAOSampleSize);
 	}
 }
