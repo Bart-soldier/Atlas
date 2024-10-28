@@ -136,10 +136,33 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-float CalculateLightAttenuation(vec3 lightPosition, vec3 vertexPosition)
+float CalculateLightAttenuation(vec3 vertexPosition, vec3 lightPosition, vec4 lightDirection)
 {
-	float dist  = length(lightPosition - vertexPosition);
-	return 1.0 / (dist * dist);
+	float attenuation = 1.0;
+
+	// Directional lights have no attenuation
+	if(lightDirection.w == 0)
+	{
+		float dist  = length(lightPosition - vertexPosition);
+		attenuation = 1.0 / (dist * dist);
+	}
+
+	return attenuation;
+}
+
+float CalculateLightCutOff(vec2 lightCutOff, vec3 lightDirection, vec3 spotDirection)
+{
+	float cutOff = 1.0;
+
+	// Only spotlights have cut-offs
+	if(lightCutOff.x >= 0 && lightCutOff.y >= 0)
+	{
+		float theta   = dot(lightDirection, normalize(-spotDirection));
+		float epsilon = lightCutOff.x - lightCutOff.y;
+		cutOff        = clamp((theta - lightCutOff.y) / epsilon, 0.0, 1.0);
+	}
+
+	return cutOff;
 }
 
 vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float metallic, float roughness, float ambientOcclusion)
@@ -149,14 +172,17 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
 		LightData light = u_Lights[lightIndex];
-		vec3 radiance = light.Color.rgb * light.Intensity * CalculateLightAttenuation(light.Position.xyz, vertexPosition);
+		vec3 radiance = light.Color.rgb * light.Intensity
+			* CalculateLightAttenuation(vertexPosition, light.Position.xyz, light.Direction)
+			* CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - vertexPosition), light.Direction.xyz);
+
 
 		vec3 viewDirection  = normalize(u_CameraPosition.xyz - vertexPosition);
 
 		vec3 lightDirection = normalize(light.Position.xyz - vertexPosition);
 		if(light.Direction.w != 0)
 		{
-			lightDirection = normalize(-light.Direction.xyz); // For directional light ; light direction is spot direction
+			lightDirection = normalize(-light.Direction.xyz); // Directional lights have no position
 		}
 
 		vec3 H = normalize(viewDirection + lightDirection);
