@@ -36,7 +36,8 @@ namespace Atlas
 			Normal       = 3,
 			Albedo       = 4,
 			Material     = 5,
-			BrightColors = 6
+			BrightColors = 6,
+			SSAO         = 7,
 		};
 
 		static void Init();
@@ -60,12 +61,16 @@ namespace Atlas
 		static void ToggleHDR();
 		static bool IsBloomEnabled();
 		static void ToggleBloom();
+		static bool IsSSAOEnabled();
+		static void ToggleSSAO();
 		static void SetDisplayedBuffer(RenderBuffers bufferType);
 		static const RenderBuffers& GetDisplayedBuffer();
 
 		static void BeginRenderingPass();
 		static void EndRenderingPass();
 		static void DeferredRenderingPass();
+		static void SSAOPass();
+
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
 		static uint32_t GetDisplayedRenderBufferID();
 		static int GetEntityIDFromPixel(int x, int y);
@@ -143,6 +148,7 @@ namespace Atlas
 		static void Flush();
 
 		static uint32_t GetLastDrawnFramebufferID();
+		static uint32_t GetSSAOFramebufferID();
 		static uint32_t GetFramebufferRenderID(RenderBuffers bufferType);
 
 		static void TogglePostProcessingFramebuffers();

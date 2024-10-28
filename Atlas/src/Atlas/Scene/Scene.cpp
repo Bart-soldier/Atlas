@@ -182,11 +182,19 @@ namespace Atlas
 		}
 
 		{
-			ATLAS_PROFILE_SCOPE("Deferred Rendering");
+			ATLAS_PROFILE_SCOPE("GBuffer Pass");
 			Renderer::BeginScene(camera, m_Lights);
 			DrawSceneDeferred(camera.GetPosition(), true, selectedEntity);
 			Renderer::NextBatch();
+		}
 
+		{
+			ATLAS_PROFILE_SCOPE("SSAO Pass");
+			Renderer::SSAOPass();
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Deferred Rendering");
 			Renderer::DeferredRenderingPass();
 		}
 

@@ -8,7 +8,24 @@ namespace Atlas
 		R8,
 		RGB8,
 		RGBA8,
+		RGB16F,
+		RGBA16F,
+		RGB32F,
 		RGBA32F
+	};
+
+	enum class ResizeFilter
+	{
+		None = 0,
+		Linear,
+		Nearest
+	};
+
+	enum class Wrap
+	{
+		None = 0,
+		ClampToEdge,
+		Repeat
 	};
 
 	struct TextureSpecification
@@ -17,6 +34,11 @@ namespace Atlas
 		uint32_t Height = 1;
 		ImageFormat Format = ImageFormat::RGBA8;
 		bool GenerateMips = true;
+
+		ResizeFilter MagFilter = ResizeFilter::Linear;
+		ResizeFilter MinFilter = ResizeFilter::Linear;
+		Wrap WrapS = Wrap::ClampToEdge;
+		Wrap WrapT = Wrap::ClampToEdge;
 	};
 
 	class Texture

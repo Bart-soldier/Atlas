@@ -12,7 +12,8 @@ namespace Atlas
 		RGBA8,
 		RGBA16,
 		RGBA16F,
-		RED_INTEGER,
+		RED32I,
+		RED32F,
 
 		// Depth/stencil
 		DEPTH24_STENCIL8,

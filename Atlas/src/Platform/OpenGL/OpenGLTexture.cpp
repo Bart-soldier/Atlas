@@ -11,8 +11,12 @@ namespace Atlas
 		{
 			switch (format)
 			{
-			case ImageFormat::RGB8:  return GL_RGB;
-			case ImageFormat::RGBA8: return GL_RGBA;
+			case ImageFormat::RGB16F:
+			case ImageFormat::RGB32F:
+			case ImageFormat::RGB8:    return GL_RGB;
+			case ImageFormat::RGBA8:
+			case ImageFormat::RGBA16F:
+			case ImageFormat::RGBA32F: return GL_RGBA;
 			}
 
 			ATLAS_CORE_ASSERT(false);
@@ -23,8 +27,36 @@ namespace Atlas
 		{
 			switch (format)
 			{
-			case ImageFormat::RGB8:  return GL_RGB8;
-			case ImageFormat::RGBA8: return GL_RGBA8;
+			case ImageFormat::RGB8:    return GL_RGB8;
+			case ImageFormat::RGBA8:   return GL_RGBA8;
+			case ImageFormat::RGB16F:  return GL_RGB16F;
+			case ImageFormat::RGBA16F: return GL_RGBA16F;
+			case ImageFormat::RGB32F:  return GL_RGB32F;
+			case ImageFormat::RGBA32F: return GL_RGBA32F;
+			}
+
+			ATLAS_CORE_ASSERT(false);
+			return 0;
+		}
+
+		static GLint AtlasResizeFilterToGLInt(ResizeFilter filter)
+		{
+			switch (filter)
+			{
+			case Atlas::ResizeFilter::Linear:  return GL_LINEAR;
+			case Atlas::ResizeFilter::Nearest: return GL_NEAREST;
+			}
+
+			ATLAS_CORE_ASSERT(false);
+			return 0;
+		}
+
+		static GLint AtlasWrapToGLInt(Wrap wrap)
+		{
+			switch (wrap)
+			{
+			case Atlas::Wrap::ClampToEdge: return GL_CLAMP_TO_EDGE;
+			case Atlas::Wrap::Repeat:      return GL_REPEAT;
 			}
 
 			ATLAS_CORE_ASSERT(false);
@@ -98,7 +130,8 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		ATLAS_CORE_ASSERT(size == m_Specification.Width * m_Specification.Height * (m_DataFormat == GL_RGBA ? 4 : 3), "Data must be entire texture!");
+		//ATLAS_CORE_ASSERT(size == m_Specification.Width * m_Specification.Height *
+		//	(Utils::GLInternalFormatToBytesPerChannel(m_InternalFormat)) * (m_DataFormat == GL_RGBA ? 4 : 3), "Data must be entire texture!");
 
 		m_IsLoaded = true;
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Specification.Width, m_Specification.Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
@@ -126,16 +159,20 @@ namespace Atlas
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
 		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Specification.Width, m_Specification.Height);
 
-		GLenum minFilter = GL_LINEAR;
+		GLenum minFilter = Utils::AtlasResizeFilterToGLInt(m_Specification.MinFilter);
 		if (m_Specification.GenerateMips)
 		{
-			minFilter = GL_LINEAR_MIPMAP_LINEAR;
+			switch (minFilter)
+			{
+			case GL_LINEAR:  minFilter = GL_LINEAR_MIPMAP_LINEAR;  break;
+			case GL_NEAREST: minFilter = GL_NEAREST_MIPMAP_LINEAR; break;
+			}
 		}
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, minFilter);
-		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, Utils::AtlasResizeFilterToGLInt(m_Specification.MagFilter));
 
-		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, Utils::AtlasWrapToGLInt(m_Specification.WrapS));
+		glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, Utils::AtlasWrapToGLInt(m_Specification.WrapT));
 	}
 }

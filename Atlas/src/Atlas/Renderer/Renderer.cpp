@@ -77,6 +77,8 @@ namespace Atlas
 		bool UsingFrontPPFB = false;
 		uint32_t EntityIDAttachmentIndex;
 
+		Ref<Framebuffer> SSAOFramebuffer;
+
 		Ref<Framebuffer> LastDrawnFramebuffer;
 
 		// Per draw call
@@ -181,6 +183,7 @@ namespace Atlas
 		float Exposure = 1.0f;
 		bool HDR = false;
 		bool Bloom = true;
+		bool SSAO = true;
 		Renderer::RenderBuffers DisplayedRenderBuffer = Renderer::RenderBuffers::Final;
 
 		// Misc.
@@ -194,8 +197,6 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
-
 		InitArrays();
 		InitSkybox();
 		InitTexture();
@@ -207,7 +208,7 @@ namespace Atlas
 	{
 		FramebufferSpecification fbSpec;
 		// Render GBuffer: Color, EntityID, Position, Normal, Albedo, Material, Bright Color, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED32I, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
 		fbSpec.Width = app.GetWindow().GetWidth();
 		fbSpec.Height = app.GetWindow().GetHeight();
@@ -218,6 +219,7 @@ namespace Atlas
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
 		s_RendererData.PostProcessFramebufferFront = Framebuffer::Create(fbSpec);
 		s_RendererData.PostProcessFramebufferBack = Framebuffer::Create(fbSpec);
+		s_RendererData.SSAOFramebuffer = Framebuffer::Create(fbSpec);
 
 		// Quad VAO
 		s_RendererData.QuadVertexArray = VertexArray::Create();
@@ -556,6 +558,16 @@ namespace Atlas
 		s_RendererData.Bloom = !s_RendererData.Bloom;
 	}
 
+	bool Renderer::IsSSAOEnabled()
+	{
+		return s_RendererData.SSAO;
+	}
+
+	void Renderer::ToggleSSAO()
+	{
+		s_RendererData.SSAO = !s_RendererData.SSAO;
+	}
+
 	void Renderer::SetDisplayedBuffer(RenderBuffers bufferType)
 	{
 		s_RendererData.DisplayedRenderBuffer = bufferType;
@@ -572,6 +584,7 @@ namespace Atlas
 		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
 
 		RenderCommand::SetStencilMask(0xFF);
+		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 		RenderCommand::Clear();
 		RenderCommand::SetStencilMask(0x00);
 		s_RendererData.GBufferFramebuffer->ClearAttachment(s_RendererData.EntityIDAttachmentIndex, -1);
@@ -591,13 +604,35 @@ namespace Atlas
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
 		PostProcessor::ApplyDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
-											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material));
+											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material),
+											GetSSAOFramebufferID());
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 
 		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
 
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 1});
+	}
+
+	void Renderer::SSAOPass()
+	{
+		if (s_RendererData.SSAO)
+		{
+			s_RendererData.PostProcessFramebufferFront->Bind();
+
+			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
+			RenderCommand::DisableDepthTest();
+
+			PostProcessor::ApplySSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
+
+			s_RendererData.SSAOFramebuffer->Bind();
+			PostProcessor::ApplySSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
+
+			RenderCommand::EnableDepthTest();
+			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+
+			s_RendererData.GBufferFramebuffer->Bind();
+		}
 	}
 
 	bool Renderer::ResizeFramebuffer(uint32_t width, uint32_t height)
@@ -632,9 +667,21 @@ namespace Atlas
 		return s_RendererData.LastDrawnFramebuffer->GetColorAttachmentRendererID();
 	}
 
+	uint32_t Renderer::GetSSAOFramebufferID()
+	{
+		return s_RendererData.SSAO ? s_RendererData.SSAOFramebuffer->GetColorAttachmentRendererID() : s_RendererData.WhiteTexture->GetRendererID();
+	}
+
 	uint32_t Renderer::GetFramebufferRenderID(RenderBuffers bufferType)
 	{
-		return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID((uint32_t)bufferType);
+		if (bufferType == RenderBuffers::SSAO)
+		{
+			return GetSSAOFramebufferID();
+		}
+		else
+		{
+			return s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID((uint32_t)bufferType);
+		}
 	}
 
 	int Renderer::GetEntityIDFromPixel(int x, int y)
