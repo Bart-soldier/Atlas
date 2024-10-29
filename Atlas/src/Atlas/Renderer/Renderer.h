@@ -134,7 +134,7 @@ namespace Atlas
 	private:
 		static void InitArrays();
 		static void InitCube();
-		static void InitTexture();
+		static void InitTextures();
 		static void InitShaders();
 		static void InitBuffers();
 

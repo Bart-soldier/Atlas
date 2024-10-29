@@ -83,7 +83,7 @@ namespace Atlas
 		Ref<Framebuffer> LastDrawnFramebuffer;
 
 		// Per draw call
-		static const uint32_t MaxTriangles = 20000;
+		static const uint32_t MaxTriangles = 200000;
 		static const uint32_t MaxVertices     = MaxTriangles * 3; // TODO: Check renderer capabilities
 		static const uint32_t MaxIndices      = MaxTriangles * 3; // TODO: Check renderer capabilities
 		static const uint32_t MaxQuads = MaxTriangles / 2;
@@ -142,6 +142,7 @@ namespace Atlas
 		// Skybox
 		Ref<VertexArray> CubeVertexArray;
 		Ref<Shader> SkyboxShader;
+		Ref<Texture2D> BRDFLUTTexture;
 
 		uint32_t CubeVertexCount = 24;
 		uint32_t CubeIndexCount = 36;
@@ -200,7 +201,7 @@ namespace Atlas
 
 		InitArrays();
 		InitCube();
-		InitTexture();
+		InitTextures();
 		InitShaders();
 		InitBuffers();
 	}
@@ -430,7 +431,7 @@ namespace Atlas
 		delete[] cubeIndices;
 	}
 
-	void Renderer::InitTexture()
+	void Renderer::InitTextures()
 	{
 		TextureSpecification whiteTextureSpecification = TextureSpecification();
 		whiteTextureSpecification.GenerateMips = false;
@@ -438,6 +439,8 @@ namespace Atlas
 		uint32_t whiteTextureData = 0xffffffff;
 		s_RendererData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 		s_RendererData.TextureSlots[0] = s_RendererData.WhiteTexture;
+
+		s_RendererData.BRDFLUTTexture = Texture2D::Create("assets/luts/brdf_lut.png");
 	}
 
 	void Renderer::InitShaders()
@@ -605,7 +608,9 @@ namespace Atlas
 
 	void Renderer::DeferredRenderingPass(const Ref<Cubemap>& skybox)
 	{
-		skybox->BindIrradianceMap(5);
+		s_RendererData.BRDFLUTTexture->Bind(5);
+		skybox->BindIrradianceMap(6);
+		skybox->BindPreFilteredMap(7);
 
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 6});
 

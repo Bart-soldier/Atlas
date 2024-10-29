@@ -5,12 +5,17 @@ namespace Atlas
 	enum class ImageFormat
 	{
 		None = 0,
+
 		R8,
+
+		RG16F,
+
 		RGB8,
-		RGBA8,
 		RGB16F,
-		RGBA16F,
 		RGB32F,
+
+		RGBA8,
+		RGBA16F,
 		RGBA32F
 	};
 
