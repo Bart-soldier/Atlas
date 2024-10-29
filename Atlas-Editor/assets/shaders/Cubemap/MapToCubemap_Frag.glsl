@@ -1,5 +1,5 @@
 //--------------------------
-// - Atlas Cubemap -
+// - Atlas Map To Cubemap -
 // Fragment Shader
 // --------------------------
 

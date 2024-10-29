@@ -1406,7 +1406,7 @@ namespace Atlas
 
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
 	{
-		skybox->Bind();
+		skybox->BindCubemap();
 
 		s_RendererData.SkyboxShader->Bind();
 

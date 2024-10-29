@@ -14,7 +14,8 @@ namespace Atlas
 		virtual void SetMap(const Ref<Texture2D>& texture) = 0;
 		virtual const Ref<Texture2D>& GetMap() = 0;
 
-		virtual void Bind() const = 0;
+		virtual void BindCubemap() const = 0;
+		virtual void BindIrradianceMap() const = 0;
 
 		virtual bool operator==(const Cubemap& other) const = 0;
 
