@@ -11,9 +11,12 @@ namespace Atlas
 		{
 			switch (format)
 			{
+			case ImageFormat::R8:      return GL_RED;
+
 			case ImageFormat::RGB16F:
 			case ImageFormat::RGB32F:
 			case ImageFormat::RGB8:    return GL_RGB;
+
 			case ImageFormat::RGBA8:
 			case ImageFormat::RGBA16F:
 			case ImageFormat::RGBA32F: return GL_RGBA;
@@ -27,11 +30,14 @@ namespace Atlas
 		{
 			switch (format)
 			{
+			case ImageFormat::R8:      return GL_R8;
+
 			case ImageFormat::RGB8:    return GL_RGB8;
-			case ImageFormat::RGBA8:   return GL_RGBA8;
 			case ImageFormat::RGB16F:  return GL_RGB16F;
-			case ImageFormat::RGBA16F: return GL_RGBA16F;
 			case ImageFormat::RGB32F:  return GL_RGB32F;
+
+			case ImageFormat::RGBA8:   return GL_RGBA8;
+			case ImageFormat::RGBA16F: return GL_RGBA16F;
 			case ImageFormat::RGBA32F: return GL_RGBA32F;
 			}
 
@@ -100,6 +106,10 @@ namespace Atlas
 			else if (channels == 3)
 			{
 				m_Specification.Format = ImageFormat::RGB8;
+			}
+			else if (channels == 1)
+			{
+				m_Specification.Format = ImageFormat::R8;
 			}
 			else
 			{

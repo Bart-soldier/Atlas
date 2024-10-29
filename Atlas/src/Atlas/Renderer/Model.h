@@ -18,6 +18,6 @@ namespace Atlas
 	private:
 		static void ProcessNode(Ref<Scene> activeScene, const std::filesystem::path& modelPath, const aiNode& node, const aiScene& modelScene, Entity* parent = nullptr);
 		static Ref<Mesh> CreateMesh(const aiMesh& mesh, const aiScene& modelScene);
-		static Ref<Material> CreateMaterial(const aiMesh& mesh, const std::filesystem::path& modelPath, const aiScene& modelScene);
+		//static Ref<Material> CreateMaterial(const aiMesh& mesh, const std::filesystem::path& modelPath, const aiScene& modelScene);
 	};
 }

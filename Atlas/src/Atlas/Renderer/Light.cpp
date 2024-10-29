@@ -10,15 +10,12 @@ namespace Atlas
 		switch (castType)
 		{
 			case CastType::DirectionalLight:
-				m_Radius = -abs(m_Radius);
 				m_CutOff = -abs(m_CutOff);
 				break;
 			case CastType::PointLight:
-				m_Radius = abs(m_Radius);
 				m_CutOff = -abs(m_CutOff);
 				break;
 			case CastType::Spotlight:
-				m_Radius = abs(m_Radius);
 				m_CutOff = abs(m_CutOff);
 				break;
 		}

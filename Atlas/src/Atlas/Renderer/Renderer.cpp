@@ -59,14 +59,15 @@ namespace Atlas
 
 		glm::mat4 Model;
 
-		glm::vec3 AmbientColor;
-		glm::vec3 DiffuseColor;
-		glm::vec3 SpecularColor;
-		float Shininess;
-		uint32_t DiffuseTextureIndex;
-		uint32_t SpecularTextureIndex;
-		uint32_t NormalMapTextureIndex;
-		uint32_t HeightMapTextureIndex;
+		glm::vec3 Color;
+		float Metallic;
+		float Roughness;
+		float AlbedoTextureIndex;
+		float NormalTextureIndex;
+		float MetallicTextureIndex;
+		float RoughnessTextureIndex;
+		float AOTextureIndex;
+		float DisplacementTextureIndex;
 	};
 
 	struct RendererData
@@ -121,7 +122,6 @@ namespace Atlas
 		Ref<VertexBuffer> MeshVertexBuffer;
 		Ref<IndexBuffer> MeshIndexBuffer;
 		Ref<Shader> MeshShader;
-		Ref<Shader> FlatMeshShader;
 		
 		uint32_t MeshVertexCount = 0;
 		uint32_t MeshIndexCount = 0;
@@ -299,19 +299,15 @@ namespace Atlas
 		// Mesh VBO
 		s_RendererData.MeshVertexBuffer = VertexBuffer::Create(s_RendererData.MaxVertices * sizeof(MeshVertex));
 		s_RendererData.MeshVertexBuffer->SetLayout({
-			{ ShaderDataType::Float4, "a_PositionID"            }, // xyz is Position and w is EntityID (editor-only)
-			{ ShaderDataType::Float3, "a_Normal"                },
-			{ ShaderDataType::Float2, "a_TexCoord"              },
-			{ ShaderDataType::Float3, "a_Tangent"               },
-			{ ShaderDataType::Mat4,   "a_Model"                 },
-			{ ShaderDataType::Float3, "a_AmbientColor"          },
-			{ ShaderDataType::Float3, "a_DiffuseColor"          },
-			{ ShaderDataType::Float3, "a_SpecularColor"         },
-			{ ShaderDataType::Float,  "a_Shininess"             },
-			{ ShaderDataType::UInt,   "a_DiffuseTextureIndex"   },
-			{ ShaderDataType::UInt,   "a_SpecularTextureIndex"  },
-			{ ShaderDataType::UInt,   "a_NormalMapTextureIndex" },
-			{ ShaderDataType::UInt,   "a_HeightMapTextureIndex" }
+			{ ShaderDataType::Float4, "a_Position_ID"                        }, // XYZ: Position, W: EntityID (editor-only)
+			{ ShaderDataType::Float3, "a_Normal"                             },
+			{ ShaderDataType::Float2, "a_TexCoord"                           },
+			{ ShaderDataType::Float3, "a_Tangent"                            },
+			{ ShaderDataType::Mat4,   "a_Model"                              },
+			{ ShaderDataType::Float3, "a_Color"                              },
+			{ ShaderDataType::Float2, "a_Metallic_Roughness"                 }, // X: Metallic,  Y: Roughness
+			{ ShaderDataType::Float3, "a_Albedo_Normal_Metallic_TexIndex"    }, // X: Albedo,    Y: Normal, Z: Metallic
+			{ ShaderDataType::Float3, "a_Roughness_AO_Displacement_TexIndex" }  // X: Roughness, Y: AO,     Z: Displacement
 			});
 		s_RendererData.MeshVertexArray->AddVertexBuffer(s_RendererData.MeshVertexBuffer);
 		s_RendererData.MeshVertexBufferBase = new MeshVertex[s_RendererData.MaxVertices];
@@ -448,8 +444,7 @@ namespace Atlas
 		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
 		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
 		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_GBuffer.glsl");
-		s_RendererData.FlatMeshShader    = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_FragFlat.glsl");
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_PBRGBuffer.glsl");
 		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
 		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
 	}
@@ -1329,10 +1324,12 @@ namespace Atlas
 
 		const glm::mat3 normalMatrix = glm::transpose(glm::inverse(transform));
 
-		uint32_t diffuseTextureIndex   = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDiffuseTexture());
-		uint32_t specularTextureIndex  = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetSpecularTexture());
-		uint32_t normalMapTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetNormalMap());
-		uint32_t heightMapTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetHeightMap());
+		uint32_t albedoTextureIndex       = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetAlbedoTexture());
+		uint32_t normalTextureIndex       = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetNormalTexture());
+		uint32_t metallicTextureIndex     = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetMetallicTexture());
+		uint32_t roughnessTextureIndex    = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetRoughnessTexture());
+		uint32_t aoTextureIndex           = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetAOTexture());
+		uint32_t displacementTextureIndex = material == nullptr ? 0 : EnsureTextureSlot(material->Material->GetDisplacementTexture());
 
 		const std::vector<Mesh::Vertex>& vertices = mesh.Mesh->GetVertices();
 		const std::vector<uint32_t>& indices = mesh.Mesh->GetIndices();
@@ -1350,24 +1347,24 @@ namespace Atlas
 
 		for (size_t i = 0; i < vertices.size(); i++)
 		{
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position              = transform * glm::vec4(vertices[i].Position, 1.0f);
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID              = entityID;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                = normalMatrix * vertices[i].Normal;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord              = vertices[i].TexCoords;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent               = vertices[i].Tangent;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Position                 = transform * glm::vec4(vertices[i].Position, 1.0f);
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].EntityID                 = entityID;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                   = normalMatrix * vertices[i].Normal;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord                 = vertices[i].TexCoords;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent                  = vertices[i].Tangent;
 
-			//s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                 = glm::transpose(glm::inverse(transform));
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                 = transform;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                    = transform;
 
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AmbientColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetAmbientColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseColor          = material == nullptr ? glm::vec3(1.0f) : material->Material->GetDiffuseColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularColor         = material == nullptr ? glm::vec3(1.0f) : material->Material->GetSpecularColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Shininess             = material == nullptr ? 0.25f           : material->Material->GetShininess();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Color                    = material == nullptr ? glm::vec3(1.0f) : material->Material->GetColor();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Metallic                 = material == nullptr ? 0.25f           : material->Material->GetMetallic();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Roughness                = material == nullptr ? 0.25f           : material->Material->GetRoughness();
 
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DiffuseTextureIndex   = diffuseTextureIndex;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].SpecularTextureIndex  = specularTextureIndex;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].NormalMapTextureIndex = normalMapTextureIndex;
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].HeightMapTextureIndex = heightMapTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AlbedoTextureIndex       = albedoTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].NormalTextureIndex       = normalTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].MetallicTextureIndex     = metallicTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].RoughnessTextureIndex    = roughnessTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AOTextureIndex           = aoTextureIndex;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].DisplacementTextureIndex = displacementTextureIndex;
 
 			s_RendererData.MeshVertexCount++;
 		}

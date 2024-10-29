@@ -92,31 +92,32 @@ namespace Atlas
 
 		return CreateRef<Mesh>(vertices, indices);
 	}
-	Ref<Material> Model::CreateMaterial(const aiMesh& mesh, const std::filesystem::path& modelPath, const aiScene& modelScene)
-	{
-		Ref<Texture2D> diffuseTexture = nullptr;
-		Ref<Texture2D> specularTexture = nullptr;
 
-		if (mesh.mMaterialIndex > 0)
-		{
-			aiMaterial* material = modelScene.mMaterials[mesh.mMaterialIndex];
-			aiString path;
+	//Ref<Material> Model::CreateMaterial(const aiMesh& mesh, const std::filesystem::path& modelPath, const aiScene& modelScene)
+	//{
+	//	Ref<Texture2D> diffuseTexture = nullptr;
+	//	Ref<Texture2D> specularTexture = nullptr;
 
-			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-			diffuseTexture = Texture2D::Create(modelPath / path.C_Str());
-			if (!diffuseTexture->IsLoaded())
-			{
-				diffuseTexture = nullptr;
-			}
+	//	if (mesh.mMaterialIndex > 0)
+	//	{
+	//		aiMaterial* material = modelScene.mMaterials[mesh.mMaterialIndex];
+	//		aiString path;
 
-			material->GetTexture(aiTextureType_SPECULAR, 0, &path);
-			specularTexture = Texture2D::Create(modelPath / path.C_Str());
-			if (!specularTexture->IsLoaded())
-			{
-				specularTexture = nullptr;
-			}
-		}
+	//		material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+	//		diffuseTexture = Texture2D::Create(modelPath / path.C_Str());
+	//		if (!diffuseTexture->IsLoaded())
+	//		{
+	//			diffuseTexture = nullptr;
+	//		}
 
-		return CreateRef<Material>(diffuseTexture, specularTexture);
-	}
+	//		material->GetTexture(aiTextureType_SPECULAR, 0, &path);
+	//		specularTexture = Texture2D::Create(modelPath / path.C_Str());
+	//		if (!specularTexture->IsLoaded())
+	//		{
+	//			specularTexture = nullptr;
+	//		}
+	//	}
+
+	//	return CreateRef<Material>(diffuseTexture, specularTexture);
+	//}
 }

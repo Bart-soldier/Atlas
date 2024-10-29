@@ -531,8 +531,8 @@ namespace Atlas
 
 			ImGui::Separator();
 
-			// Diffuse component
-			ImGuiUtils::BeginTextureViewer("Diffuse Texture", material->GetDiffuseTexture(), 150.0, 150.0, true);
+			// Albedo component
+			ImGuiUtils::BeginTextureViewer("Albedo", material->GetAlbedoTexture(), 150.0, 150.0, true);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -544,36 +544,27 @@ namespace Atlas
 					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 					if (texture->IsLoaded())
 					{
-						material->SetDiffuseTexture(texture);
+						material->SetAlbedoTexture(texture);
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGuiUtils::EndTextureViewer(material->GetDiffuseTexture()))
+			if (ImGuiUtils::EndTextureViewer(material->GetAlbedoTexture()))
 			{
-				material->SetDiffuseTexture(nullptr);
+				material->SetAlbedoTexture(nullptr);
 			}
 
-			if (material->GetDiffuseTexture() == nullptr)
+			glm::vec3 color = material->GetColor();
+			if (ImGuiUtils::ColorEdit3("Color", *glm::value_ptr(color)))
 			{
-				glm::vec3 ambientColor = material->GetAmbientColor();
-				if (ImGuiUtils::ColorEdit3("Ambient Color", *glm::value_ptr(ambientColor)))
-				{
-					material->SetAmbientColor(ambientColor);
-				}
-
-				glm::vec3 diffuseColor = material->GetDiffuseColor();
-				if (ImGuiUtils::ColorEdit3("Diffuse Color", *glm::value_ptr(diffuseColor)))
-				{
-					material->SetDiffuseColor(diffuseColor);
-				}
+				material->SetColor(color);
 			}
 
 			ImGui::Separator();
 
-			// Specular component
-			ImGuiUtils::BeginTextureViewer("Specular Texture", material->GetSpecularTexture(), 150.0, 150.0, true);
+			// Normal component
+			ImGuiUtils::BeginTextureViewer("Normal", material->GetNormalTexture(), 150.0, 150.0, true);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -585,30 +576,21 @@ namespace Atlas
 					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 					if (texture->IsLoaded())
 					{
-						material->SetSpecularTexture(texture);
+						material->SetNormalTexture(texture);
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGuiUtils::EndTextureViewer(material->GetSpecularTexture()))
+			if (ImGuiUtils::EndTextureViewer(material->GetNormalTexture()))
 			{
-				material->SetSpecularTexture(nullptr);
-			}
-
-			if (material->GetSpecularTexture() == nullptr)
-			{
-				glm::vec3 specularColor = material->GetSpecularColor();
-				if (ImGuiUtils::ColorEdit3("Specular Color", *glm::value_ptr(specularColor)))
-				{
-					material->SetSpecularColor(specularColor);
-				}
+				material->SetNormalTexture(nullptr);
 			}
 
 			ImGui::Separator();
 
-			// Normal map component
-			ImGuiUtils::BeginTextureViewer("Normal Map", material->GetNormalMap(), 150.0, 150.0, true);
+			// Metallic component
+			ImGuiUtils::BeginTextureViewer("Metallic", material->GetMetallicTexture(), 150.0, 150.0, true);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -620,21 +602,30 @@ namespace Atlas
 					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 					if (texture->IsLoaded())
 					{
-						material->SetNormalMap(texture);
+						material->SetMetallicTexture(texture);
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGuiUtils::EndTextureViewer(material->GetNormalMap()))
+			if (ImGuiUtils::EndTextureViewer(material->GetMetallicTexture()))
 			{
-				material->SetNormalMap(nullptr);
+				material->SetMetallicTexture(nullptr);
+			}
+
+			if (material->GetMetallicTexture() == nullptr)
+			{
+				float metallic = material->GetMetallic();
+				if (ImGuiUtils::DragFloat("Metallic", metallic, 0.25f, 0.01f, 0.0f, 1.0f))
+				{
+					material->SetMetallic(metallic);
+				}
 			}
 
 			ImGui::Separator();
 
-			// Height map component
-			ImGuiUtils::BeginTextureViewer("Height Map", material->GetHeightMap(), 150.0, 150.0, true);
+			// Roughness component
+			ImGuiUtils::BeginTextureViewer("Roughness", material->GetRoughnessTexture(), 150.0, 150.0, true);
 
 			if (ImGui::BeginDragDropTarget())
 			{
@@ -646,24 +637,77 @@ namespace Atlas
 					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
 					if (texture->IsLoaded())
 					{
-						material->SetHeightMap(texture);
+						material->SetRoughnessTexture(texture);
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGuiUtils::EndTextureViewer(material->GetHeightMap()))
+			if (ImGuiUtils::EndTextureViewer(material->GetRoughnessTexture()))
 			{
-				material->SetHeightMap(nullptr);
+				material->SetRoughnessTexture(nullptr);
+			}
+
+			if (material->GetRoughnessTexture() == nullptr)
+			{
+				float roughness = material->GetRoughness();
+				if (ImGuiUtils::DragFloat("Roughness", roughness, 0.25f, 0.01f, 0.0f, 1.0f))
+				{
+					material->SetRoughness(roughness);
+				}
 			}
 
 			ImGui::Separator();
 
-			float shininess = material->GetShininess();
-			if (ImGuiUtils::DragFloat("Shininess", shininess, 1.0f, 0.001f, 0.0f, 1.0f))
+			// AO component
+			ImGuiUtils::BeginTextureViewer("Ambient Occlusion", material->GetAOTexture(), 150.0, 150.0, true);
+
+			if (ImGui::BeginDragDropTarget())
 			{
-				material->SetShininess(shininess);
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path payloadPath(path);
+
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
+					{
+						material->SetAOTexture(texture);
+					}
+				}
+				ImGui::EndDragDropTarget();
 			}
+
+			if (ImGuiUtils::EndTextureViewer(material->GetAOTexture()))
+			{
+				material->SetAOTexture(nullptr);
+			}
+
+			// Displacement component
+			ImGuiUtils::BeginTextureViewer("Displacement", material->GetDisplacementTexture(), 150.0, 150.0, true);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					std::filesystem::path payloadPath(path);
+
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					if (texture->IsLoaded())
+					{
+						material->SetDisplacementTexture(texture);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGuiUtils::EndTextureViewer(material->GetDisplacementTexture()))
+			{
+				material->SetDisplacementTexture(nullptr);
+			}
+
+			ImGui::Separator();
 		});
 
 		DrawComponent<LightSourceComponent>("Light Source", entity, [](auto& component)
@@ -680,24 +724,6 @@ namespace Atlas
 			if (ImGuiUtils::DragFloat("Intensity", intensity, 1.0f, 1.0f, 0.0f))
 			{
 				light->SetIntensity(intensity);
-			}
-
-			float ambientStrength = light->GetAmbientStrength();
-			if (ImGuiUtils::DragFloat("Ambient Strength", ambientStrength, 0.1f, 0.001f, 0.0f, 1.0f))
-			{
-				light->SetAmbientStrength(ambientStrength);
-			}
-
-			float diffuseStrength = light->GetDiffuseStrength();
-			if (ImGuiUtils::DragFloat("Diffuse Strength", diffuseStrength, 0.5f, 0.001f, 0.0f, 1.0f))
-			{
-				light->SetDiffuseStrength(diffuseStrength);
-			}
-
-			float specularStrength = light->GetSpecularStrength();
-			if (ImGuiUtils::DragFloat("Specular Strength", specularStrength, 1.0f, 0.001f, 0.0f, 1.0f))
-			{
-				light->SetSpecularStrength(specularStrength);
 			}
 
 			ImGui::Separator();
@@ -722,15 +748,6 @@ namespace Atlas
 				}
 
 				ImGuiUtils::EndCombo();
-			}
-
-			if (light->GetCastType() != Light::CastType::DirectionalLight)
-			{
-				float range = light->GetRadius();
-				if (ImGuiUtils::DragFloat("Radius", range, 0.01f, 0.01f, 0.0001f))
-				{
-					light->SetRadius(range);
-				}
 			}
 
 			if (light->GetCastType() == Light::CastType::Spotlight)
