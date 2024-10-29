@@ -17,9 +17,9 @@ namespace Atlas
 		m_CubemapToIrradianceShader  = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/CubemapToIrradiance_Frag.glsl" );
 		m_CubemapToPreFilteredShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/CubemapToPreFiltered_Frag.glsl");
 
-		CreateMap(&m_CubemapRendererID);
+		CreateMap(&m_CubemapRendererID, true);
 		CreateMap(&m_IrradianceRendererID);
-		CreateMap(&m_PreFilteredRendererID);
+		CreateMap(&m_PreFilteredRendererID, true);
 
 		m_CaptureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 		m_CaptureViews[0] = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f));
@@ -154,6 +154,8 @@ namespace Atlas
 
 			Renderer::DrawCube();
 		}
+
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &captureFBO);
