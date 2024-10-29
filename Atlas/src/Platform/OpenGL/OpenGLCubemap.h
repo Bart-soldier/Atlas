@@ -20,6 +20,7 @@ namespace Atlas
 
 		virtual void BindCubemap(uint32_t slot = 0) const override;
 		virtual void BindIrradianceMap(uint32_t slot = 0) const override;
+		virtual void BindPreFilteredMap(uint32_t slot = 0) const override;
 
 		virtual bool operator==(const Cubemap& other) const override
 		{
@@ -27,16 +28,19 @@ namespace Atlas
 		};
 
 	private:
-		void CreateMap(uint32_t* rendererID);
-		void ResetMap(uint32_t* rendererID);
+		void CreateMap(uint32_t* rendererID, bool generateMips = false);
+		void ResetMap(uint32_t* rendererID, bool generateMips = false);
 		void LoadCubemap();
 		void LoadIrradianceMap();
+		void LoadPreFilteredMap();
 
 		Ref<Texture2D> m_Map;
 		Ref<Shader> m_MapToCubemapShader;
 		Ref<Shader> m_CubemapToIrradianceShader;
+		Ref<Shader> m_CubemapToPreFilteredShader;
 		uint32_t m_CubemapRendererID;
 		uint32_t m_IrradianceRendererID;
+		uint32_t m_PreFilteredRendererID;
 
 		glm::mat4 m_CaptureProjection;
 		glm::mat4 m_CaptureViews[6];

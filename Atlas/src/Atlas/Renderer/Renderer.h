@@ -59,8 +59,8 @@ namespace Atlas
 		static void ToggleBloom();
 		static bool IsSSAOEnabled();
 		static void ToggleSSAO();
-		static bool IsShowIrradianceMapShown();
-		static void ToggleShowIrradianceMap();
+		static void SetSkyboxType(Cubemap::MapType skyboxType);
+		static const Cubemap::MapType& GetSkyboxType();
 		static void SetDisplayedBuffer(RenderBuffers bufferType);
 		static const RenderBuffers& GetDisplayedBuffer();
 

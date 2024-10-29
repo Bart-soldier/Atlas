@@ -7,6 +7,14 @@ namespace Atlas
 	class Cubemap
 	{
 	public:
+		enum class MapType
+		{
+			None = 0,
+			Cubemap = 1,
+			IrradianceMap = 2,
+			PreFilteredMap = 3,
+		};
+
 		virtual ~Cubemap() = default;
 
 		virtual uint32_t GetRendererID() const = 0;
@@ -16,6 +24,7 @@ namespace Atlas
 
 		virtual void BindCubemap(uint32_t slot = 0) const = 0;
 		virtual void BindIrradianceMap(uint32_t slot = 0) const = 0;
+		virtual void BindPreFilteredMap(uint32_t slot = 0) const = 0;
 
 		virtual bool operator==(const Cubemap& other) const = 0;
 

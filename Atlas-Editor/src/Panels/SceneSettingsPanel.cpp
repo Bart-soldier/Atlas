@@ -132,6 +132,28 @@ namespace Atlas
 		{
 			m_Context->m_Skybox->SetMap(nullptr);
 		}
+
+		const char* skyboxTypeStrings[] = { "None", "Cubemap", "Irradiance Map", "Pre-filtered Map" };
+		const char* currentSkyboxTypeString = skyboxTypeStrings[(int)Renderer::GetSkyboxType()];
+		if (ImGuiUtils::BeginCombo("Skybox Type", *currentSkyboxTypeString))
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				bool isSelected = currentSkyboxTypeString == skyboxTypeStrings[i];
+				if (ImGui::Selectable(skyboxTypeStrings[i], isSelected))
+				{
+					currentSkyboxTypeString = skyboxTypeStrings[i];
+					Renderer::SetSkyboxType((Cubemap::MapType)i);
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGuiUtils::EndCombo();
+		}
 	}
 
 	void SceneSettingsPanel::DrawGraphicsSettings()
@@ -156,12 +178,6 @@ namespace Atlas
 			}
 
 			ImGuiUtils::EndCombo();
-		}
-
-		bool isIrradianceMapShown = Renderer::IsShowIrradianceMapShown();
-		if (ImGuiUtils::Checkbox("Show Irradiance", isIrradianceMapShown))
-		{
-			Renderer::ToggleShowIrradianceMap();
 		}
 
 		ImGui::Separator();

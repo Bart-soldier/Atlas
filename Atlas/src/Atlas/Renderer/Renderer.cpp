@@ -184,7 +184,7 @@ namespace Atlas
 		bool HDR = false;
 		bool Bloom = true;
 		bool SSAO = true;
-		bool ShowIrradianceMap = false;
+		Cubemap::MapType SkyboxType = Cubemap::MapType::Cubemap;
 		Renderer::RenderBuffers DisplayedRenderBuffer = Renderer::RenderBuffers::Final;
 
 		// Misc.
@@ -564,14 +564,14 @@ namespace Atlas
 		s_RendererData.SSAO = !s_RendererData.SSAO;
 	}
 
-	bool Renderer::IsShowIrradianceMapShown()
+	void Renderer::SetSkyboxType(Cubemap::MapType skyboxType)
 	{
-		return s_RendererData.ShowIrradianceMap;
+		s_RendererData.SkyboxType = skyboxType;
 	}
 
-	void Renderer::ToggleShowIrradianceMap()
+	const Cubemap::MapType& Renderer::GetSkyboxType()
 	{
-		s_RendererData.ShowIrradianceMap = !s_RendererData.ShowIrradianceMap;
+		return s_RendererData.SkyboxType;
 	}
 
 	void Renderer::SetDisplayedBuffer(RenderBuffers bufferType)
@@ -1419,13 +1419,13 @@ namespace Atlas
 
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
 	{
-		if (s_RendererData.ShowIrradianceMap)
+		switch (s_RendererData.SkyboxType)
 		{
-			skybox->BindIrradianceMap();
-		}
-		else
-		{
-			skybox->BindCubemap();
+		default:
+		case Cubemap::MapType::Cubemap:        skybox->BindCubemap();        break;
+		case Cubemap::MapType::IrradianceMap:  skybox->BindIrradianceMap();  break;
+		case Cubemap::MapType::PreFilteredMap: skybox->BindPreFilteredMap(); break;
+		case Cubemap::MapType::None:           return;
 		}
 
 		s_RendererData.SkyboxShader->Bind();
