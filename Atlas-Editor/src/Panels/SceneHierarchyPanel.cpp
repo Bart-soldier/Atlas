@@ -542,7 +542,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetAlbedoTexture(texture);
@@ -574,7 +574,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetNormalTexture(texture);
@@ -600,7 +600,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetMetallicTexture(texture);
@@ -635,7 +635,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetRoughnessTexture(texture);
@@ -670,7 +670,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetAOTexture(texture);
@@ -694,7 +694,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetDisplacementTexture(texture);
