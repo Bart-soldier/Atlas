@@ -160,17 +160,42 @@ namespace Atlas
 			const SceneCamera& camera = m_PrimaryCamera->GetComponent<CameraComponent>().Camera;
 			const TransformComponent& cameraTransform = m_PrimaryCamera->GetComponent<TransformComponent>();
 
-			UpdateLights();
+			{
+				ATLAS_PROFILE_SCOPE("Lights Prep");
+				UpdateLights();
+			}
 
-			Renderer::BeginScene(camera, cameraTransform, m_Lights);
-			DrawSceneDeferred(cameraTransform.Translation, false, nullptr);
-			Renderer::EndScene();
+			{
+				ATLAS_PROFILE_SCOPE("GBuffer Pass");
+				Renderer::BeginScene(camera, cameraTransform, m_Lights);
+				DrawSceneDeferred(cameraTransform.Translation, false, nullptr);
+				Renderer::NextBatch();
+			}
 
-			Renderer::DrawSkybox(m_Skybox);
+			{
+				ATLAS_PROFILE_SCOPE("SSAO Pass");
+				Renderer::SSAOPass();
+			}
 
-			Renderer::BeginPostProcessing();
-			Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
-			Renderer::EndPostProcessing();
+			{
+				ATLAS_PROFILE_SCOPE("Deferred Rendering");
+				Renderer::DeferredRenderingPass(m_Skybox);
+			}
+
+			{
+				ATLAS_PROFILE_SCOPE("Forward Rendering");
+				DrawSceneForward(cameraTransform.Translation, false, nullptr);
+				Renderer::EndScene();
+
+				Renderer::DrawSkybox(m_Skybox);
+			}
+
+			{
+				ATLAS_PROFILE_SCOPE("Post Processing");
+				Renderer::BeginPostProcessing();
+				Renderer::DrawPostProcessing(m_PrimaryCamera->TryGetComponent<PostProcessorComponent>());
+				Renderer::EndPostProcessing();
+			}
 		}
 	}
 
