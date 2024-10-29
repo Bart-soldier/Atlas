@@ -172,7 +172,7 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
 		LightData light = u_Lights[lightIndex];
-		vec3 radiance = light.Color.rgb * light.Intensity
+		vec3 radiance = pow(light.Color.rgb, vec3(u_Gamma)) * light.Intensity
 			* CalculateLightAttenuation(vertexPosition, light.Position.xyz, light.Direction)
 			* CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - vertexPosition), light.Direction.xyz);
 

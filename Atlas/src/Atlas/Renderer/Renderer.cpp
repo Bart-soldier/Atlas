@@ -1356,8 +1356,8 @@ namespace Atlas
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                    = transform;
 
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Color                    = material == nullptr ? glm::vec3(1.0f) : material->Material->GetColor();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Metallic                 = material == nullptr ? 0.5f            : material->Material->GetMetallic();
-			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Roughness                = material == nullptr ? 0.5f            : material->Material->GetRoughness();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Metallic                 = material == nullptr ? 0.25f           : material->Material->GetMetallic();
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Roughness                = material == nullptr ? 0.25f           : material->Material->GetRoughness();
 
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].AlbedoTextureIndex       = albedoTextureIndex;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].NormalTextureIndex       = normalTextureIndex;
