@@ -118,9 +118,9 @@ namespace Atlas
 		const float PI = 3.14159265359f;
 
 		m_Vertices.clear();
-		m_Vertices.reserve(stackCount * sectorCount);
+		m_Vertices.reserve((stackCount + 1) * (sectorCount + 1));
 		m_Indices.clear();
-		m_Indices.reserve((stackCount - 2) * sectorCount * 6);
+		m_Indices.reserve((stackCount - 1) * sectorCount * 6);
 
 		float x, y, z, xy;                              // vertex position
 		float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
