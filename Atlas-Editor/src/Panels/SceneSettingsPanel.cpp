@@ -103,43 +103,34 @@ namespace Atlas
 
 	void SceneSettingsPanel::DrawSkybox()
 	{
-		const char* skyboxFacesStrings[] = { "Right Face", "Left Face", "Top Face", "Bottom Face", "Back Face", "Front Face" };
+		ImGuiUtils::BeginTextureViewer("HDRI", m_Context->m_Skybox->GetMap(), 150.0, 150.0, true);
 
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
-		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		bool open;
-
-		for (int i = 0; i < 6; i++)
+		if (ImGui::BeginDragDropTarget())
 		{
-			open = ImGui::TreeNodeEx(skyboxFacesStrings[i], treeNodeFlags);
-			if (open)
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
-				ImGuiUtils::BeginTextureViewer("Texture", m_Context->m_Skybox->GetFace((CubemapFace)i), 150.0, 150.0, true);
+				const wchar_t* path = (const wchar_t*)payload->Data;
+				std::filesystem::path payloadPath(path);
 
-				if (ImGui::BeginDragDropTarget())
+				if (payloadPath.extension() == ".hdr")
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), false);
+					if (texture->IsLoaded())
 					{
-						const wchar_t* path = (const wchar_t*)payload->Data;
-						std::filesystem::path payloadPath(path);
-
-						Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), false);
-						if (texture->IsLoaded())
-						{
-							m_Context->m_Skybox->SetFace((CubemapFace)i, texture);
-						}
+						m_Context->m_Skybox->SetMap(texture);
 					}
-					ImGui::EndDragDropTarget();
 				}
-
-				if (ImGuiUtils::EndTextureViewer(m_Context->m_Skybox->GetFace((CubemapFace)i)))
+				else
 				{
-					m_Context->m_Skybox->SetFace((CubemapFace)i, nullptr);
+					ATLAS_CORE_WARN("Only '.hdr' images are supported for skyboxes - {0}", payloadPath.string());
 				}
-
-				ImGui::TreePop();
 			}
+			ImGui::EndDragDropTarget();
+		}
+
+		if (ImGuiUtils::EndTextureViewer(m_Context->m_Skybox->GetMap()))
+		{
+			m_Context->m_Skybox->SetMap(nullptr);
 		}
 	}
 

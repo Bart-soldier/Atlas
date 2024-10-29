@@ -140,11 +140,11 @@ namespace Atlas
 		uint32_t* MeshOutlineIndexBufferBase = nullptr;
 
 		// Skybox
-		Ref<VertexArray> SkyboxVertexArray;
+		Ref<VertexArray> CubeVertexArray;
 		Ref<Shader> SkyboxShader;
 
-		uint32_t SkyboxVertexCount = 24;
-		uint32_t SkyboxIndexCount = 36;
+		uint32_t CubeVertexCount = 24;
+		uint32_t CubeIndexCount = 36;
 
 		// Textures
 		Ref<Texture2D> WhiteTexture;
@@ -198,7 +198,7 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		InitArrays();
-		InitSkybox();
+		InitCube();
 		InitTexture();
 		InitShaders();
 		InitBuffers();
@@ -336,97 +336,97 @@ namespace Atlas
 		s_RendererData.MeshOutlineIndexBufferBase = new uint32_t[s_RendererData.MaxIndices];
 	}
 
-	void Renderer::InitSkybox()
+	void Renderer::InitCube()
 	{
-		// Skybox VAO
-		s_RendererData.SkyboxVertexArray = VertexArray::Create();
-		glm::vec3* skyboxVertices = new glm::vec3[s_RendererData.SkyboxVertexCount];
-		uint32_t* skyboxIndices = new uint32_t[s_RendererData.SkyboxIndexCount];
+		// Cube VAO
+		s_RendererData.CubeVertexArray = VertexArray::Create();
+		glm::vec3* cubeVertices = new glm::vec3[s_RendererData.CubeVertexCount];
+		uint32_t* cubeIndices = new uint32_t[s_RendererData.CubeIndexCount];
 
 		// Back face
-		skyboxVertices[0] = { -1.0f, -1.0f, -1.0f }; // 0: Bottom-left
-		skyboxVertices[1] = {  1.0f,  1.0f, -1.0f }; // 1: Top-right
-		skyboxVertices[2] = {  1.0f, -1.0f, -1.0f }; // 2: Bottom-right
-		skyboxVertices[3] = { -1.0f,  1.0f, -1.0f }; // 3: Top-left
-		skyboxIndices[0] = 0;
-		skyboxIndices[1] = 1;
-		skyboxIndices[2] = 2;
-		skyboxIndices[3] = 3;
-		skyboxIndices[4] = 1;
-		skyboxIndices[5] = 0;
+		cubeVertices[0] = { -1.0f, -1.0f, -1.0f }; // 0: Bottom-left
+		cubeVertices[1] = {  1.0f,  1.0f, -1.0f }; // 1: Top-right
+		cubeVertices[2] = {  1.0f, -1.0f, -1.0f }; // 2: Bottom-right
+		cubeVertices[3] = { -1.0f,  1.0f, -1.0f }; // 3: Top-left
+		cubeIndices[0] = 0;
+		cubeIndices[1] = 1;
+		cubeIndices[2] = 2;
+		cubeIndices[3] = 3;
+		cubeIndices[4] = 1;
+		cubeIndices[5] = 0;
 
 		// Front face
-		skyboxVertices[4] = { -1.0f, -1.0f,  1.0f }; // 0: Bottom-left
-		skyboxVertices[5] = {  1.0f,  1.0f,  1.0f }; // 1: Top-right
-		skyboxVertices[6] = {  1.0f, -1.0f,  1.0f }; // 2: Bottom-right
-		skyboxVertices[7] = { -1.0f,  1.0f,  1.0f }; // 3: Top-left
-		skyboxIndices[6] = 4;
-		skyboxIndices[7] = 6;
-		skyboxIndices[8] = 5;
-		skyboxIndices[9] = 7;
-		skyboxIndices[10] = 4;
-		skyboxIndices[11] = 5;
+		cubeVertices[4] = { -1.0f, -1.0f,  1.0f }; // 0: Bottom-left
+		cubeVertices[5] = {  1.0f,  1.0f,  1.0f }; // 1: Top-right
+		cubeVertices[6] = {  1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		cubeVertices[7] = { -1.0f,  1.0f,  1.0f }; // 3: Top-left
+		cubeIndices[6] = 4;
+		cubeIndices[7] = 6;
+		cubeIndices[8] = 5;
+		cubeIndices[9] = 7;
+		cubeIndices[10] = 4;
+		cubeIndices[11] = 5;
 
 		// Left face
-		skyboxVertices[8]  = { -1.0f, -1.0f, -1.0f }; // 0: Bottom-left
-		skyboxVertices[9]  = { -1.0f,  1.0f,  1.0f }; // 1: Top-right
-		skyboxVertices[10] = { -1.0f, -1.0f,  1.0f }; // 2: Bottom-right
-		skyboxVertices[11] = { -1.0f,  1.0f, -1.0f }; // 3: Top-left
-		skyboxIndices[12] = 8;
-		skyboxIndices[13] = 10;
-		skyboxIndices[14] = 9;
-		skyboxIndices[15] = 11;
-		skyboxIndices[16] = 8;
-		skyboxIndices[17] = 9;
+		cubeVertices[8]  = { -1.0f, -1.0f, -1.0f }; // 0: Bottom-left
+		cubeVertices[9]  = { -1.0f,  1.0f,  1.0f }; // 1: Top-right
+		cubeVertices[10] = { -1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		cubeVertices[11] = { -1.0f,  1.0f, -1.0f }; // 3: Top-left
+		cubeIndices[12] = 8;
+		cubeIndices[13] = 10;
+		cubeIndices[14] = 9;
+		cubeIndices[15] = 11;
+		cubeIndices[16] = 8;
+		cubeIndices[17] = 9;
 
 		// Right face
-		skyboxVertices[12] = { 1.0f, -1.0f, -1.0f }; // 0: Bottom-left
-		skyboxVertices[13] = { 1.0f,  1.0f,  1.0f }; // 1: Top-right
-		skyboxVertices[14] = { 1.0f, -1.0f,  1.0f }; // 2: Bottom-right
-		skyboxVertices[15] = { 1.0f,  1.0f, -1.0f }; // 3: Top-left
-		skyboxIndices[18] = 12;
-		skyboxIndices[19] = 13;
-		skyboxIndices[20] = 14;
-		skyboxIndices[21] = 15;
-		skyboxIndices[22] = 13;
-		skyboxIndices[23] = 12;
+		cubeVertices[12] = { 1.0f, -1.0f, -1.0f }; // 0: Bottom-left
+		cubeVertices[13] = { 1.0f,  1.0f,  1.0f }; // 1: Top-right
+		cubeVertices[14] = { 1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		cubeVertices[15] = { 1.0f,  1.0f, -1.0f }; // 3: Top-left
+		cubeIndices[18] = 12;
+		cubeIndices[19] = 13;
+		cubeIndices[20] = 14;
+		cubeIndices[21] = 15;
+		cubeIndices[22] = 13;
+		cubeIndices[23] = 12;
 
 		// Bottom face
-		skyboxVertices[16] = {  1.0f, -1.0f,  1.0f }; // 0: Bottom-left
-		skyboxVertices[17] = { -1.0f, -1.0f, -1.0f }; // 1: Top-right
-		skyboxVertices[18] = { -1.0f, -1.0f,  1.0f }; // 2: Bottom-right
-		skyboxVertices[19] = {  1.0f, -1.0f, -1.0f }; // 3: Top-left
-		skyboxIndices[24] = 16;
-		skyboxIndices[25] = 18;
-		skyboxIndices[26] = 17;
-		skyboxIndices[27] = 19;
-		skyboxIndices[28] = 16;
-		skyboxIndices[29] = 17;
+		cubeVertices[16] = {  1.0f, -1.0f,  1.0f }; // 0: Bottom-left
+		cubeVertices[17] = { -1.0f, -1.0f, -1.0f }; // 1: Top-right
+		cubeVertices[18] = { -1.0f, -1.0f,  1.0f }; // 2: Bottom-right
+		cubeVertices[19] = {  1.0f, -1.0f, -1.0f }; // 3: Top-left
+		cubeIndices[24] = 16;
+		cubeIndices[25] = 18;
+		cubeIndices[26] = 17;
+		cubeIndices[27] = 19;
+		cubeIndices[28] = 16;
+		cubeIndices[29] = 17;
 
 		// Top face
-		skyboxVertices[20] = {  1.0f, 1.0f,  1.0f }; // 0: Bottom-left
-		skyboxVertices[21] = { -1.0f, 1.0f, -1.0f }; // 1: Top-right
-		skyboxVertices[22] = { -1.0f, 1.0f,  1.0f }; // 2: Bottom-right
-		skyboxVertices[23] = {  1.0f, 1.0f, -1.0f }; // 3: Top-left
-		skyboxIndices[30] = 20;
-		skyboxIndices[31] = 21;
-		skyboxIndices[32] = 22;
-		skyboxIndices[33] = 23;
-		skyboxIndices[34] = 21;
-		skyboxIndices[35] = 20;
+		cubeVertices[20] = {  1.0f, 1.0f,  1.0f }; // 0: Bottom-left
+		cubeVertices[21] = { -1.0f, 1.0f, -1.0f }; // 1: Top-right
+		cubeVertices[22] = { -1.0f, 1.0f,  1.0f }; // 2: Bottom-right
+		cubeVertices[23] = {  1.0f, 1.0f, -1.0f }; // 3: Top-left
+		cubeIndices[30] = 20;
+		cubeIndices[31] = 21;
+		cubeIndices[32] = 22;
+		cubeIndices[33] = 23;
+		cubeIndices[34] = 21;
+		cubeIndices[35] = 20;
 
-		// Skybox VBO
-		Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices, s_RendererData.SkyboxVertexCount * sizeof(glm::vec3));
-		skyboxVertexBuffer->SetLayout({
+		// Cube VBO
+		Ref<VertexBuffer> cubeVertexBuffer = VertexBuffer::Create(cubeVertices, s_RendererData.CubeVertexCount * sizeof(glm::vec3));
+		cubeVertexBuffer->SetLayout({
 			{ ShaderDataType::Float3, "a_Position" }
 		});
-		s_RendererData.SkyboxVertexArray->AddVertexBuffer(skyboxVertexBuffer);
-		delete[] skyboxVertices;
+		s_RendererData.CubeVertexArray->AddVertexBuffer(cubeVertexBuffer);
+		delete[] cubeVertices;
 
-		// Skybox IBO / EBO
-		Ref<IndexBuffer> skyboxIndexBuffer = IndexBuffer::Create(skyboxIndices, s_RendererData.SkyboxIndexCount * sizeof(uint32_t));
-		s_RendererData.SkyboxVertexArray->SetIndexBuffer(skyboxIndexBuffer);
-		delete[] skyboxIndices;
+		// Cube IBO / EBO
+		Ref<IndexBuffer> cubeIndexBuffer = IndexBuffer::Create(cubeIndices, s_RendererData.CubeIndexCount * sizeof(uint32_t));
+		s_RendererData.CubeVertexArray->SetIndexBuffer(cubeIndexBuffer);
+		delete[] cubeIndices;
 	}
 
 	void Renderer::InitTexture()
@@ -1406,14 +1406,16 @@ namespace Atlas
 
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
 	{
-		// Cubemap
 		skybox->Bind();
 
-		// Shader
 		s_RendererData.SkyboxShader->Bind();
 
-		// Draw
-		RenderCommand::DrawIndexed(s_RendererData.SkyboxVertexArray, s_RendererData.SkyboxIndexCount);
+		DrawCube();
 		s_RendererData.Stats.DrawCalls++;
+	}
+
+	void Renderer::DrawCube()
+	{
+		RenderCommand::DrawIndexed(s_RendererData.CubeVertexArray, s_RendererData.CubeIndexCount);
 	}
 }

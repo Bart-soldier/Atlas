@@ -112,6 +112,7 @@ namespace Atlas
 		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
 
 		static void DrawSkybox(const Ref<Cubemap>& skybox);
+		static void DrawCube();
 
 		// Stats
 		struct Statistics
@@ -130,7 +131,7 @@ namespace Atlas
 
 	private:
 		static void InitArrays();
-		static void InitSkybox();
+		static void InitCube();
 		static void InitTexture();
 		static void InitShaders();
 		static void InitBuffers();

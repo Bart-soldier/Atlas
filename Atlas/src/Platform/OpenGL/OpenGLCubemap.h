@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas/Renderer/Cubemap.h"
+#include "Atlas/Renderer/Shader.h"
 
 #include <glad/glad.h>
 
@@ -14,8 +15,8 @@ namespace Atlas
 
 		virtual uint32_t GetRendererID() const override { return m_RendererID; };
 
-		virtual void SetFace(const CubemapFace& face, const Ref<Texture2D>& texture) override;
-		virtual const Ref<Texture2D>& GetFace(const CubemapFace& face) override { return m_Faces[(int)face]; };
+		virtual void SetMap(const Ref<Texture2D>& cubemap) override;
+		virtual const Ref<Texture2D>& GetMap() override { return m_Map; };
 
 		virtual void Bind() const override;
 
@@ -25,14 +26,11 @@ namespace Atlas
 		};
 
 	private:
-		bool LoadFace(const CubemapFace& face, const Ref<Texture2D>& texture);
-		void ResetFace(const CubemapFace& face);
-		void VerifyFaces();
-		void ResetMaxWidth();
+		void ResetMap();
+		void LoadMap();
 
-
-		Ref<Texture2D> m_Faces[6];
+		Ref<Texture2D> m_Map;
 		uint32_t m_RendererID;
-		uint32_t m_MaxWidth = 1;
+		Ref<Shader> m_EquirectangularToCubemapShader;
 	};
 }

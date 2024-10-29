@@ -105,7 +105,14 @@ namespace Atlas
 			}
 			else if (channels == 3)
 			{
-				m_Specification.Format = ImageFormat::RGB8;
+				if (path.extension() == ".hdr")
+				{
+					m_Specification.Format = ImageFormat::RGB16F;
+				}
+				else
+				{
+					m_Specification.Format = ImageFormat::RGB8;
+				}
 			}
 			else if (channels == 1)
 			{
