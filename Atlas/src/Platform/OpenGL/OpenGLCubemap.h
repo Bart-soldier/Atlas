@@ -18,8 +18,8 @@ namespace Atlas
 		virtual void SetMap(const Ref<Texture2D>& cubemap) override;
 		virtual const Ref<Texture2D>& GetMap() override { return m_Map; };
 
-		virtual void BindCubemap() const override;
-		virtual void BindIrradianceMap() const override;
+		virtual void BindCubemap(uint32_t slot = 0) const override;
+		virtual void BindIrradianceMap(uint32_t slot = 0) const override;
 
 		virtual bool operator==(const Cubemap& other) const override
 		{

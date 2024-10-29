@@ -83,23 +83,26 @@ namespace Atlas
 		}
 	}
 
-	void OpenGLCubemap::BindCubemap() const
+	void OpenGLCubemap::BindCubemap(uint32_t slot) const
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapRendererID);
+		//glBindTextureUnit(slot, m_IrradianceRendererID);
 	}
 
-	void OpenGLCubemap::BindIrradianceMap() const
+	void OpenGLCubemap::BindIrradianceMap(uint32_t slot) const
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceRendererID);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceRendererID);
+		glBindTextureUnit(slot, m_IrradianceRendererID);
 	}
 
 	void OpenGLCubemap::LoadCubemap()
 	{
-		BindCubemap();
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapRendererID);
+		//BindCubemap();
 
 		unsigned int captureFBO, captureRBO;
 		glGenFramebuffers(1, &captureFBO);
@@ -149,7 +152,8 @@ namespace Atlas
 
 	void OpenGLCubemap::LoadIrradianceMap()
 	{
-		BindIrradianceMap();
+		//BindIrradianceMap();
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceRendererID);
 
 		unsigned int captureFBO, captureRBO;
 		glGenFramebuffers(1, &captureFBO);
@@ -166,7 +170,8 @@ namespace Atlas
 		}
 
 		m_CubemapToIrradianceShader->Bind();
-		BindCubemap();
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapRendererID);
+		//BindCubemap();
 
 		std::vector<glm::mat4> viewProjectionData;
 		viewProjectionData.reserve(2);

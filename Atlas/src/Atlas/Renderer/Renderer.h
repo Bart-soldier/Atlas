@@ -64,7 +64,7 @@ namespace Atlas
 
 		static void BeginRenderingPass();
 		static void EndRenderingPass();
-		static void DeferredRenderingPass();
+		static void DeferredRenderingPass(const Ref<Cubemap>& skybox);
 		static void SSAOPass();
 
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);

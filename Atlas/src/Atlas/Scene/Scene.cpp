@@ -195,7 +195,7 @@ namespace Atlas
 
 		{
 			ATLAS_PROFILE_SCOPE("Deferred Rendering");
-			Renderer::DeferredRenderingPass();
+			Renderer::DeferredRenderingPass(m_Skybox);
 		}
 
 		{

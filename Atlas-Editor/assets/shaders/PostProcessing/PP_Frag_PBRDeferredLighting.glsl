@@ -32,6 +32,8 @@ layout (location = 0) in vec2 v_TexCoords;
 // 4: R(1-Channel Texture): SSAO
 layout (binding = 0) uniform sampler2D u_ScreenTextures[5];
 
+layout (binding = 5) uniform samplerCube u_IrradianceMap;
+
 layout (std140, binding = 0) uniform Settings
 {
 	float u_Gamma;
@@ -101,6 +103,11 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}   
+
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
     float a      = roughness*roughness;
@@ -169,15 +176,17 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 {
 	vec3 Lo = vec3(0.0);
 	
+	vec3 viewDirection  = normalize(u_CameraPosition.xyz - vertexPosition);
+
+	vec3 F0 = vec3(0.04);
+		 F0 = mix(F0, albedo, metallic);
+
 	for (uint lightIndex = 0; lightIndex < u_LightCount; lightIndex++)
 	{
 		LightData light = u_Lights[lightIndex];
 		vec3 radiance = pow(light.Color.rgb, vec3(u_Gamma)) * light.Intensity
 			* CalculateLightAttenuation(vertexPosition, light.Position.xyz, light.Direction)
 			* CalculateLightCutOff(light.CutOffs, normalize(light.Position.xyz - vertexPosition), light.Direction.xyz);
-
-
-		vec3 viewDirection  = normalize(u_CameraPosition.xyz - vertexPosition);
 
 		vec3 lightDirection = normalize(light.Position.xyz - vertexPosition);
 		if(light.Direction.w != 0)
@@ -187,8 +196,6 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 
 		vec3 H = normalize(viewDirection + lightDirection);
 
-		vec3 F0 = vec3(0.04);
-		     F0 = mix(F0, albedo, metallic);
 		vec3 F  = fresnelSchlick(max(dot(H, viewDirection), 0.0), F0);
 
 		float NDF = DistributionGGX(vertexNormal, H, roughness);
@@ -207,10 +214,14 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
 
-	vec3 ambient = vec3(0.03) * albedo * ambientOcclusion;
-	vec3 color   = ambient + Lo; 
+    vec3 kS = fresnelSchlickRoughness(max(dot(vertexNormal, viewDirection), 0.0), F0, roughness);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    vec3 irradiance = texture(u_IrradianceMap, vertexNormal).rgb;
+    vec3 diffuse    = irradiance * albedo;
+    vec3 ambient    = (kD * diffuse) * ambientOcclusion;
 
-	return color;
+	return ambient + Lo;
 }
 
 vec4 CalculateBrightColor(vec3 fragmentColor)

@@ -592,8 +592,10 @@ namespace Atlas
 		s_RendererData.LastDrawnFramebuffer->Unbind();
 	}
 
-	void Renderer::DeferredRenderingPass()
+	void Renderer::DeferredRenderingPass(const Ref<Cubemap>& skybox)
 	{
+		skybox->BindIrradianceMap(5);
+
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 6});
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
