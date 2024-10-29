@@ -158,6 +158,14 @@ namespace Atlas
 			ImGuiUtils::EndCombo();
 		}
 
+		bool isIrradianceMapShown = Renderer::IsShowIrradianceMapShown();
+		if (ImGuiUtils::Checkbox("Show Irradiance", isIrradianceMapShown))
+		{
+			Renderer::ToggleShowIrradianceMap();
+		}
+
+		ImGui::Separator();
+
 		bool isHDREnabled = Renderer::IsHDREnabled();
 		if (ImGuiUtils::Checkbox("HDR", isHDREnabled))
 		{
@@ -175,6 +183,8 @@ namespace Atlas
 		{
 			Renderer::ToggleSSAO();
 		}
+
+		ImGui::Separator();
 
 		if (ImGuiUtils::Checkbox("Gamma Correction", m_GammaCorrection))
 		{

@@ -59,6 +59,8 @@ namespace Atlas
 		static void ToggleBloom();
 		static bool IsSSAOEnabled();
 		static void ToggleSSAO();
+		static bool IsShowIrradianceMapShown();
+		static void ToggleShowIrradianceMap();
 		static void SetDisplayedBuffer(RenderBuffers bufferType);
 		static const RenderBuffers& GetDisplayedBuffer();
 

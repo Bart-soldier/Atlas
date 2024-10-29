@@ -184,6 +184,7 @@ namespace Atlas
 		bool HDR = false;
 		bool Bloom = true;
 		bool SSAO = true;
+		bool ShowIrradianceMap = false;
 		Renderer::RenderBuffers DisplayedRenderBuffer = Renderer::RenderBuffers::Final;
 
 		// Misc.
@@ -561,6 +562,16 @@ namespace Atlas
 	void Renderer::ToggleSSAO()
 	{
 		s_RendererData.SSAO = !s_RendererData.SSAO;
+	}
+
+	bool Renderer::IsShowIrradianceMapShown()
+	{
+		return s_RendererData.ShowIrradianceMap;
+	}
+
+	void Renderer::ToggleShowIrradianceMap()
+	{
+		s_RendererData.ShowIrradianceMap = !s_RendererData.ShowIrradianceMap;
 	}
 
 	void Renderer::SetDisplayedBuffer(RenderBuffers bufferType)
@@ -1408,7 +1419,14 @@ namespace Atlas
 
 	void Renderer::DrawSkybox(const Ref<Cubemap>& skybox)
 	{
-		skybox->BindCubemap();
+		if (s_RendererData.ShowIrradianceMap)
+		{
+			skybox->BindIrradianceMap();
+		}
+		else
+		{
+			skybox->BindCubemap();
+		}
 
 		s_RendererData.SkyboxShader->Bind();
 
