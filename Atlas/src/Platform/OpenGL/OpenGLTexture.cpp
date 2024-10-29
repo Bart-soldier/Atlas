@@ -13,6 +13,8 @@ namespace Atlas
 			{
 			case ImageFormat::R8:      return GL_RED;
 
+			case ImageFormat::RG16F:   return GL_RG;
+
 			case ImageFormat::RGB16F:
 			case ImageFormat::RGB32F:
 			case ImageFormat::RGB8:    return GL_RGB;
@@ -31,6 +33,8 @@ namespace Atlas
 			switch (format)
 			{
 			case ImageFormat::R8:      return GL_R8;
+
+			case ImageFormat::RG16F:   return GL_RG16F;
 
 			case ImageFormat::RGB8:    return GL_RGB8;
 			case ImageFormat::RGB16F:  return GL_RGB16F;
@@ -105,7 +109,14 @@ namespace Atlas
 			}
 			else if (channels == 3)
 			{
-				m_Specification.Format = ImageFormat::RGB8;
+				if (path.extension() == ".hdr")
+				{
+					m_Specification.Format = ImageFormat::RGB16F;
+				}
+				else
+				{
+					m_Specification.Format = ImageFormat::RGB8;
+				}
 			}
 			else if (channels == 1)
 			{

@@ -672,7 +672,7 @@ namespace Atlas
 
 	void EditorLayer::LoadModel()
 	{
-		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj)\0*.obj\0");
+		std::filesystem::path path = FileDialogs::OpenFile("Object file (*.obj, *.fbx)\0*.obj;*.fbx\0");
 		if (!path.empty())
 		{
 			Model::LoadModel(m_ActiveScene, path);

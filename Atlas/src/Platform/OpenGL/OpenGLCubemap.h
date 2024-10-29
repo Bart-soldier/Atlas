@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas/Renderer/Cubemap.h"
+#include "Atlas/Renderer/Shader.h"
 
 #include <glad/glad.h>
 
@@ -12,27 +13,36 @@ namespace Atlas
 		OpenGLCubemap();
 		virtual ~OpenGLCubemap();
 
-		virtual uint32_t GetRendererID() const override { return m_RendererID; };
+		virtual uint32_t GetRendererID() const override { return m_CubemapRendererID; };
 
-		virtual void SetFace(const CubemapFace& face, const Ref<Texture2D>& texture) override;
-		virtual const Ref<Texture2D>& GetFace(const CubemapFace& face) override { return m_Faces[(int)face]; };
+		virtual void SetMap(const Ref<Texture2D>& cubemap) override;
+		virtual const Ref<Texture2D>& GetMap() override { return m_Map; };
 
-		virtual void Bind() const override;
+		virtual void BindCubemap(uint32_t slot = 0) const override;
+		virtual void BindIrradianceMap(uint32_t slot = 0) const override;
+		virtual void BindPreFilteredMap(uint32_t slot = 0) const override;
 
 		virtual bool operator==(const Cubemap& other) const override
 		{
-			return m_RendererID == other.GetRendererID();
+			return m_CubemapRendererID == other.GetRendererID();
 		};
 
 	private:
-		bool LoadFace(const CubemapFace& face, const Ref<Texture2D>& texture);
-		void ResetFace(const CubemapFace& face);
-		void VerifyFaces();
-		void ResetMaxWidth();
+		void CreateMap(uint32_t* rendererID, bool generateMips = false);
+		void ResetMap(uint32_t* rendererID, bool generateMips = false);
+		void LoadCubemap();
+		void LoadIrradianceMap();
+		void LoadPreFilteredMap();
 
+		Ref<Texture2D> m_Map;
+		Ref<Shader> m_MapToCubemapShader;
+		Ref<Shader> m_CubemapToIrradianceShader;
+		Ref<Shader> m_CubemapToPreFilteredShader;
+		uint32_t m_CubemapRendererID;
+		uint32_t m_IrradianceRendererID;
+		uint32_t m_PreFilteredRendererID;
 
-		Ref<Texture2D> m_Faces[6];
-		uint32_t m_RendererID;
-		uint32_t m_MaxWidth = 1;
+		glm::mat4 m_CaptureProjection;
+		glm::mat4 m_CaptureViews[6];
 	};
 }

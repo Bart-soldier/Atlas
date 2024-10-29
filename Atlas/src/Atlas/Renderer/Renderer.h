@@ -59,12 +59,14 @@ namespace Atlas
 		static void ToggleBloom();
 		static bool IsSSAOEnabled();
 		static void ToggleSSAO();
+		static void SetSkyboxType(Cubemap::MapType skyboxType);
+		static const Cubemap::MapType& GetSkyboxType();
 		static void SetDisplayedBuffer(RenderBuffers bufferType);
 		static const RenderBuffers& GetDisplayedBuffer();
 
 		static void BeginRenderingPass();
 		static void EndRenderingPass();
-		static void DeferredRenderingPass();
+		static void DeferredRenderingPass(const Ref<Cubemap>& skybox);
 		static void SSAOPass();
 
 		static bool ResizeFramebuffer(uint32_t width, uint32_t height);
@@ -112,6 +114,7 @@ namespace Atlas
 		static void DrawMeshOutline(const glm::mat4& transform, const MeshComponent& mesh, const glm::vec4& color, int entityID);
 
 		static void DrawSkybox(const Ref<Cubemap>& skybox);
+		static void DrawCube();
 
 		// Stats
 		struct Statistics
@@ -130,8 +133,8 @@ namespace Atlas
 
 	private:
 		static void InitArrays();
-		static void InitSkybox();
-		static void InitTexture();
+		static void InitCube();
+		static void InitTextures();
 		static void InitShaders();
 		static void InitBuffers();
 
