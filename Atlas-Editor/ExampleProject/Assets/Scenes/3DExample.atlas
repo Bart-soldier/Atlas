@@ -1,29 +1,36 @@
 Scene: 3D Example
 Entities:
-  - Entity: 3177740029032122652
+  - Entity: 14436711700658081143
     TagComponent:
-      Tag: Second spotlight
+      Tag: Point light
     TransformComponent:
-      Translation: [1, 0, 0]
-      Rotation: [0, 1.57079637, 0]
+      Translation: [-1.10000002, 0, 0]
+      Rotation: [0, -1.57079637, 0]
       Scale: [1, 1, 1]
     LightSourceComponent:
-      CastType: 2
+      CastType: 1
       Color: [1, 1, 1]
       Intensity: 1
-      CutOff: [12.5, 17.5]
-  - Entity: 8975641200445455453
+      CutOff: [-12.5, -17.5]
+  - Entity: 8973117593411618567
     TagComponent:
-      Tag: Spotlight
+      Tag: Cube
     TransformComponent:
-      Translation: [2.5999999, 1.60000002, 1.60000002]
-      Rotation: [-0.610865235, 0.959931076, 0]
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    LightSourceComponent:
-      CastType: 2
+    MeshComponent:
+      {}
+    MaterialComponent:
+      Preset: 0
       Color: [1, 1, 1]
-      Intensity: 10
-      CutOff: [12.5, 17.5]
+      Metallic: 0.25
+      Roughness: 0.25
+      AlbedoTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_BaseColor.jpg
+      NormalTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_Normal.png
+      MetallicTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_Metallic.jpg
+      RoughnessTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_Roughness.jpg
+      AOTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_AmbientOcclusion.jpg
   - Entity: 8499682893995048034
     TagComponent:
       Tag: Camera
@@ -41,31 +48,27 @@ Entities:
         OrthographicNear: -1
         OrthographicFar: 1
       FixedAspectRatio: false
-  - Entity: 8973117593411618567
+  - Entity: 8975641200445455453
     TagComponent:
-      Tag: Cube
+      Tag: Spotlight
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      {}
-    MaterialComponent:
-      Preset: 0
-      Color: [1, 1, 1]
-      Metallic: 0.25
-      Roughness: 0.25
-      AlbedoTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_BaseColor.jpg
-      NormalTexturePath: D:\Atlas\Atlas-Editor\ExampleProject\Assets\Materials\BrickWall\Poliigon_BrickWallReclaimed_8320_Normal.png
-  - Entity: 14436711700658081143
-    TagComponent:
-      Tag: Point light
-    TransformComponent:
-      Translation: [-1.10000002, 0, 0]
-      Rotation: [0, -1.57079637, 0]
+      Translation: [2.5999999, 1.60000002, 1.60000002]
+      Rotation: [-0.610865235, 0.959931076, 0]
       Scale: [1, 1, 1]
     LightSourceComponent:
-      CastType: 1
+      CastType: 2
+      Color: [1, 1, 1]
+      Intensity: 10
+      CutOff: [12.5, 17.5]
+  - Entity: 3177740029032122652
+    TagComponent:
+      Tag: Second spotlight
+    TransformComponent:
+      Translation: [1, 0, 0]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [1, 1, 1]
+    LightSourceComponent:
+      CastType: 2
       Color: [1, 1, 1]
       Intensity: 1
-      CutOff: [-12.5, -17.5]
+      CutOff: [12.5, 17.5]

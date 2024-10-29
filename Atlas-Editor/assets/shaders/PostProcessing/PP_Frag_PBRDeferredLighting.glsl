@@ -84,7 +84,7 @@ void main()
 	vec3  albedo           = texture(u_ScreenTextures[2], v_TexCoords).rgb;
 	float metallic         = texture(u_ScreenTextures[3], v_TexCoords).x;
 	float roughness        = texture(u_ScreenTextures[3], v_TexCoords).y;
-	float ambientOcclusion = texture(u_ScreenTextures[4], v_TexCoords).z;
+	float ambientOcclusion = texture(u_ScreenTextures[3], v_TexCoords).z + texture(u_ScreenTextures[4], v_TexCoords).r;
 
 	vec3 fragmentColor = CalculateColor(vertexPosition, vertexNormal, albedo, metallic, roughness, ambientOcclusion);
 
