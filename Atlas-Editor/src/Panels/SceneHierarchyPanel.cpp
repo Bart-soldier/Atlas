@@ -453,11 +453,12 @@ namespace Atlas
 			const char* meshPresetStrings[] = {
 				"Custom",
 				"Square",
+				"Sphere"
 			};
 			const char* currentMeshPresetString = meshPresetStrings[(int)mesh->GetMeshPreset()];
 			if (ImGuiUtils::BeginCombo("Presets", *currentMeshPresetString))
 			{
-				for (int i = 0; i < 2; i++)
+				for (int i = 0; i < 3; i++)
 				{
 					bool isSelected = currentMeshPresetString == meshPresetStrings[i];
 					if (ImGui::Selectable(meshPresetStrings[i], isSelected))

@@ -10,7 +10,8 @@ namespace Atlas
 		enum class MeshPresets
 		{
 			Custom = 0,
-			Square = 1,
+			Square,
+			Sphere
 		};
 
 		struct Vertex
@@ -46,6 +47,7 @@ namespace Atlas
 
 	private:
 		void CalculateSquareVertices();
+		void CalculateSphereVertices();
 		void CalculateTangents();
 
 		MeshPresets m_MeshPreset;

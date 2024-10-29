@@ -21,6 +21,10 @@ namespace Atlas
 				CalculateSquareVertices();
 				CalculateTangents();
 				break;
+			case Atlas::Mesh::MeshPresets::Sphere:
+				CalculateSphereVertices();
+				CalculateTangents();
+				break;
 		}
 	}
 	void Mesh::CalculateSquareVertices()
@@ -102,6 +106,85 @@ namespace Atlas
 		m_Indices.push_back(23);
 		m_Indices.push_back(21);
 		m_Indices.push_back(20);
+	}
+
+	void Mesh::CalculateSphereVertices()
+	{
+		// Courtesy of https://www.songho.ca/opengl/gl_sphere.html#example_sphere
+
+		float radius = 2.0f;
+		float sectorCount = 72;
+		float stackCount = 24;
+		const float PI = 3.14159265359f;
+
+		m_Vertices.clear();
+		m_Vertices.reserve(stackCount * sectorCount);
+		m_Indices.clear();
+		m_Indices.reserve((stackCount - 2) * sectorCount * 6);
+
+		float x, y, z, xy;                              // vertex position
+		float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
+		float s, t;                                     // vertex texCoord
+
+		float sectorStep = 2 * PI / sectorCount;
+		float stackStep = PI / stackCount;
+		float sectorAngle, stackAngle;
+
+		for (int i = 0; i <= stackCount; ++i)
+		{
+			stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+			xy = radius * cosf(stackAngle);             // r * cos(u)
+			z = radius * sinf(stackAngle);              // r * sin(u)
+
+			// add (sectorCount+1) vertices per stack
+			// first and last vertices have same position and normal, but different tex coords
+			for (int j = 0; j <= sectorCount; ++j)
+			{
+				sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+				// vertex position (x, y, z)
+				x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+				y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+
+				// normalized vertex normal (nx, ny, nz)
+				nx = x * lengthInv;
+				ny = y * lengthInv;
+				nz = z * lengthInv;
+
+				// vertex tex coord (s, t) range between [0, 1]
+				s = (float)j / sectorCount;
+				t = (float)i / stackCount;
+
+				m_Vertices.push_back({ x, y, z, nx, ny, nz, s, t });
+			}
+		}
+
+		int k1, k2;
+		for (int i = 0; i < stackCount; ++i)
+		{
+			k1 = i * (sectorCount + 1);     // beginning of current stack
+			k2 = k1 + sectorCount + 1;      // beginning of next stack
+
+			for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+			{
+				// 2 triangles per sector excluding first and last stacks
+				// k1 => k2 => k1+1
+				if (i != 0)
+				{
+					m_Indices.push_back(k1);
+					m_Indices.push_back(k2);
+					m_Indices.push_back(k1 + 1);
+				}
+
+				// k1+1 => k2 => k2+1
+				if (i != (stackCount - 1))
+				{
+					m_Indices.push_back(k1 + 1);
+					m_Indices.push_back(k2);
+					m_Indices.push_back(k2 + 1);
+				}
+			}
+		}
 	}
 
 	void Mesh::CalculateTangents()
