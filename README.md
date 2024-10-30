@@ -51,3 +51,6 @@ This project uses the following external dependencies:
 This project used the following resources:
 - [The Cherno's](https://www.youtube.com/@TheCherno) Game Engine series,
 - [LearnOpenGL](https://learnopengl.com/).
+
+## Models, materials and HDRi credits
+Some of the models and materials included with the example project are free assets from [Poliigon](https://www.poliigon.com/), while the HDRis are free assets from [HDRi Haven](https://hdri-haven.com/).
