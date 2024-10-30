@@ -76,14 +76,16 @@ namespace Atlas
 			glm::vec3 normal    = { mesh.mNormals [vertexIndex].x, mesh.mNormals [vertexIndex].y, mesh.mNormals [vertexIndex].z };
 			glm::vec2 texCoords = glm::vec2(0.0f);
 			glm::vec3 tangent   = glm::vec3(1.0f, 0.0f, 0.0f);
+			glm::vec3 bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
 
 			if (mesh.mTextureCoords[0])
 			{
-				glm::vec2 texCoords = { mesh.mTextureCoords[0][vertexIndex].x, mesh.mTextureCoords[0][vertexIndex].y };
-				glm::vec3 tangent   = { mesh.mTangents[vertexIndex].x, mesh.mTangents[vertexIndex].y,  mesh.mTangents[vertexIndex].z };
+				texCoords = { mesh.mTextureCoords[0][vertexIndex].x, mesh.mTextureCoords[0][vertexIndex].y };
+				tangent   = { mesh.mTangents  [vertexIndex].x, mesh.mTangents  [vertexIndex].y,  mesh.mTangents  [vertexIndex].z };
+				bitangent = { mesh.mBitangents[vertexIndex].x, mesh.mBitangents[vertexIndex].y,  mesh.mBitangents[vertexIndex].z };
 			}
 
-			vertices.push_back({position, normal, texCoords, tangent});
+			vertices.push_back({position, normal, texCoords, tangent, bitangent});
 		}
 
 		for (uint32_t faceIndex = 0; faceIndex < mesh.mNumFaces; faceIndex++)

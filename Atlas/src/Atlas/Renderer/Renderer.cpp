@@ -56,6 +56,7 @@ namespace Atlas
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
+		glm::vec3 Bitangent;
 
 		glm::mat4 Model;
 
@@ -308,6 +309,7 @@ namespace Atlas
 			{ ShaderDataType::Float3, "a_Normal"                             },
 			{ ShaderDataType::Float2, "a_TexCoord"                           },
 			{ ShaderDataType::Float3, "a_Tangent"                            },
+			{ ShaderDataType::Float3, "a_Bitangent"                          },
 			{ ShaderDataType::Mat4,   "a_Model"                              },
 			{ ShaderDataType::Float3, "a_Color"                              },
 			{ ShaderDataType::Float2, "a_Metallic_Roughness"                 }, // X: Metallic,  Y: Roughness
@@ -1379,6 +1381,7 @@ namespace Atlas
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Normal                   = normalMatrix * vertices[i].Normal;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].TexCoord                 = vertices[i].TexCoords;
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Tangent                  = vertices[i].Tangent;
+			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Bitangent                = vertices[i].Bitangent;
 
 			s_RendererData.MeshVertexBufferBase[s_RendererData.MeshVertexCount].Model                    = transform;
 

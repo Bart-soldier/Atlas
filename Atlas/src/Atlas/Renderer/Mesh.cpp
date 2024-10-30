@@ -201,11 +201,15 @@ namespace Atlas
 			glm::vec2 deltaUV2 = vertex3.TexCoords - vertex1.TexCoords;
 
 			float fraction = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-			glm::vec3 tangent = fraction * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+			glm::vec3 tangent   = fraction * ( deltaUV2.y * edge1 - deltaUV1.y * edge2);
+			glm::vec3 bitangent = fraction * (-deltaUV2.x * edge1 + deltaUV1.x * edge2);
 
 			vertex1.Tangent   = tangent;
 			vertex2.Tangent   = tangent;
 			vertex3.Tangent   = tangent;
+			vertex1.Bitangent = bitangent;
+			vertex2.Bitangent = bitangent;
+			vertex3.Bitangent = bitangent;
 		}
 	}
 }
