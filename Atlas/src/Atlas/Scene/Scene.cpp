@@ -626,12 +626,11 @@ namespace Atlas
 
 	glm::mat4 Scene::GetEntityTransform(Entity* entity)
 	{
-		// TODO: Fix? Weird behavior when rotating child then moving parent
 		glm::mat4 transform = m_Registry.get<TransformComponent>(entity->GetHandle()).GetTransform();
 
 		if (entity->GetParent() != nullptr)
 		{
-			transform *= GetEntityTransform(entity->GetParent());
+			transform = GetEntityTransform(entity->GetParent()) * transform;
 		}
 
 		return transform;
