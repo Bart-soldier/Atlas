@@ -334,9 +334,25 @@ namespace Atlas
 				transformComponent.Scale = scale;
 			}
 		}
+
+		ImGui::PopStyleVar();
+
+		if (IsViewportClickable() && ImGui::BeginPopupContextWindow())
+		{
+			if (ImGui::MenuItem("Duplicate Entity"))
+			{
+				OnDuplicateEntity();
+			}
+
+			if (ImGui::MenuItem("Delete Entity"))
+			{
+				OnDestroyEntity();
+			}
+
+			ImGui::EndPopup();
+		}
 		
 		ImGui::End();
-		ImGui::PopStyleVar();
 
 		UI_Toolbar();
 
@@ -443,6 +459,12 @@ namespace Atlas
 		switch (e.GetMouseButton())
 		{
 			case Mouse::ButtonLeft:
+				if (IsViewportClickable())
+				{
+					m_SceneHierarchyPanel.SelectEntity(m_HoveredEntity);
+				}
+				break;
+			case Mouse::ButtonRight:
 				if (IsViewportClickable())
 				{
 					m_SceneHierarchyPanel.SelectEntity(m_HoveredEntity);

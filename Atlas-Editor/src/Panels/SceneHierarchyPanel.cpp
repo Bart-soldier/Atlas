@@ -38,8 +38,8 @@ namespace Atlas
 	{
 		if (m_SelectedEntity)
 		{
-			m_SelectedEntity = nullptr;
 			m_Context->DestroyEntity(m_SelectedEntity);
+			m_SelectedEntity = nullptr;
 		}
 	}
 
@@ -66,7 +66,7 @@ namespace Atlas
 				}
 			}
 
-			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+			if ((ImGui::IsMouseDown(0) || ImGui::IsMouseDown(1)) && ImGui::IsWindowHovered())
 			{
 				m_SelectedEntity = nullptr;
 			}
@@ -122,9 +122,16 @@ namespace Atlas
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
+			m_SelectedEntity = entity;
+
 			if (ImGui::MenuItem("Create Entity"))
 			{
 				m_Context->CreateEntity("Untitled Entity", entity);
+			}
+
+			if (ImGui::MenuItem("Duplicate Entity"))
+			{
+				DuplicateSelectedEntity();
 			}
 
 			if (ImGui::MenuItem("Delete Entity"))
@@ -163,11 +170,11 @@ namespace Atlas
 
 		if (entityDeleted)
 		{
-			m_Context->DestroyEntity(entity);
 			if (m_SelectedEntity == entity)
 			{
 				m_SelectedEntity = nullptr;
 			}
+			m_Context->DestroyEntity(entity);
 		}
 	}
 
