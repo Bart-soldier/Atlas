@@ -67,16 +67,6 @@ void main()
 	v_Albedo_Normal_Metallic_TexIndex    = a_Albedo_Normal_Metallic_TexIndex;
 	v_Roughness_AO_Displacement_TexIndex = a_Roughness_AO_Displacement_TexIndex;
 
-//	vec3 T = normalize(a_Tangent);
-//	vec3 N = normalize(a_Normal);
-//	// Re-orthogonalize T with respect to N (Gram-Schmidt)
-//	T = normalize(T - dot(T, N) * N);
-//	vec3 B = cross(N, T);
-//	if (dot(cross(N, T), B) < 0.0)
-//	{
-//		T = T * -1.0;
-//	}
-
 	vec3 T = normalize(a_Tangent);
 	vec3 B = normalize(a_Bitangent);
 	vec3 N = normalize(a_Normal);
@@ -88,11 +78,6 @@ void main()
 //	{
 //		T = T * -1.0;
 //	}
-
-//	   vec3 T = normalize(vec3(model * vec4(aTangent,   0.0)));
-//   vec3 B = normalize(vec3(model * vec4(aBitangent, 0.0)));
-//   vec3 N = normalize(vec3(model * vec4(aNormal,    0.0)));
-//   mat3 TBN = mat3(T, B, N);
 
 	v_TBN = mat3(T, B, N);
 
