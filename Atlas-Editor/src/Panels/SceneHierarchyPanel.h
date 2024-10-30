@@ -17,7 +17,9 @@ namespace Atlas
 		void SetContext(const Ref<Scene>& context);
 
 		Entity* GetSelectedEntity() const { return m_SelectedEntity; }
-		void SetSelectedEntity(Entity* entity);
+		void SelectEntity(Entity* entity);
+		void DuplicateSelectedEntity();
+		void DestroySelectedEntity();
 
 		void OnImGuiRender();
 

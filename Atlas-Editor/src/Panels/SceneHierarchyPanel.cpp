@@ -20,9 +20,27 @@ namespace Atlas
 		m_SelectedEntity = nullptr;
 	}
 
-	void SceneHierarchyPanel::SetSelectedEntity(Entity* entity)
+	void SceneHierarchyPanel::SelectEntity(Entity* entity)
 	{
 		m_SelectedEntity = entity;
+	}
+
+	void SceneHierarchyPanel::DuplicateSelectedEntity()
+	{
+		if (m_SelectedEntity)
+		{
+			Entity* newEntity = m_Context->DuplicateEntity(m_SelectedEntity);
+			m_SelectedEntity = newEntity;
+		}
+	}
+
+	void SceneHierarchyPanel::DestroySelectedEntity()
+	{
+		if (m_SelectedEntity)
+		{
+			m_SelectedEntity = nullptr;
+			m_Context->DestroyEntity(m_SelectedEntity);
+		}
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
