@@ -41,7 +41,7 @@ void main()
 	vec2 noiseSize  = textureSize(u_ScreenTextures[2], 0);
     const vec2 noiseScale = vec2(screenSize.x/noiseSize.x, screenSize.y/noiseSize.y);
 
-	vec4 position  = u_View * texture(u_ScreenTextures[0], v_TexCoords);
+	vec3 position  = vec3(u_View * texture(u_ScreenTextures[0], v_TexCoords)).xyz;
 	vec3 normal    = mat3(u_View) * texture(u_ScreenTextures[1], v_TexCoords).rgb;
 	vec3 randomVec = texture(u_ScreenTextures[2], v_TexCoords * noiseScale).xyz;
 
@@ -52,9 +52,10 @@ void main()
 
 	for(int i = 0; i < u_KernelSize; ++i)
 	{
-		vec4 samplePos = position + vec4(TBN * u_Samples[i] * u_Radius, 1.0);
+		vec3 samplePos = TBN * u_Samples[i];
+		samplePos = position + samplePos * u_Radius;
     
-		vec4 offset = samplePos;
+		vec4 offset = vec4(samplePos, 1.0);
 		offset      = u_Projection * offset;
 		offset.xyz /= offset.w;
 		offset.xyz  = offset.xyz * 0.5 + 0.5;
