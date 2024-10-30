@@ -287,7 +287,7 @@ namespace Atlas
 		Entity* newEntity = CreateEntity(name, parent == nullptr ? entity->GetParent() : parent);
 		CopyComponentIfExists(AllComponents{}, newEntity, entity);
 
-		for (Entity* child : entity->GetChildren())
+		for (Entity* child : entity->GetDirectChildren())
 		{
 			DuplicateEntity(child, newEntity);
 		}
@@ -302,7 +302,7 @@ namespace Atlas
 			entity->SetParent(nullptr);
 		}
 
-		for (Entity* child : entity->GetChildren())
+		for (Entity* child : entity->GetDirectChildren())
 		{
 			DestroyEntity(child, false);
 		}
@@ -406,26 +406,40 @@ namespace Atlas
 	{
 		//std::map<float, entt::entity> transparentEntities;
 		//bool isSelectedEntityTransparent = false;
-;
+
+		std::vector<Entity*> selectedEntities;
+		
+		if (selectedEntity)
 		{
+			selectedEntities = selectedEntity->GetAllChildren();
+			selectedEntities.push_back(selectedEntity);
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Deferred Rendering: Meshes");
 			auto view = m_Registry.view<TransformComponent, MeshComponent>();
-			for (auto entity : view)
+			for (auto entityHandle : view)
 			{
-				if (selectedEntity != nullptr && entity == *selectedEntity)
+				Entity* entity = GetEntity(entityHandle);
+
+				if (selectedEntity && std::find(selectedEntities.begin(), selectedEntities.end(), entity) != selectedEntities.end())
 				{
 					continue;
 				}
 
-				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+				auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entityHandle);
 
-				DrawComponent<MeshComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), mesh);
+				DrawComponent<MeshComponent>(entity, GetEntityTransform(entity), mesh);
 			}
 		}
 
-		//if (selectedEntity && !isSelectedEntityTransparent)
-		if (selectedEntity)
 		{
-			DrawSelectedEntity(selectedEntity);
+			ATLAS_PROFILE_SCOPE("Deferred Rendering: Selected Meshes");
+			//if (selectedEntity && !isSelectedEntityTransparent)
+			if (selectedEntity)
+			{
+				DrawSelectedEntity(selectedEntities);
+			}
 		}
 
 		//if (transparentEntities.size())
@@ -451,45 +465,58 @@ namespace Atlas
 		std::map<float, entt::entity> transparentEntities;
 		bool isSelectedEntityTransparent = false;
 
+		std::vector<Entity*> selectedEntities;
+
+		if (selectedEntity)
 		{
+			selectedEntities = selectedEntity->GetAllChildren();
+			selectedEntities.push_back(selectedEntity);
+		}
+
+		{
+			ATLAS_PROFILE_SCOPE("Forward Rendering: Sprites");
 			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-			for (auto entity : group)
+			for (auto entityHandle : group)
 			{
-				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+				Entity* entity = GetEntity(entityHandle);
+				auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entityHandle);
 
 				if (sprite.Color.a < 1.0f)
 				{
-					transparentEntities[glm::length(cameraPosition - transform.Translation)] = entity;
+					transparentEntities[glm::length(cameraPosition - transform.Translation)] = entityHandle;
 
-					if (selectedEntity != nullptr && entity == *selectedEntity)
+					if (selectedEntity != nullptr && std::find(selectedEntities.begin(), selectedEntities.end(), entity) != selectedEntities.end())
 					{
 						isSelectedEntityTransparent = true;
 					}
 				}
 				else
 				{
-					if (selectedEntity != nullptr && entity == *selectedEntity)
+					if (selectedEntity != nullptr && std::find(selectedEntities.begin(), selectedEntities.end(), entity) != selectedEntities.end())
 					{
 						continue;
 					}
 
-					DrawComponent<SpriteRendererComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), sprite);
+					DrawComponent<SpriteRendererComponent>(entity, GetEntityTransform(entity), sprite);
 				}
 			}
 		}
 
 		if (isEditor)
 		{
+			ATLAS_PROFILE_SCOPE("Forward Rendering: Editor Elements");
 			auto view = m_Registry.view<TransformComponent, LightSourceComponent>();
-			for (auto entity : view)
+			for (auto entityHandle : view)
 			{
-				if (selectedEntity != nullptr && entity == *selectedEntity)
+				Entity* entity = GetEntity(entityHandle);
+
+				if (selectedEntity != nullptr && std::find(selectedEntities.begin(), selectedEntities.end(), entity) != selectedEntities.end())
 				{
 					continue;
 				}
 
-				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entity);
-				DrawComponent<LightSourceComponent>(GetEntity(entity), GetEntityTransform(GetEntity(entity)), light);
+				auto [transform, light] = view.get<TransformComponent, LightSourceComponent>(entityHandle);
+				DrawComponent<LightSourceComponent>(entity, GetEntityTransform(entity), light);
 			}
 		}
 
@@ -497,14 +524,20 @@ namespace Atlas
 		{
 			if (selectedEntity->TryGetComponent<MeshComponent>() == nullptr)
 			{
-				DrawSelectedEntity(selectedEntity);
+				ATLAS_PROFILE_SCOPE("Forward Rendering: Selected Sprites & Editor Elements");
+				DrawSelectedEntity(selectedEntities);
 			}
 
-			DrawSelectedEntityOutline(selectedEntity);
+			{
+				ATLAS_PROFILE_SCOPE("Forward Rendering: Selected Entities Outlines");
+				DrawSelectedEntityOutline(selectedEntities);
+			}
 		}
 
 		if (transparentEntities.size())
 		{
+			ATLAS_PROFILE_SCOPE("Forward Rendering: Transparent Sprites");
+
 			Renderer::NextBatch();
 
 			for (std::map<float, entt::entity>::reverse_iterator it = transparentEntities.rbegin(); it != transparentEntities.rend(); ++it)
@@ -513,10 +546,10 @@ namespace Atlas
 				{
 					if (selectedEntity->TryGetComponent<MeshComponent>() == nullptr)
 					{
-						DrawSelectedEntity(selectedEntity);
+						DrawSelectedEntity(selectedEntities);
 					}
 
-					DrawSelectedEntityOutline(selectedEntity);
+					DrawSelectedEntityOutline(selectedEntities);
 				}
 				else
 				{
@@ -544,40 +577,46 @@ namespace Atlas
 		}
 	}
 
-	void Scene::DrawSelectedEntity(Entity* entity)
+	void Scene::DrawSelectedEntity(std::vector<Entity*> entities)
 	{
 		Renderer::NextBatch();
 
-		DrawEntity(entity);
+		for (Entity* entity : entities)
+		{
+			DrawEntity(entity);
+		}
 
 		RenderCommand::SetStencilMask(0xFF);
 		Renderer::NextBatch();
 		RenderCommand::SetStencilMask(0x00);
 	}
 
-	void Scene::DrawSelectedEntityOutline(Entity* entity)
+	void Scene::DrawSelectedEntityOutline(std::vector<Entity*> entities)
 	{
 		Renderer::NextBatch();
 
-		glm::mat4 transform = GetEntityTransform(entity);
-		glm::vec4 selectionColor = { 0.400f, 0.733f, 0.417f, 1.0f }; // TODO: Link to palette (selection green)
+		for (Entity* entity : entities)
+		{
+			glm::mat4 transform = GetEntityTransform(entity);
+			glm::vec4 selectionColor = { 0.400f, 0.733f, 0.417f, 1.0f }; // TODO: Link to palette (selection green)
 		
-		if (entity->HasComponent<MeshComponent>())
-		{
-			Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity->GetHandle()), selectionColor, (int)entity->GetHandle());
-		}
+			if (entity->HasComponent<MeshComponent>())
+			{
+				Renderer::DrawMeshOutline(transform, m_Registry.get<MeshComponent>(entity->GetHandle()), selectionColor, (int)entity->GetHandle());
+			}
 
-		glm::vec3 scale = m_Registry.get<TransformComponent>(entity->GetHandle()).Scale;
-		float outlineSize = 0.1f;
-		transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z));
+			glm::vec3 scale = m_Registry.get<TransformComponent>(entity->GetHandle()).Scale;
+			float outlineSize = 0.1f;
+			transform = glm::scale(transform, glm::vec3(1.0f + outlineSize / scale.x, 1.0f + outlineSize / scale.y, 1.0f + outlineSize / scale.z));
 
-		if (entity->HasComponent<SpriteRendererComponent>())
-		{
-			Renderer::DrawQuad(transform, selectionColor, (int)entity->GetHandle());
-		}
-		else if (entity->HasComponent<LightSourceComponent>())
-		{
-			Renderer::DrawCircle(transform, selectionColor, 0.1f, 0.0f, (int)entity->GetHandle());
+			if (entity->HasComponent<SpriteRendererComponent>())
+			{
+				Renderer::DrawQuad(transform, selectionColor, (int)entity->GetHandle());
+			}
+			else if (entity->HasComponent<LightSourceComponent>())
+			{
+				Renderer::DrawCircle(transform, selectionColor, 0.1f, 0.0f, (int)entity->GetHandle());
+			}
 		}
 
 		RenderCommand::SetStencilFunction(RendererAPI::TestFunction::NotEqual, 1, 0xFF);

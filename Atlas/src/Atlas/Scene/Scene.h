@@ -51,8 +51,8 @@ namespace Atlas
 		void DrawSceneDeferred(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity);
 		void DrawSceneForward(const glm::vec3& cameraPosition, bool isEditor, Entity* selectedEntity);
 		void DrawEntity(Entity* entity);
-		void DrawSelectedEntity(Entity* entity);
-		void DrawSelectedEntityOutline(Entity* entity);
+		void DrawSelectedEntity(std::vector<Entity*> entities);
+		void DrawSelectedEntityOutline(std::vector<Entity*> entities);
 
 		template<typename T>
 		void DrawComponent(Entity* entity, const glm::mat4& transform, const T& component);

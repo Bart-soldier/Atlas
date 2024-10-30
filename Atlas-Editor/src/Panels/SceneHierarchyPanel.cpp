@@ -125,7 +125,7 @@ namespace Atlas
 
 		if (opened)
 		{
-			for (Entity* child : entity->GetChildren())
+			for (Entity* child : entity->GetDirectChildren())
 			{
 				DrawEntityNode(child);
 			}
