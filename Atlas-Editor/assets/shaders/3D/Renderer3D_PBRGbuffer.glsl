@@ -110,19 +110,19 @@ vec2 ParallaxMapping(uint displacementTexIndex, vec2 texCoord, vec3 viewDirectio
     vec2 deltaTexCoord = P / numLayers;
 
 	vec2  currentTexCoord      = texCoord;
-	float currentDepthMapValue = texture(u_Textures[displacementTexIndex], currentTexCoord).r;
+	float currentDepthMapValue = 1.0 - texture(u_Textures[displacementTexIndex], currentTexCoord).r;
   
 	while(currentLayerDepth < currentDepthMapValue)
 	{
 		currentTexCoord -= deltaTexCoord;
-		currentDepthMapValue = texture(u_Textures[displacementTexIndex], currentTexCoord).r;
+		currentDepthMapValue = 1.0 - texture(u_Textures[displacementTexIndex], currentTexCoord).r;
 		currentLayerDepth += layerDepth;
 	}
 
 	vec2 prevTexCoord = currentTexCoord + deltaTexCoord;
 
 	float afterDepth  = currentDepthMapValue - currentLayerDepth;
-	float beforeDepth = texture(u_Textures[displacementTexIndex], prevTexCoord).r - currentLayerDepth + layerDepth;
+	float beforeDepth = 1.0 - texture(u_Textures[displacementTexIndex], prevTexCoord).r - currentLayerDepth + layerDepth;
 
 	float weight = afterDepth / (afterDepth - beforeDepth);
 	vec2 finalTexCoord = prevTexCoord * weight + currentTexCoord * (1.0 - weight);

@@ -9,14 +9,15 @@ layout(location = 0)  in vec4 a_Position_ID;                        // XYZ: Posi
 layout(location = 1)  in vec3 a_Normal;
 layout(location = 2)  in vec2 a_TexCoord;
 layout(location = 3)  in vec3 a_Tangent;
+layout(location = 4)  in vec3 a_Bitangent;
 
-layout(location = 4)  in mat4 a_Model;
+layout(location = 5)  in mat4 a_Model;
 
-layout(location = 8)  in vec3 a_Color;
-layout(location = 9)  in vec2 a_Metallic_Roughness;                 // X: Metallic,  Y: Roughness
+layout(location = 9)  in vec3 a_Color;
+layout(location = 10)  in vec2 a_Metallic_Roughness;                 // X: Metallic,  Y: Roughness
 
-layout(location = 10) in vec3 a_Albedo_Normal_Metallic_TexIndex;    // X: Albedo,    Y: Normal, Z: Metallic
-layout(location = 11) in vec3 a_Roughness_AO_Displacement_TexIndex; // X: Roughness, Y: AO,     Z: Displacement
+layout(location = 11) in vec3 a_Albedo_Normal_Metallic_TexIndex;    // X: Albedo,    Y: Normal, Z: Metallic
+layout(location = 12) in vec3 a_Roughness_AO_Displacement_TexIndex; // X: Roughness, Y: AO,     Z: Displacement
 
 layout (binding = 0) uniform sampler2D u_Textures[32];
 
@@ -67,14 +68,16 @@ void main()
 	v_Roughness_AO_Displacement_TexIndex = a_Roughness_AO_Displacement_TexIndex;
 
 	vec3 T = normalize(a_Tangent);
+	vec3 B = normalize(a_Bitangent);
 	vec3 N = normalize(a_Normal);
 	// Re-orthogonalize T with respect to N (Gram-Schmidt)
 	T = normalize(T - dot(T, N) * N);
-	vec3 B = cross(N, T);
-	if (dot(cross(N, T), B) < 0.0)
-	{
-		T = T * -1.0;
-	}
+	// Re-orthogonalize B with respect to N (Gram-Schmidt)
+	B = normalize(B - dot(B, N) * N);
+//	if (dot(cross(N, T), B) < 0.0)
+//	{
+//		T = T * -1.0;
+//	}
 
 	v_TBN = mat3(T, B, N);
 

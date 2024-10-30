@@ -56,6 +56,7 @@ namespace Atlas
 		void OnSceneStop();
 
 		void OnDuplicateEntity();
+		void OnDestroyEntity();
 
 		// UI Panels
 		void UI_Toolbar();

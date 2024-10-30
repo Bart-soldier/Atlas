@@ -34,22 +34,46 @@ namespace Atlas
 		m_Parent = parent;
 	}
 
-	const std::vector<Entity*>& Entity::GetChildren()
+	const std::vector<Entity*>& Entity::GetDirectChildren()
 	{
-		return m_Children;
+		return m_DirectChildren;
+	}
+
+	std::vector<Entity*> Entity::GetAllChildren()
+	{
+		std::vector<Entity*> allChildren;
+
+		size_t childrenNb = m_DirectChildren.size();
+
+		if (childrenNb > 0)
+		{
+			allChildren.reserve(childrenNb);
+
+			for (Entity* child : m_DirectChildren)
+			{
+				std::vector<Entity*> allChildDescendants = child->GetAllChildren();
+				if (allChildDescendants.size() > 0)
+				{
+					allChildren.insert(allChildren.end(), allChildDescendants.begin(), allChildDescendants.end());
+				}
+				allChildren.push_back(child);
+			}
+		}
+
+		return allChildren;
 	}
 
 	void Entity::AddChild(Entity* child)
 	{
-		m_Children.push_back(child);
+		m_DirectChildren.push_back(child);
 	}
 
 	void Entity::RemoveChild(Entity* child)
 	{
-		auto it = std::find(m_Children.begin(), m_Children.end(), child);
+		auto it = std::find(m_DirectChildren.begin(), m_DirectChildren.end(), child);
 
-		if (it != m_Children.end()) {
-			m_Children.erase(it);
+		if (it != m_DirectChildren.end()) {
+			m_DirectChildren.erase(it);
 		}
 	}
 }

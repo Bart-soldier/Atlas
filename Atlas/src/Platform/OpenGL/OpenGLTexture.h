@@ -10,7 +10,7 @@ namespace Atlas
 	{
 	public:
 		OpenGLTexture2D(const TextureSpecification& specification);
-		OpenGLTexture2D(const std::filesystem::path& path, const bool generateMips = true);
+		OpenGLTexture2D(const std::filesystem::path& path, const bool generateMips = true, const bool flipOnLoad = true);
 		virtual ~OpenGLTexture2D();
 
 		virtual const TextureSpecification& GetSpecification() const override { return m_Specification; }

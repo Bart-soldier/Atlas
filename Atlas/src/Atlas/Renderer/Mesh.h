@@ -20,16 +20,17 @@ namespace Atlas
 			glm::vec3 Normal;
 			glm::vec2 TexCoords;
 			glm::vec3 Tangent;
+			glm::vec3 Bitangent;
 
 			Vertex(float posX, float posY, float posZ, float normX, float normY, float normZ, float texU, float texV,
-				float tanX = 1.0f, float tanY = 0.0f, float tanZ = 0.0f)
+				float tanX = 1.0f, float tanY = 0.0f, float tanZ = 0.0f, float bitanX = 1.0f, float bitanY = 0.0f, float bitanZ = 0.0f)
 				: Position({ posX, posY, posZ }), Normal({ normX, normY, normZ }), TexCoords({ texU, texV }),
-				  Tangent({tanX, tanY, tanZ})
+				  Tangent({tanX, tanY, tanZ}), Bitangent({ bitanX, bitanY, bitanZ })
 			{}
 			Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoords,
-				glm::vec3 tangent = { 1.0f, 0.0f, 0.0f })
+				glm::vec3 tangent = { 1.0f, 0.0f, 0.0f }, glm::vec3 bitangent = { 1.0f, 0.0f, 0.0f })
 				: Position(position), Normal(normal), TexCoords(texCoords),
-				Tangent(tangent)
+				Tangent(tangent), Bitangent(bitangent)
 			{}
 		};
 

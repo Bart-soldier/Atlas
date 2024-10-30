@@ -84,7 +84,8 @@ namespace Atlas
 
 		Entity* GetParent();
 		void SetParent(Entity* parent);
-		const std::vector<Entity*>& GetChildren();
+		const std::vector<Entity*>& GetDirectChildren();
+		std::vector<Entity*> GetAllChildren();
 
 	private:
 		void AddChild(Entity* child);
@@ -94,6 +95,6 @@ namespace Atlas
 		Scene* m_Scene = nullptr;
 
 		Entity* m_Parent = nullptr;
-		std::vector<Entity*> m_Children;
+		std::vector<Entity*> m_DirectChildren;
 	};
 }

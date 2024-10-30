@@ -20,9 +20,27 @@ namespace Atlas
 		m_SelectedEntity = nullptr;
 	}
 
-	void SceneHierarchyPanel::SetSelectedEntity(Entity* entity)
+	void SceneHierarchyPanel::SelectEntity(Entity* entity)
 	{
 		m_SelectedEntity = entity;
+	}
+
+	void SceneHierarchyPanel::DuplicateSelectedEntity()
+	{
+		if (m_SelectedEntity)
+		{
+			Entity* newEntity = m_Context->DuplicateEntity(m_SelectedEntity);
+			m_SelectedEntity = newEntity;
+		}
+	}
+
+	void SceneHierarchyPanel::DestroySelectedEntity()
+	{
+		if (m_SelectedEntity)
+		{
+			m_Context->DestroyEntity(m_SelectedEntity);
+			m_SelectedEntity = nullptr;
+		}
 	}
 
 	void SceneHierarchyPanel::OnImGuiRender()
@@ -48,7 +66,7 @@ namespace Atlas
 				}
 			}
 
-			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+			if ((ImGui::IsMouseDown(0) || ImGui::IsMouseDown(1)) && ImGui::IsWindowHovered())
 			{
 				m_SelectedEntity = nullptr;
 			}
@@ -104,9 +122,16 @@ namespace Atlas
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
+			m_SelectedEntity = entity;
+
 			if (ImGui::MenuItem("Create Entity"))
 			{
 				m_Context->CreateEntity("Untitled Entity", entity);
+			}
+
+			if (ImGui::MenuItem("Duplicate Entity"))
+			{
+				DuplicateSelectedEntity();
 			}
 
 			if (ImGui::MenuItem("Delete Entity"))
@@ -125,7 +150,7 @@ namespace Atlas
 
 		if (opened)
 		{
-			for (Entity* child : entity->GetChildren())
+			for (Entity* child : entity->GetDirectChildren())
 			{
 				DrawEntityNode(child);
 			}
@@ -145,11 +170,11 @@ namespace Atlas
 
 		if (entityDeleted)
 		{
-			m_Context->DestroyEntity(entity);
 			if (m_SelectedEntity == entity)
 			{
 				m_SelectedEntity = nullptr;
 			}
+			m_Context->DestroyEntity(entity);
 		}
 	}
 
@@ -168,7 +193,7 @@ namespace Atlas
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), tag.c_str());
-			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+			if (ImGui::InputText("##Tag", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
 			{
 				tag = std::string(buffer);
 			}
@@ -542,7 +567,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetAlbedoTexture(texture);
@@ -574,7 +599,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetNormalTexture(texture);
@@ -600,7 +625,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetMetallicTexture(texture);
@@ -635,7 +660,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetRoughnessTexture(texture);
@@ -670,7 +695,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetAOTexture(texture);
@@ -694,7 +719,7 @@ namespace Atlas
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					std::filesystem::path payloadPath(path);
 
-					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string());
+					Ref<Texture2D> texture = Texture2D::Create(payloadPath.string(), true, false);
 					if (texture->IsLoaded())
 					{
 						material->SetDisplacementTexture(texture);

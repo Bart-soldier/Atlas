@@ -334,9 +334,25 @@ namespace Atlas
 				transformComponent.Scale = scale;
 			}
 		}
+
+		ImGui::PopStyleVar();
+
+		if (IsViewportClickable() && ImGui::BeginPopupContextWindow())
+		{
+			if (ImGui::MenuItem("Duplicate Entity"))
+			{
+				OnDuplicateEntity();
+			}
+
+			if (ImGui::MenuItem("Delete Entity"))
+			{
+				OnDestroyEntity();
+			}
+
+			ImGui::EndPopup();
+		}
 		
 		ImGui::End();
-		ImGui::PopStyleVar();
 
 		UI_Toolbar();
 
@@ -358,14 +374,17 @@ namespace Atlas
 
 	bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
 	{
-		// Shortcuts
-		if (e.IsRepeat())
+		// Editor-only shortcuts
+		if (e.IsRepeat() || m_SceneState != SceneState::Edit || Application::Get().GetImGuiLayer()->GetActiveWidgetID() != 0)
+		{
 			return false;
+		}
 
 		bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
 		bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
 		switch (e.GetKeyCode())
 		{
+			// Project Commands
 			case Key::N:
 				if (control)
 				{
@@ -391,6 +410,7 @@ namespace Atlas
 					}
 				}
 				break;
+
 			// Scene Commands
 			case Key::D:
 				if (control)
@@ -398,48 +418,37 @@ namespace Atlas
 					OnDuplicateEntity();
 				}
 				break;
+			case Key::Delete:
+			{
+				OnDestroyEntity();
+				break;
+			}
+
 			// Gizmos
 			case Key::Q:
-				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				if (!ImGuizmo::IsUsing())
 				{
 					m_GizmoType = -1;
 				}
 				break;
 			case Key::T:
-				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				if (!ImGuizmo::IsUsing())
 				{
 					m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 				}
 				break;
 			case Key::R:
-				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				if (!ImGuizmo::IsUsing())
 				{
 					m_GizmoType = ImGuizmo::OPERATION::ROTATE;
 				}
 				break;
 			case Key::E:
-				if (!ImGuizmo::IsUsing() && Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				if (!ImGuizmo::IsUsing())
 				{
 					m_GizmoType = ImGuizmo::OPERATION::SCALE;
 				}
 				break;
-			case Key::Delete:
-			{
-				if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
-				{
-					Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-					if (selectedEntity)
-					{
-						m_SceneHierarchyPanel.SetSelectedEntity(nullptr);
-						m_ActiveScene->DestroyEntity(selectedEntity);
-						if (selectedEntity == m_HoveredEntity)
-						{
-							m_HoveredEntity = nullptr;
-						}
-					}
-				}
-				break;
-			}
 		}
 
 		return false;
@@ -452,7 +461,13 @@ namespace Atlas
 			case Mouse::ButtonLeft:
 				if (IsViewportClickable())
 				{
-					m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+					m_SceneHierarchyPanel.SelectEntity(m_HoveredEntity);
+				}
+				break;
+			case Mouse::ButtonRight:
+				if (IsViewportClickable())
+				{
+					m_SceneHierarchyPanel.SelectEntity(m_HoveredEntity);
 				}
 				break;
 		}
@@ -703,17 +718,17 @@ namespace Atlas
 
 	void EditorLayer::OnDuplicateEntity()
 	{
-		if (m_SceneState != SceneState::Edit)
+		m_SceneHierarchyPanel.DuplicateSelectedEntity();
+	}
+
+	void EditorLayer::OnDestroyEntity()
+	{
+		if (m_SceneHierarchyPanel.GetSelectedEntity() == m_HoveredEntity)
 		{
-			return;
+			m_HoveredEntity = nullptr;
 		}
 
-		Entity* selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-		if (selectedEntity)
-		{
-			Entity* newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
-			m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
-		}
+		m_SceneHierarchyPanel.DestroySelectedEntity();
 	}
 
 	void EditorLayer::UI_Toolbar()
