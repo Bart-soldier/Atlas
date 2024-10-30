@@ -111,7 +111,6 @@ namespace Atlas
 	void OpenGLRendererAPI::EnableDepthTest()
 	{
 		glEnable(GL_DEPTH_TEST);
-		glCullFace(GL_BACK);
 	}
 
 	void OpenGLRendererAPI::DisableDepthTest()
@@ -129,14 +128,24 @@ namespace Atlas
 		glStencilFunc(Utils::TestFunctionToGLenum(function), reference, mask);
 	}
 
-	void OpenGLRendererAPI::EnableBackCulling()
+	void OpenGLRendererAPI::EnableCulling()
 	{
 		glEnable(GL_CULL_FACE);
 	}
 
-	void OpenGLRendererAPI::DisableBackCulling()
+	void OpenGLRendererAPI::DisableCulling()
 	{
 		glDisable(GL_CULL_FACE);
+	}
+
+	void OpenGLRendererAPI::SetBackCulling()
+	{
+		glCullFace(GL_BACK);
+	}
+
+	void OpenGLRendererAPI::SetFrontCulling()
+	{
+		glCullFace(GL_FRONT);
 	}
 
 	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color)
@@ -174,6 +183,11 @@ namespace Atlas
 	void OpenGLRendererAPI::BindTextureSlot(uint32_t slot, uint32_t rendererID)
 	{
 		glBindTextureUnit(slot, rendererID);
+	}
+
+	void OpenGLRendererAPI::SetPointSize(const float& size)
+	{
+		glPointSize(size);
 	}
 
 	void OpenGLRendererAPI::SetLineWidth(const float& width)

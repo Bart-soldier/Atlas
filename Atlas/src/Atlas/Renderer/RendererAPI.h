@@ -56,8 +56,10 @@ namespace Atlas
 		virtual void SetStencilMask(const uint32_t& mask) = 0;
 		virtual void SetStencilFunction(const TestFunction& function, const int& reference, const uint32_t& mask) = 0;
 
-		virtual void EnableBackCulling() = 0;
-		virtual void DisableBackCulling() = 0;
+		virtual void EnableCulling() = 0;
+		virtual void DisableCulling() = 0;
+		virtual void SetBackCulling() = 0;
+		virtual void SetFrontCulling() = 0;
 
 		virtual void SetClearColor(const glm::vec4& color) = 0;
 		virtual void Clear() = 0;
@@ -69,7 +71,9 @@ namespace Atlas
 
 		virtual void BindTextureSlot(uint32_t slot, uint32_t rendererID) = 0;
 
+		virtual void SetPointSize(const float& size) = 0;
 		virtual void SetLineWidth(const float& width) = 0;
+
 		virtual void SetPolygonMode(const PolygonMode& mode) = 0;
 
 		static API GetAPI() { return s_API; }

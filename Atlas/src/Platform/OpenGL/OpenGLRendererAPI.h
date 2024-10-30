@@ -15,8 +15,10 @@ namespace Atlas
 		virtual void SetStencilMask(const uint32_t& mask) override;
 		virtual void SetStencilFunction(const TestFunction& function, const int& reference, const uint32_t& mask) override;
 
-		virtual void EnableBackCulling() override;
-		virtual void DisableBackCulling() override;
+		virtual void EnableCulling() override;
+		virtual void DisableCulling() override;
+		virtual void SetBackCulling() override;
+		virtual void SetFrontCulling() override;
 
 		virtual void SetClearColor(const glm::vec4& color) override;
 		virtual void Clear() override;
@@ -28,6 +30,7 @@ namespace Atlas
 
 		virtual void BindTextureSlot(uint32_t slot, uint32_t rendererID) override;
 
+		virtual void SetPointSize(const float& size) override;
 		virtual void SetLineWidth(const float& width) override;
 
 		virtual void SetPolygonMode(const PolygonMode& mode) override;

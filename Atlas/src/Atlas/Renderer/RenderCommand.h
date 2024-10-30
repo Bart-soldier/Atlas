@@ -37,14 +37,24 @@ namespace Atlas
 			s_RendererAPI->SetStencilFunction(function, reference, mask);
 		}
 
-		static void EnableBackCulling()
+		static void EnableCulling()
 		{
-			s_RendererAPI->EnableBackCulling();
+			s_RendererAPI->EnableCulling();
 		}
 
-		static void DisableBackCulling()
+		static void DisableCulling()
 		{
-			s_RendererAPI->DisableBackCulling();
+			s_RendererAPI->DisableCulling();
+		}
+
+		static void SetBackCulling()
+		{
+			s_RendererAPI->SetBackCulling();
+		}
+
+		static void SetFrontCulling()
+		{
+			s_RendererAPI->SetFrontCulling();
 		}
 
 		static void SetClearColor(const glm::vec4& color)
@@ -80,6 +90,11 @@ namespace Atlas
 		static void BindTextureSlot(uint32_t slot, uint32_t rendererID)
 		{
 			s_RendererAPI->BindTextureSlot(slot, rendererID);
+		}
+
+		static void SetPointSize(const float& size)
+		{
+			s_RendererAPI->SetPointSize(size);
 		}
 
 		static void SetLineWidth(float width)

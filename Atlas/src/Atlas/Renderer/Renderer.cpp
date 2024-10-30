@@ -204,6 +204,9 @@ namespace Atlas
 		InitTextures();
 		InitShaders();
 		InitBuffers();
+
+		RenderCommand::SetLineWidth(2.0f);
+		RenderCommand::SetPointSize(2.0f);
 	}
 
 	void Renderer::InitArrays()
@@ -857,7 +860,8 @@ namespace Atlas
 
 		if (s_RendererData.MeshIndexCount)
 		{
-			RenderCommand::EnableBackCulling();
+			RenderCommand::EnableCulling();
+			RenderCommand::SetBackCulling();
 
 			// VBO
 			s_RendererData.MeshVertexBuffer->SetData(s_RendererData.MeshVertexBufferBase, sizeof(MeshVertex) * s_RendererData.MeshVertexCount);
@@ -878,12 +882,15 @@ namespace Atlas
 			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);
 			s_RendererData.Stats.DrawCalls++;
 
-			RenderCommand::DisableBackCulling();
+			RenderCommand::DisableCulling();
 		}
 
 		if (s_RendererData.MeshOutlineIndexCount)
 		{
-			RenderCommand::EnableBackCulling();
+			RenderCommand::EnableCulling();
+			RenderCommand::SetFrontCulling();
+			RenderCommand::SetLineWidth(10.0f);
+			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Line);
 
 			// VBO
 			s_RendererData.MeshOutlineVertexBuffer->SetData(s_RendererData.MeshOutlineVertexBufferBase, sizeof(SimpleVertex) * s_RendererData.MeshOutlineVertexCount);
@@ -898,7 +905,9 @@ namespace Atlas
 			RenderCommand::DrawIndexed(s_RendererData.MeshOutlineVertexArray, s_RendererData.MeshOutlineIndexCount);
 			s_RendererData.Stats.DrawCalls++;
 
-			RenderCommand::DisableBackCulling();
+			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
+			RenderCommand::DisableCulling();
+			RenderCommand::SetLineWidth(2.0f);
 		}
 	}
 
