@@ -4,7 +4,7 @@
 
 ## Preamble
 
-The Atlas Engine is an experimental project. Its purpose is to act as a sandbox for studying, implementing and demonstrating different kinds of rendering techniques and systems, not as a fully-featured infallible engine.
+The Atlas Engine is an experimental project. Its purpose is to act as a sandbox for studying, implementing and demonstrating different kinds of rendering techniques and systems, not as a fully-featured infallible engine. <br/>
 Furthermore, the output of some shader programs depend on the graphics device. It is recommended to run the Atlas Editor with an NVIDIA graphics card, analogously to the development environment. Please read [SELECTING_NVIDIA.md](https://github.com/Bart-soldier/Atlas/blob/main/SELECTING_NVIDIA.md) for instructions on how to selected your NVIDIA card as the editor's graphics environment.
 
 ## Getting Started
@@ -51,3 +51,6 @@ This project uses the following external dependencies:
 This project used the following resources:
 - [The Cherno's](https://www.youtube.com/@TheCherno) Game Engine series,
 - [LearnOpenGL](https://learnopengl.com/).
+
+## Models, materials and HDRi credits
+Some of the models and materials included with the example project are free assets from [Poliigon](https://www.poliigon.com/), while the HDRis are free assets from [HDRi Haven](https://hdri-haven.com/).
