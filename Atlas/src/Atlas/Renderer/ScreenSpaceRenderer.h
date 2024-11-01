@@ -1,13 +1,14 @@
 #pragma once
+#pragma once
 
 #include "Atlas/Renderer/Texture.h"
 
 namespace Atlas
 {
-	class PostProcessor
+	class ScreenSpaceRenderer
 	{
 	public:
-		enum class PostProcessingEffect
+		enum class PostProcessingEffects
 		{
 			None = 0,
 			// User-related
@@ -34,10 +35,10 @@ namespace Atlas
 
 		static void Init();
 
-		static void ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings);
+		static void ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings);
 		static void ApplyAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID);
 		static void ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
-										 const uint32_t& ssaoTexID);
+			const uint32_t& ssaoTexID);
 		static void ApplySSAO(const uint32_t& positionTexID, const uint32_t& normalTexID);
 		static void ApplySSAOBlur(const uint32_t& ssaoTexID);
 

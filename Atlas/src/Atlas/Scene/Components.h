@@ -8,7 +8,7 @@
 #include "Atlas/Renderer/Light.h"
 #include "Atlas/Renderer/Material.h"
 #include "Atlas/Renderer/Mesh.h"
-#include "Atlas/Renderer/PostProcessor.h"
+#include "Atlas/Renderer/ScreenSpaceRenderer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -73,7 +73,7 @@ namespace Atlas
 
 	struct PostProcessorComponent
 	{
-		std::vector<PostProcessor::PostProcessingEffect> Effects = { PostProcessor::PostProcessingEffect::None };
+		std::vector<ScreenSpaceRenderer::PostProcessingEffects> Effects = { ScreenSpaceRenderer::PostProcessingEffects::None };
 		std::vector<float> KernelOffsets = { 0.0f };
 
 		PostProcessorComponent() = default;

@@ -3,6 +3,8 @@
 
 #include <Atlas/Core/Application.h>
 
+#include "Atlas/Renderer/ScreenSpaceRenderer.h"
+
 #include "Atlas/Renderer/Framebuffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
@@ -621,7 +623,7 @@ namespace Atlas
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
-		PostProcessor::ApplyDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
+		ScreenSpaceRenderer::ApplyDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
 											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material),
 											GetSSAOFramebufferID());
 		RenderCommand::EnableDepthTest();
@@ -641,10 +643,10 @@ namespace Atlas
 			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 			RenderCommand::DisableDepthTest();
 
-			PostProcessor::ApplySSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
+			ScreenSpaceRenderer::ApplySSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
 
 			s_RendererData.SSAOFramebuffer->Bind();
-			PostProcessor::ApplySSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
+			ScreenSpaceRenderer::ApplySSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
 
 			RenderCommand::EnableDepthTest();
 			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
@@ -961,9 +963,9 @@ namespace Atlas
 
 		for (uint32_t i = 1; i < bloomSamples; i++)
 		{
-			PostProcessor::ApplyPostProcessingEffect(
+			ScreenSpaceRenderer::ApplyPostProcessingEffect(
 				firstIteration ? Renderer::GetFramebufferRenderID(RenderBuffers::BrightColors) : Renderer::GetLastDrawnFramebufferID(),
-				PostProcessor::PostProcessingEffect::Bloom,
+				ScreenSpaceRenderer::PostProcessingEffects::Bloom,
 				horizontal ? 1.0f : -1.0f);
 
 			if (firstIteration)
@@ -975,7 +977,7 @@ namespace Atlas
 			TogglePostProcessingFramebuffers();
 		}
 
-		PostProcessor::ApplyAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastDrawnFramebufferID());
+		ScreenSpaceRenderer::ApplyAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastDrawnFramebufferID());
 		TogglePostProcessingFramebuffers();
 	}
 
@@ -983,10 +985,10 @@ namespace Atlas
 	{
 		if (!s_RendererData.HDR)
 		{
-			PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
+			ScreenSpaceRenderer::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::ToneMapping, Renderer::GetExposure());
 			TogglePostProcessingFramebuffers();
 		}
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		ScreenSpaceRenderer::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection, Renderer::GetGamma());
 		TogglePostProcessingFramebuffers();
 
 		RenderCommand::EnableDepthTest();
@@ -1015,9 +1017,9 @@ namespace Atlas
 		{
 			for (int i = 0; i < postProcessor->Effects.size(); i++)
 			{
-				if (postProcessor->Effects[i] != PostProcessor::PostProcessingEffect::None)
+				if (postProcessor->Effects[i] != ScreenSpaceRenderer::PostProcessingEffects::None)
 				{
-					PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+					ScreenSpaceRenderer::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
 					TogglePostProcessingFramebuffers();
 				}
 			}

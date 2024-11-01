@@ -3,7 +3,6 @@
 
 #include "Atlas/Utils/PlatformUtils.h"
 
-#include "Atlas/Renderer/PostProcessor.h"
 #include "Atlas/Renderer/Model.h"
 
 #include <imgui/imgui.h>

@@ -3,7 +3,7 @@
 
 #include "Atlas/Renderer/RenderCommand.h"
 #include "Atlas/Renderer/Renderer.h"
-#include "Atlas/Renderer/PostProcessor.h"
+#include "Atlas/Renderer/ScreenSpaceRenderer.h"
 
 #include "Atlas/Core/Input.h"
 
@@ -35,7 +35,7 @@ namespace Atlas
 
 			RenderCommand::Init();
 			Renderer::Init();
-			PostProcessor::Init();
+			ScreenSpaceRenderer::Init();
 		}
 
 		m_ImGuiLayer = new ImGuiLayer();

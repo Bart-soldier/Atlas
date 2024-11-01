@@ -1,5 +1,5 @@
 #include "atlaspch.h"
-#include "Atlas/Renderer/PostProcessor.h"
+#include "Atlas/Renderer/ScreenSpaceRenderer.h"
 
 #include <random>
 
@@ -28,7 +28,7 @@ namespace Atlas
 	struct PostProcessorData
 	{
 		static const uint32_t RenderVertices = 4;
-		static const uint32_t RenderIndices  = 6;
+		static const uint32_t RenderIndices = 6;
 		Ref<VertexArray> RenderVertexArray;
 
 		// SSAO
@@ -38,7 +38,7 @@ namespace Atlas
 		Ref<UniformBuffer> SSAOSamplesUniformBuffer;
 
 		// Post Processing Settings
-		PostProcessor::Settings SettingsBuffer;
+		ScreenSpaceRenderer::Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
 
 		// User-related
@@ -59,7 +59,7 @@ namespace Atlas
 
 	static PostProcessorData s_PostProcessorData;
 
-	void PostProcessor::Init()
+	void ScreenSpaceRenderer::Init()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
@@ -69,19 +69,19 @@ namespace Atlas
 		// Render VBO
 		RenderVertex vertices[s_PostProcessorData.RenderVertices];
 		vertices[0].Position = { -1.0f, -1.0f };
-		vertices[1].Position = {  1.0f, -1.0f };
-		vertices[2].Position = {  1.0f,  1.0f };
+		vertices[1].Position = { 1.0f, -1.0f };
+		vertices[2].Position = { 1.0f,  1.0f };
 		vertices[3].Position = { -1.0f,  1.0f };
 
-		vertices[0].TexCoord = {  0.0f,  0.0f };
-		vertices[1].TexCoord = {  1.0f,  0.0f };
-		vertices[2].TexCoord = {  1.0f,  1.0f };
-		vertices[3].TexCoord = {  0.0f,  1.0f };
+		vertices[0].TexCoord = { 0.0f,  0.0f };
+		vertices[1].TexCoord = { 1.0f,  0.0f };
+		vertices[2].TexCoord = { 1.0f,  1.0f };
+		vertices[3].TexCoord = { 0.0f,  1.0f };
 
 		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, s_PostProcessorData.RenderVertices * sizeof(RenderVertex));
 		vertexBuffer->SetLayout({
 			{ ShaderDataType::Float4, "a_VertexData" } // xy is Position and zw is Texcoords
-		});
+			});
 		s_PostProcessorData.RenderVertexArray->AddVertexBuffer(vertexBuffer);
 
 		// Render IBO / EBO
@@ -97,31 +97,31 @@ namespace Atlas
 		s_PostProcessorData.RenderVertexArray->SetIndexBuffer(indexBuffer);
 
 		// Uniform Buffers
-		s_PostProcessorData.SettingsUniformBuffer    = UniformBuffer::Create(sizeof(Settings)      , 3);
+		s_PostProcessorData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
 		s_PostProcessorData.SSAOSamplesUniformBuffer = UniformBuffer::Create(sizeof(glm::vec3) * 64, 4);
 
 		GenerateSSAOData();
 
 		// Shaders
-		s_PostProcessorData.InversionShader        = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl"               );
-		s_PostProcessorData.GreyscaleShader        = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl"               );
-		s_PostProcessorData.SharpenShader          = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl"                 );
-		s_PostProcessorData.BlurShader             = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl"                    );
-		s_PostProcessorData.EdgeDetectionShader    = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl"           );
-		s_PostProcessorData.GammaCorrectionShader  = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl"         );
-		s_PostProcessorData.ToneMappingShader      = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl"             );
-		s_PostProcessorData.GaussianBlurShader     = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl"            );
-		s_PostProcessorData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl" );
-		s_PostProcessorData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_PBRDeferredLighting.glsl"     );
-		s_PostProcessorData.SSAOShader             = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO.glsl"                    );
-		s_PostProcessorData.SSAOBlurShader         = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl"               );
+		s_PostProcessorData.InversionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl");
+		s_PostProcessorData.GreyscaleShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl");
+		s_PostProcessorData.SharpenShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl");
+		s_PostProcessorData.BlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl");
+		s_PostProcessorData.EdgeDetectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl");
+		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
+		s_PostProcessorData.ToneMappingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl");
+		s_PostProcessorData.GaussianBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl");
+		s_PostProcessorData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl");
+		s_PostProcessorData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_PBRDeferredLighting.glsl");
+		s_PostProcessorData.SSAOShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO.glsl");
+		s_PostProcessorData.SSAOBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl");
 	}
 
-	void PostProcessor::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffect& effect, const Settings& settings)
+	void ScreenSpaceRenderer::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		s_PostProcessorData.SettingsBuffer.Strength     = settings.Strength;
+		s_PostProcessorData.SettingsBuffer.Strength = settings.Strength;
 		s_PostProcessorData.SettingsBuffer.KernelOffset = settings.KernelOffset;
 		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
 
@@ -130,30 +130,30 @@ namespace Atlas
 		switch (effect)
 		{
 		default:
-		case Atlas::PostProcessor::PostProcessingEffect::None:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::None:
 			return;
-		case Atlas::PostProcessor::PostProcessingEffect::Inversion:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Inversion:
 			s_PostProcessorData.InversionShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::Greyscale:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Greyscale:
 			s_PostProcessorData.GreyscaleShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::Sharpen:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Sharpen:
 			s_PostProcessorData.SharpenShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::Blur:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Blur:
 			s_PostProcessorData.BlurShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::EdgeDetection:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::EdgeDetection:
 			s_PostProcessorData.EdgeDetectionShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::GammaCorrection:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection:
 			s_PostProcessorData.GammaCorrectionShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::ToneMapping:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::ToneMapping:
 			s_PostProcessorData.ToneMappingShader->Bind();
 			break;
-		case Atlas::PostProcessor::PostProcessingEffect::Bloom:
+		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Bloom:
 			s_PostProcessorData.GaussianBlurShader->Bind();
 			break;
 		}
@@ -161,7 +161,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::ApplyAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID)
+	void ScreenSpaceRenderer::ApplyAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID)
 	{
 		RenderCommand::BindTextureSlot(0, texture1ID);
 		RenderCommand::BindTextureSlot(1, texture2ID);
@@ -171,8 +171,8 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
-											 const uint32_t& ssaoTexID)
+	void ScreenSpaceRenderer::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
+		const uint32_t& ssaoTexID)
 	{
 		RenderCommand::BindTextureSlot(0, positionTexID);
 		RenderCommand::BindTextureSlot(1, normalTexID);
@@ -185,7 +185,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::ApplySSAO(const uint32_t& positionTexID, const uint32_t& normalTexID)
+	void ScreenSpaceRenderer::ApplySSAO(const uint32_t& positionTexID, const uint32_t& normalTexID)
 	{
 		s_PostProcessorData.SettingsBuffer.Strength = s_PostProcessorData.SSAOSampleSize;
 		s_PostProcessorData.SettingsBuffer.KernelOffset = 0.5f;
@@ -199,7 +199,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::ApplySSAOBlur(const uint32_t& ssaoTexID)
+	void ScreenSpaceRenderer::ApplySSAOBlur(const uint32_t& ssaoTexID)
 	{
 		RenderCommand::BindTextureSlot(0, ssaoTexID);
 
@@ -208,7 +208,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void PostProcessor::GenerateSSAOData()
+	void ScreenSpaceRenderer::GenerateSSAOData()
 	{
 		std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
 		std::default_random_engine generator;
@@ -247,7 +247,7 @@ namespace Atlas
 		}
 
 		TextureSpecification noiseTextureSpecification = TextureSpecification();
-		noiseTextureSpecification.Width  = 4;
+		noiseTextureSpecification.Width = 4;
 		noiseTextureSpecification.Height = 4;
 		noiseTextureSpecification.Format = ImageFormat::RGB16F;
 		noiseTextureSpecification.GenerateMips = false;
