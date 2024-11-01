@@ -43,6 +43,9 @@ namespace Atlas
 		static void RenderSSAO(const uint32_t& positionTexID, const uint32_t& normalTexID);
 		static void RenderSSAOBlur(const uint32_t& ssaoTexID);
 
+		// TODO: Remove ?
+		static void RenderRayTracer();
+
 	private:
 		static void GenerateSSAOData();
 	};

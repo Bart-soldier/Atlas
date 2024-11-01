@@ -982,6 +982,9 @@ namespace Atlas
 		ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection, Renderer::GetGamma());
 		TogglePostProcessingFramebuffers();
 
+		ScreenSpaceRenderer::RenderRayTracer();
+		TogglePostProcessingFramebuffers();
+
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
 	}
