@@ -449,12 +449,12 @@ namespace Atlas
 
 	void Renderer::InitShaders()
 	{
-		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
-		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
-		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_PBRGBuffer.glsl");
-		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
-		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
+		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Quad_Frag.glsl"   );
+		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle_Vert.glsl" , "assets/shaders/2D/Renderer2D_Circle_Frag.glsl" );
+		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Line_Frag.glsl"   );
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_GBuffer_Vert.glsl", "assets/shaders/3D/Renderer3D_GBuffer_Frag.glsl");
+		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline_Vert.glsl", "assets/shaders/3D/Renderer3D_Outline_Frag.glsl");
+		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl"        , "assets/shaders/Skybox/Skybox_Frag.glsl"        );
 	}
 
 	void Renderer::InitBuffers()

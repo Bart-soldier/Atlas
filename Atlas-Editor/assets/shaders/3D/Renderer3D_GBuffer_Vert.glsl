@@ -1,9 +1,13 @@
 //--------------------------
 // - Atlas 3D -
-// Renderer 3D Vertex Shader
+// Renderer G-Buffer Vertex Shader
 // --------------------------
 
 #version 450 core
+
+/* ------------------------------ */
+/* ----------- INPUTS ----------- */
+/* ------------------------------ */
 
 layout(location = 0)  in vec4 a_Position_ID;                        // XYZ: Position, W: EntityID (editor-only)
 layout(location = 1)  in vec3 a_Normal;
@@ -14,7 +18,7 @@ layout(location = 4)  in vec3 a_Bitangent;
 layout(location = 5)  in mat4 a_Model;
 
 layout(location = 9)  in vec3 a_Color;
-layout(location = 10)  in vec2 a_Metallic_Roughness;                 // X: Metallic,  Y: Roughness
+layout(location = 10) in vec2 a_Metallic_Roughness;                 // X: Metallic,  Y: Roughness
 
 layout(location = 11) in vec3 a_Albedo_Normal_Metallic_TexIndex;    // X: Albedo,    Y: Normal, Z: Metallic
 layout(location = 12) in vec3 a_Roughness_AO_Displacement_TexIndex; // X: Roughness, Y: AO,     Z: Displacement
@@ -29,17 +33,9 @@ layout (std140, binding = 1) uniform Camera
 	vec4 u_CameraPosition;
 };
 
-//struct VertexData
-//{
-//	vec3  Position;
-//	vec3  Normal;
-//	vec2  TexCoord;
-//	mat3  TBN;
-//
-//	vec3  Color;
-//	float Metallic;
-//	float Roughness;
-//};
+/* ------------------------------ */
+/* ----------- OUTPUTS ---------- */
+/* ------------------------------ */
 
 layout (location = 0)   out flat int   v_EntityID;
 layout (location = 1)   out      vec3  v_Position;
@@ -51,6 +47,10 @@ layout (location = 6)   out      float v_Roughness;
 layout (location = 7)   out      mat3  v_TBN;
 layout (location = 10)  out flat vec3  v_Albedo_Normal_Metallic_TexIndex;
 layout (location = 11)  out flat vec3  v_Roughness_AO_Displacement_TexIndex;
+
+/* ------------------------------ */
+/* ------------ MAIN ------------ */
+/* ------------------------------ */
 
 void main()
 {
