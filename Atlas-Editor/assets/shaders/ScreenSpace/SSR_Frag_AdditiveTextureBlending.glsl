@@ -1,15 +1,27 @@
 //--------------------------
-// - Atlas Post-Processing -
+// - Atlas Screen-Space Renderer -
 // Additive Texture Blending Fragment Shader
 // --------------------------
 
 #version 450 core
 
+/* ------------------------------ */
+/* ----------- INPUTS ----------- */
+/* ------------------------------ */
+
 layout (location = 0) in vec2 v_TexCoords;
 
 layout (binding = 0) uniform sampler2D[2] u_screenTexture;
 
+/* ------------------------------ */
+/* ----------- OUTPUTS ---------- */
+/* ------------------------------ */
+
 layout (location = 0) out vec4 o_Color;
+
+/* ------------------------------ */
+/* ------------ MAIN ------------ */
+/* ------------------------------ */
 
 void main()
 {

@@ -72,8 +72,8 @@ namespace Atlas
 		// Render VBO
 		RenderVertex vertices[s_ScreenSpaceRendererData.RenderVertices];
 		vertices[0].Position = { -1.0f, -1.0f };
-		vertices[1].Position = { 1.0f, -1.0f };
-		vertices[2].Position = { 1.0f,  1.0f };
+		vertices[1].Position = {  1.0f, -1.0f };
+		vertices[2].Position = {  1.0f,  1.0f };
 		vertices[3].Position = { -1.0f,  1.0f };
 
 		vertices[0].TexCoord = { 0.0f,  0.0f };
@@ -84,7 +84,7 @@ namespace Atlas
 		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, s_ScreenSpaceRendererData.RenderVertices * sizeof(RenderVertex));
 		vertexBuffer->SetLayout({
 			{ ShaderDataType::Float4, "a_VertexData" } // xy is Position and zw is Texcoords
-			});
+		});
 		s_ScreenSpaceRendererData.RenderVertexArray->AddVertexBuffer(vertexBuffer);
 
 		// Render IBO / EBO
@@ -100,24 +100,24 @@ namespace Atlas
 		s_ScreenSpaceRendererData.RenderVertexArray->SetIndexBuffer(indexBuffer);
 
 		// Uniform Buffers
-		s_ScreenSpaceRendererData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
+		s_ScreenSpaceRendererData.SettingsUniformBuffer    = UniformBuffer::Create(sizeof(Settings)      , 3);
 		s_ScreenSpaceRendererData.SSAOSamplesUniformBuffer = UniformBuffer::Create(sizeof(glm::vec3) * 64, 4);
 
 		GenerateSSAOData();
 
 		// Shaders
-		s_ScreenSpaceRendererData.InversionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl");
-		s_ScreenSpaceRendererData.GreyscaleShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl");
-		s_ScreenSpaceRendererData.SharpenShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl");
-		s_ScreenSpaceRendererData.BlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl");
-		s_ScreenSpaceRendererData.EdgeDetectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl");
-		s_ScreenSpaceRendererData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
-		s_ScreenSpaceRendererData.ToneMappingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl");
-		s_ScreenSpaceRendererData.GaussianBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl");
-		s_ScreenSpaceRendererData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl");
-		s_ScreenSpaceRendererData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_PBRDeferredLighting.glsl");
-		s_ScreenSpaceRendererData.SSAOShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO.glsl");
-		s_ScreenSpaceRendererData.SSAOBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl");
+		s_ScreenSpaceRendererData.InversionShader        = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Inversion.glsl"              );
+		s_ScreenSpaceRendererData.GreyscaleShader        = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Greyscale.glsl"              );
+		s_ScreenSpaceRendererData.SharpenShader          = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Sharpen.glsl"                );
+		s_ScreenSpaceRendererData.BlurShader             = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Blur.glsl"                   );
+		s_ScreenSpaceRendererData.EdgeDetectionShader    = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_EdgeDetection.glsl"          );
+		s_ScreenSpaceRendererData.GammaCorrectionShader  = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_GammaCorrection.glsl"        );
+		s_ScreenSpaceRendererData.ToneMappingShader      = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_ToneMapping.glsl"            );
+		s_ScreenSpaceRendererData.GaussianBlurShader     = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_GaussianBlur.glsl"           );
+		s_ScreenSpaceRendererData.AdditiveBlendingShader = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_AdditiveTextureBlending.glsl");
+		s_ScreenSpaceRendererData.DeferredLightingShader = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_PBRDeferredLighting.glsl"    );
+		s_ScreenSpaceRendererData.SSAOShader             = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_SSAO.glsl"                   );
+		s_ScreenSpaceRendererData.SSAOBlurShader         = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_SSAO_Blur.glsl"              );
 
 		// IBL
 		s_ScreenSpaceRendererData.BRDFLUT = Texture2D::Create("assets/luts/brdf_lut.png");

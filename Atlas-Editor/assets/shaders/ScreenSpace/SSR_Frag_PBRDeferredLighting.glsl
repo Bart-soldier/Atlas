@@ -1,6 +1,6 @@
 //--------------------------
-// - Atlas 3D -
-// Renderer 3D PBR Deferred Lighting Fragment Shader
+// - Atlas Screen-Space Renderer -
+// PBR Deferred Lighting Fragment Shader
 // --------------------------
 
 #version 450 core
@@ -32,7 +32,6 @@ layout (location = 0) in vec2 v_TexCoords;
 // 4: R(1-Channel Texture): SSAO
 layout (binding = 0) uniform sampler2D u_ScreenTextures[5];
 
-//layout (binding = 5) uniform samplerCube u_IBLMaps[1];
 layout (binding = 5) uniform sampler2D u_BRDFLUT; 
 layout (binding = 6) uniform samplerCube u_IBLMaps[2];
 
