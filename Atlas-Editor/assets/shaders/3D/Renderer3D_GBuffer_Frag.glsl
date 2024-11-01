@@ -1,25 +1,9 @@
 //--------------------------
 // - Atlas 3D -
-// Renderer 3D PBR GBuffer Shader
+// Renderer G-Buffer Fragment Shader
 // --------------------------
 
 #version 450 core
-
-/* ------------------------------ */
-/* ----------- STRUCTS ---------- */
-/* ------------------------------ */
-
-//struct VertexData
-//{
-//	vec3  Position;
-//	vec3  Normal;
-//	vec2  TexCoord;
-//	mat3  TBN;
-//
-//	vec3  Color;
-//	float Metallic;
-//	float Roughness;
-//};
 
 /* ------------------------------ */
 /* ----------- INPUTS ----------- */

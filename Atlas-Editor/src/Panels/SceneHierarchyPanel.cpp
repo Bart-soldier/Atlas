@@ -326,15 +326,15 @@ namespace Atlas
 						if (ImGui::Selectable(effectsStrings[stringIndex], isSelected))
 						{
 							currentEffectString = effectsStrings[stringIndex];
-							component.Effects[effectIndex] = (PostProcessor::PostProcessingEffect)stringIndex;
+							component.Effects[effectIndex] = (ScreenSpaceRenderer::PostProcessingEffects)stringIndex;
 
-							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Sharpen)
+							if (component.Effects[effectIndex] == ScreenSpaceRenderer::PostProcessingEffects::Sharpen)
 							{
 								component.KernelOffsets[effectIndex] = 90.0f;
 							}
 
-							if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
-								component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
+							if (component.Effects[effectIndex] == ScreenSpaceRenderer::PostProcessingEffects::Blur ||
+								component.Effects[effectIndex] == ScreenSpaceRenderer::PostProcessingEffects::EdgeDetection)
 							{
 								component.KernelOffsets[effectIndex] = 300.0f;
 							}
@@ -355,13 +355,13 @@ namespace Atlas
 					removeEffect = effectIndex;
 				}
 
-				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Sharpen)
+				if (component.Effects[effectIndex] == ScreenSpaceRenderer::PostProcessingEffects::Sharpen)
 				{
 					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 90.0f, 1.0f, 1.0f, 0.0f, effectIndex);
 				}
 
-				if (component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::Blur ||
-					component.Effects[effectIndex] == PostProcessor::PostProcessingEffect::EdgeDetection)
+				if (component.Effects[effectIndex] == ScreenSpaceRenderer::PostProcessingEffects::Blur ||
+					component.Effects[effectIndex] == ScreenSpaceRenderer::PostProcessingEffects::EdgeDetection)
 				{
 					ImGuiUtils::DragFloat("Offset", component.KernelOffsets[effectIndex], 300.0f, 1.0f, 1.0f, 0.0f, effectIndex);
 				}
@@ -380,7 +380,7 @@ namespace Atlas
 
 			if (ImGui::Button("Add Effect"))
 			{
-				component.Effects.push_back(PostProcessor::PostProcessingEffect::None);
+				component.Effects.push_back(ScreenSpaceRenderer::PostProcessingEffects::None);
 				component.KernelOffsets.push_back(0.0f);
 			}
 

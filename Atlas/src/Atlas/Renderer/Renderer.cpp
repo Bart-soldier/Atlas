@@ -3,6 +3,8 @@
 
 #include <Atlas/Core/Application.h>
 
+#include "Atlas/Renderer/ScreenSpaceRenderer.h"
+
 #include "Atlas/Renderer/Framebuffer.h"
 #include "Atlas/Renderer/VertexArray.h"
 #include "Atlas/Renderer/Shader.h"
@@ -143,7 +145,6 @@ namespace Atlas
 		// Skybox
 		Ref<VertexArray> CubeVertexArray;
 		Ref<Shader> SkyboxShader;
-		Ref<Texture2D> BRDFLUTTexture;
 
 		uint32_t CubeVertexCount = 24;
 		uint32_t CubeIndexCount = 36;
@@ -444,18 +445,16 @@ namespace Atlas
 		uint32_t whiteTextureData = 0xffffffff;
 		s_RendererData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 		s_RendererData.TextureSlots[0] = s_RendererData.WhiteTexture;
-
-		s_RendererData.BRDFLUTTexture = Texture2D::Create("assets/luts/brdf_lut.png");
 	}
 
 	void Renderer::InitShaders()
 	{
-		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad.glsl");
-		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle.glsl");
-		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line.glsl");
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_Vert.glsl", "assets/shaders/3D/Renderer3D_PBRGBuffer.glsl");
-		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline.glsl");
-		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl", "assets/shaders/Skybox/Skybox_Frag.glsl");
+		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Quad_Frag.glsl"   );
+		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle_Vert.glsl" , "assets/shaders/2D/Renderer2D_Circle_Frag.glsl" );
+		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Line_Frag.glsl"   );
+		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_GBuffer_Vert.glsl", "assets/shaders/3D/Renderer3D_GBuffer_Frag.glsl");
+		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline_Vert.glsl", "assets/shaders/3D/Renderer3D_Outline_Frag.glsl");
+		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl"        , "assets/shaders/Skybox/Skybox_Frag.glsl"        );
 	}
 
 	void Renderer::InitBuffers()
@@ -613,21 +612,15 @@ namespace Atlas
 
 	void Renderer::DeferredRenderingPass(const Ref<Cubemap>& skybox)
 	{
-		s_RendererData.BRDFLUTTexture->Bind(5);
-		skybox->BindIrradianceMap(6);
-		skybox->BindPreFilteredMap(7);
-
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 6});
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
-		PostProcessor::ApplyDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
+		ScreenSpaceRenderer::RenderDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
 											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material),
-											GetSSAOFramebufferID());
+											GetSSAOFramebufferID(), skybox);
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-
-		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
 
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 1});
 	}
@@ -641,10 +634,10 @@ namespace Atlas
 			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 			RenderCommand::DisableDepthTest();
 
-			PostProcessor::ApplySSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
+			ScreenSpaceRenderer::RenderSSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
 
 			s_RendererData.SSAOFramebuffer->Bind();
-			PostProcessor::ApplySSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
+			ScreenSpaceRenderer::RenderSSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
 
 			RenderCommand::EnableDepthTest();
 			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
@@ -961,9 +954,9 @@ namespace Atlas
 
 		for (uint32_t i = 1; i < bloomSamples; i++)
 		{
-			PostProcessor::ApplyPostProcessingEffect(
+			ScreenSpaceRenderer::RenderPostProcessingEffect(
 				firstIteration ? Renderer::GetFramebufferRenderID(RenderBuffers::BrightColors) : Renderer::GetLastDrawnFramebufferID(),
-				PostProcessor::PostProcessingEffect::Bloom,
+				ScreenSpaceRenderer::PostProcessingEffects::Bloom,
 				horizontal ? 1.0f : -1.0f);
 
 			if (firstIteration)
@@ -975,7 +968,7 @@ namespace Atlas
 			TogglePostProcessingFramebuffers();
 		}
 
-		PostProcessor::ApplyAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastDrawnFramebufferID());
+		ScreenSpaceRenderer::RenderAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastDrawnFramebufferID());
 		TogglePostProcessingFramebuffers();
 	}
 
@@ -983,10 +976,10 @@ namespace Atlas
 	{
 		if (!s_RendererData.HDR)
 		{
-			PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), PostProcessor::PostProcessingEffect::ToneMapping, Renderer::GetExposure());
+			ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::ToneMapping, Renderer::GetExposure());
 			TogglePostProcessingFramebuffers();
 		}
-		PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), PostProcessor::PostProcessingEffect::GammaCorrection, Renderer::GetGamma());
+		ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection, Renderer::GetGamma());
 		TogglePostProcessingFramebuffers();
 
 		RenderCommand::EnableDepthTest();
@@ -1015,9 +1008,9 @@ namespace Atlas
 		{
 			for (int i = 0; i < postProcessor->Effects.size(); i++)
 			{
-				if (postProcessor->Effects[i] != PostProcessor::PostProcessingEffect::None)
+				if (postProcessor->Effects[i] != ScreenSpaceRenderer::PostProcessingEffects::None)
 				{
-					PostProcessor::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+					ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
 					TogglePostProcessingFramebuffers();
 				}
 			}

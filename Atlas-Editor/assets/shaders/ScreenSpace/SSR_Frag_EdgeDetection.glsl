@@ -1,9 +1,13 @@
 //--------------------------
-// - Atlas Post-Processing -
+// - Atlas Screen-Space Renderer -
 // Edge Detection Fragment Shader
 // --------------------------
 
 #version 450 core
+
+/* ------------------------------ */
+/* ----------- INPUTS ----------- */
+/* ------------------------------ */
 
 layout (location = 0) in vec2 v_TexCoords;
 
@@ -15,22 +19,30 @@ layout (std140, binding = 3) uniform Settings
 	float u_KernelOffset;
 };
 
+/* ------------------------------ */
+/* ----------- OUTPUTS ---------- */
+/* ------------------------------ */
+
 layout (location = 0) out vec4 o_Color;
+
+/* ------------------------------ */
+/* ------------ MAIN ------------ */
+/* ------------------------------ */
 
 void main()
 {
     float offset = 1.0 / u_KernelOffset;
 
     vec2 offsets[9] = vec2[](
-        vec2(-offset, offset), // top-left
-        vec2(0.0f, offset), // top-center
-        vec2(offset, offset), // top-right
-        vec2(-offset, 0.0f),   // center-left
-        vec2(0.0f, 0.0f),   // center-center
-        vec2(offset, 0.0f),   // center-right
+        vec2(-offset, offset),  // top-left
+        vec2(0.0f, offset),     // top-center
+        vec2(offset, offset),   // top-right
+        vec2(-offset, 0.0f),    // center-left
+        vec2(0.0f, 0.0f),       // center-center
+        vec2(offset, 0.0f),     // center-right
         vec2(-offset, -offset), // bottom-left
-        vec2(0.0f, -offset), // bottom-center
-        vec2(offset, -offset)  // bottom-right    
+        vec2(0.0f, -offset),    // bottom-center
+        vec2(offset, -offset)   // bottom-right    
         );
 
     float kernel[9] = float[](

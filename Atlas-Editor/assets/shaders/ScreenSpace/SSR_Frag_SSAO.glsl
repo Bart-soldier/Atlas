@@ -1,9 +1,13 @@
 //--------------------------
-// - Atlas Post-Processing -
+// - Atlas Screen-Space Renderer -
 // SSAO Fragment Shader
 // --------------------------
 
 #version 450 core
+
+/* ------------------------------ */
+/* ----------- INPUTS ----------- */
+/* ------------------------------ */
 
 layout (location = 0) in vec2 v_TexCoords;
 
@@ -31,7 +35,15 @@ layout (std140, binding = 4) uniform SSAOSamples
 	vec3 u_Samples[64];
 };
 
+/* ------------------------------ */
+/* ----------- OUTPUTS ---------- */
+/* ------------------------------ */
+
 layout (location = 0) out vec4 o_Color;
+
+/* ------------------------------ */
+/* ------------ MAIN ------------ */
+/* ------------------------------ */
 
 const float g_Bias = 0.025;
 

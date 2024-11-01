@@ -123,6 +123,8 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		Utils::CreateCacheDirectoryIfNeeded();
+
 		std::string vertexSource   = ReadFile(vertexPath);
 		std::string fragmentSource = ReadFile(fragmentPath);
 
@@ -130,9 +132,15 @@ namespace Atlas
 		sources[GL_VERTEX_SHADER] = vertexSource;
 		sources[GL_FRAGMENT_SHADER] = fragmentSource;
 
-		CompileOrGetVulkanBinaries(sources);
-		CompileOrGetOpenGLBinaries();
-		CreateProgram();
+		{
+			Timer timer;
+			CompileOrGetVulkanBinaries(sources);
+			CompileOrGetOpenGLBinaries();
+			CreateProgram();
+			ATLAS_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
+		}
+
+		m_Name = vertexPath.stem().string();
 	}
 
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
@@ -140,13 +148,19 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		Utils::CreateCacheDirectoryIfNeeded();
+
 		std::unordered_map<GLenum, std::string> sources;
 		sources[GL_VERTEX_SHADER] = vertexSrc;
 		sources[GL_FRAGMENT_SHADER] = fragmentSrc;
 
-		CompileOrGetVulkanBinaries(sources);
-		CompileOrGetOpenGLBinaries();
-		CreateProgram();
+		{
+			Timer timer;
+			CompileOrGetVulkanBinaries(sources);
+			CompileOrGetOpenGLBinaries();
+			CreateProgram();
+			ATLAS_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
+		}
 	}
 
 	OpenGLShader::~OpenGLShader()
