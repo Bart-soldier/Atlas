@@ -117,7 +117,7 @@ namespace Atlas
 		s_PostProcessorData.SSAOBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl");
 	}
 
-	void ScreenSpaceRenderer::ApplyPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings)
+	void ScreenSpaceRenderer::RenderPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
@@ -161,7 +161,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void ScreenSpaceRenderer::ApplyAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID)
+	void ScreenSpaceRenderer::RenderAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID)
 	{
 		RenderCommand::BindTextureSlot(0, texture1ID);
 		RenderCommand::BindTextureSlot(1, texture2ID);
@@ -171,7 +171,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void ScreenSpaceRenderer::ApplyDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
+	void ScreenSpaceRenderer::RenderDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
 		const uint32_t& ssaoTexID)
 	{
 		RenderCommand::BindTextureSlot(0, positionTexID);
@@ -185,7 +185,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void ScreenSpaceRenderer::ApplySSAO(const uint32_t& positionTexID, const uint32_t& normalTexID)
+	void ScreenSpaceRenderer::RenderSSAO(const uint32_t& positionTexID, const uint32_t& normalTexID)
 	{
 		s_PostProcessorData.SettingsBuffer.Strength = s_PostProcessorData.SSAOSampleSize;
 		s_PostProcessorData.SettingsBuffer.KernelOffset = 0.5f;
@@ -199,7 +199,7 @@ namespace Atlas
 		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
 	}
 
-	void ScreenSpaceRenderer::ApplySSAOBlur(const uint32_t& ssaoTexID)
+	void ScreenSpaceRenderer::RenderSSAOBlur(const uint32_t& ssaoTexID)
 	{
 		RenderCommand::BindTextureSlot(0, ssaoTexID);
 

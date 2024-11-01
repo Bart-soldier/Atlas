@@ -623,7 +623,7 @@ namespace Atlas
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
-		ScreenSpaceRenderer::ApplyDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
+		ScreenSpaceRenderer::RenderDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
 											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material),
 											GetSSAOFramebufferID());
 		RenderCommand::EnableDepthTest();
@@ -643,10 +643,10 @@ namespace Atlas
 			RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 			RenderCommand::DisableDepthTest();
 
-			ScreenSpaceRenderer::ApplySSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
+			ScreenSpaceRenderer::RenderSSAO(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal));
 
 			s_RendererData.SSAOFramebuffer->Bind();
-			ScreenSpaceRenderer::ApplySSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
+			ScreenSpaceRenderer::RenderSSAOBlur(s_RendererData.PostProcessFramebufferFront->GetColorAttachmentRendererID());
 
 			RenderCommand::EnableDepthTest();
 			RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
@@ -963,7 +963,7 @@ namespace Atlas
 
 		for (uint32_t i = 1; i < bloomSamples; i++)
 		{
-			ScreenSpaceRenderer::ApplyPostProcessingEffect(
+			ScreenSpaceRenderer::RenderPostProcessingEffect(
 				firstIteration ? Renderer::GetFramebufferRenderID(RenderBuffers::BrightColors) : Renderer::GetLastDrawnFramebufferID(),
 				ScreenSpaceRenderer::PostProcessingEffects::Bloom,
 				horizontal ? 1.0f : -1.0f);
@@ -977,7 +977,7 @@ namespace Atlas
 			TogglePostProcessingFramebuffers();
 		}
 
-		ScreenSpaceRenderer::ApplyAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastDrawnFramebufferID());
+		ScreenSpaceRenderer::RenderAdditiveTextureBlending(s_RendererData.GBufferFramebuffer->GetColorAttachmentRendererID(), Renderer::GetLastDrawnFramebufferID());
 		TogglePostProcessingFramebuffers();
 	}
 
@@ -985,10 +985,10 @@ namespace Atlas
 	{
 		if (!s_RendererData.HDR)
 		{
-			ScreenSpaceRenderer::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::ToneMapping, Renderer::GetExposure());
+			ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::ToneMapping, Renderer::GetExposure());
 			TogglePostProcessingFramebuffers();
 		}
-		ScreenSpaceRenderer::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection, Renderer::GetGamma());
+		ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection, Renderer::GetGamma());
 		TogglePostProcessingFramebuffers();
 
 		RenderCommand::EnableDepthTest();
@@ -1019,7 +1019,7 @@ namespace Atlas
 			{
 				if (postProcessor->Effects[i] != ScreenSpaceRenderer::PostProcessingEffects::None)
 				{
-					ScreenSpaceRenderer::ApplyPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
+					ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), postProcessor->Effects[i], { 1.0f, postProcessor->KernelOffsets[i] });
 					TogglePostProcessingFramebuffers();
 				}
 			}
