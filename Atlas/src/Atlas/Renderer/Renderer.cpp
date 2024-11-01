@@ -145,7 +145,6 @@ namespace Atlas
 		// Skybox
 		Ref<VertexArray> CubeVertexArray;
 		Ref<Shader> SkyboxShader;
-		Ref<Texture2D> BRDFLUTTexture;
 
 		uint32_t CubeVertexCount = 24;
 		uint32_t CubeIndexCount = 36;
@@ -446,8 +445,6 @@ namespace Atlas
 		uint32_t whiteTextureData = 0xffffffff;
 		s_RendererData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 		s_RendererData.TextureSlots[0] = s_RendererData.WhiteTexture;
-
-		s_RendererData.BRDFLUTTexture = Texture2D::Create("assets/luts/brdf_lut.png");
 	}
 
 	void Renderer::InitShaders()
@@ -615,21 +612,15 @@ namespace Atlas
 
 	void Renderer::DeferredRenderingPass(const Ref<Cubemap>& skybox)
 	{
-		s_RendererData.BRDFLUTTexture->Bind(5);
-		skybox->BindIrradianceMap(6);
-		skybox->BindPreFilteredMap(7);
-
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 6});
 
 		RenderCommand::SetPolygonMode(RendererAPI::PolygonMode::Fill);
 		RenderCommand::DisableDepthTest();
 		ScreenSpaceRenderer::RenderDeferredShading(GetFramebufferRenderID(RenderBuffers::Position), GetFramebufferRenderID(RenderBuffers::Normal),
 											GetFramebufferRenderID(RenderBuffers::Albedo),   GetFramebufferRenderID(RenderBuffers::Material),
-											GetSSAOFramebufferID());
+											GetSSAOFramebufferID(), skybox);
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
-
-		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
 
 		s_RendererData.GBufferFramebuffer->EnableColorAttachments({0, 1});
 	}

@@ -41,6 +41,9 @@ namespace Atlas
 		ScreenSpaceRenderer::Settings SettingsBuffer;
 		Ref<UniformBuffer> SettingsUniformBuffer;
 
+		// IBL
+		Ref<Texture2D> BRDFLUT;
+
 		// User-related
 		Ref<Shader> InversionShader;
 		Ref<Shader> GreyscaleShader;
@@ -57,17 +60,17 @@ namespace Atlas
 		Ref<Shader> SSAOBlurShader;
 	};
 
-	static PostProcessorData s_PostProcessorData;
+	static PostProcessorData s_ScreenSpaceRendererData;
 
 	void ScreenSpaceRenderer::Init()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
 		// Render VAO
-		s_PostProcessorData.RenderVertexArray = VertexArray::Create();
+		s_ScreenSpaceRendererData.RenderVertexArray = VertexArray::Create();
 
 		// Render VBO
-		RenderVertex vertices[s_PostProcessorData.RenderVertices];
+		RenderVertex vertices[s_ScreenSpaceRendererData.RenderVertices];
 		vertices[0].Position = { -1.0f, -1.0f };
 		vertices[1].Position = { 1.0f, -1.0f };
 		vertices[2].Position = { 1.0f,  1.0f };
@@ -78,14 +81,14 @@ namespace Atlas
 		vertices[2].TexCoord = { 1.0f,  1.0f };
 		vertices[3].TexCoord = { 0.0f,  1.0f };
 
-		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, s_PostProcessorData.RenderVertices * sizeof(RenderVertex));
+		Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, s_ScreenSpaceRendererData.RenderVertices * sizeof(RenderVertex));
 		vertexBuffer->SetLayout({
 			{ ShaderDataType::Float4, "a_VertexData" } // xy is Position and zw is Texcoords
 			});
-		s_PostProcessorData.RenderVertexArray->AddVertexBuffer(vertexBuffer);
+		s_ScreenSpaceRendererData.RenderVertexArray->AddVertexBuffer(vertexBuffer);
 
 		// Render IBO / EBO
-		uint32_t indices[s_PostProcessorData.RenderIndices];
+		uint32_t indices[s_ScreenSpaceRendererData.RenderIndices];
 		indices[0] = 0;
 		indices[1] = 1;
 		indices[2] = 2;
@@ -93,37 +96,40 @@ namespace Atlas
 		indices[4] = 3;
 		indices[5] = 0;
 
-		Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, s_PostProcessorData.RenderIndices * sizeof(uint32_t));
-		s_PostProcessorData.RenderVertexArray->SetIndexBuffer(indexBuffer);
+		Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, s_ScreenSpaceRendererData.RenderIndices * sizeof(uint32_t));
+		s_ScreenSpaceRendererData.RenderVertexArray->SetIndexBuffer(indexBuffer);
 
 		// Uniform Buffers
-		s_PostProcessorData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
-		s_PostProcessorData.SSAOSamplesUniformBuffer = UniformBuffer::Create(sizeof(glm::vec3) * 64, 4);
+		s_ScreenSpaceRendererData.SettingsUniformBuffer = UniformBuffer::Create(sizeof(Settings), 3);
+		s_ScreenSpaceRendererData.SSAOSamplesUniformBuffer = UniformBuffer::Create(sizeof(glm::vec3) * 64, 4);
 
 		GenerateSSAOData();
 
 		// Shaders
-		s_PostProcessorData.InversionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl");
-		s_PostProcessorData.GreyscaleShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl");
-		s_PostProcessorData.SharpenShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl");
-		s_PostProcessorData.BlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl");
-		s_PostProcessorData.EdgeDetectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl");
-		s_PostProcessorData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
-		s_PostProcessorData.ToneMappingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl");
-		s_PostProcessorData.GaussianBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl");
-		s_PostProcessorData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl");
-		s_PostProcessorData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_PBRDeferredLighting.glsl");
-		s_PostProcessorData.SSAOShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO.glsl");
-		s_PostProcessorData.SSAOBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl");
+		s_ScreenSpaceRendererData.InversionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Inversion.glsl");
+		s_ScreenSpaceRendererData.GreyscaleShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Greyscale.glsl");
+		s_ScreenSpaceRendererData.SharpenShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Sharpen.glsl");
+		s_ScreenSpaceRendererData.BlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_Blur.glsl");
+		s_ScreenSpaceRendererData.EdgeDetectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_EdgeDetection.glsl");
+		s_ScreenSpaceRendererData.GammaCorrectionShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GammaCorrection.glsl");
+		s_ScreenSpaceRendererData.ToneMappingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_ToneMapping.glsl");
+		s_ScreenSpaceRendererData.GaussianBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_GaussianBlur.glsl");
+		s_ScreenSpaceRendererData.AdditiveBlendingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_AdditiveTextureBlending.glsl");
+		s_ScreenSpaceRendererData.DeferredLightingShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_PBRDeferredLighting.glsl");
+		s_ScreenSpaceRendererData.SSAOShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO.glsl");
+		s_ScreenSpaceRendererData.SSAOBlurShader = Shader::Create("assets/shaders/PostProcessing/PP_Vert.glsl", "assets/shaders/PostProcessing/PP_Frag_SSAO_Blur.glsl");
+
+		// IBL
+		s_ScreenSpaceRendererData.BRDFLUT = Texture2D::Create("assets/luts/brdf_lut.png");
 	}
 
 	void ScreenSpaceRenderer::RenderPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		s_PostProcessorData.SettingsBuffer.Strength = settings.Strength;
-		s_PostProcessorData.SettingsBuffer.KernelOffset = settings.KernelOffset;
-		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
+		s_ScreenSpaceRendererData.SettingsBuffer.Strength = settings.Strength;
+		s_ScreenSpaceRendererData.SettingsBuffer.KernelOffset = settings.KernelOffset;
+		s_ScreenSpaceRendererData.SettingsUniformBuffer->SetData(&s_ScreenSpaceRendererData.SettingsBuffer, sizeof(Settings));
 
 		RenderCommand::BindTextureSlot(0, renderID);
 
@@ -133,32 +139,32 @@ namespace Atlas
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::None:
 			return;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Inversion:
-			s_PostProcessorData.InversionShader->Bind();
+			s_ScreenSpaceRendererData.InversionShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Greyscale:
-			s_PostProcessorData.GreyscaleShader->Bind();
+			s_ScreenSpaceRendererData.GreyscaleShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Sharpen:
-			s_PostProcessorData.SharpenShader->Bind();
+			s_ScreenSpaceRendererData.SharpenShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Blur:
-			s_PostProcessorData.BlurShader->Bind();
+			s_ScreenSpaceRendererData.BlurShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::EdgeDetection:
-			s_PostProcessorData.EdgeDetectionShader->Bind();
+			s_ScreenSpaceRendererData.EdgeDetectionShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection:
-			s_PostProcessorData.GammaCorrectionShader->Bind();
+			s_ScreenSpaceRendererData.GammaCorrectionShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::ToneMapping:
-			s_PostProcessorData.ToneMappingShader->Bind();
+			s_ScreenSpaceRendererData.ToneMappingShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Bloom:
-			s_PostProcessorData.GaussianBlurShader->Bind();
+			s_ScreenSpaceRendererData.GaussianBlurShader->Bind();
 			break;
 		}
 
-		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
 
 	void ScreenSpaceRenderer::RenderAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID)
@@ -166,57 +172,60 @@ namespace Atlas
 		RenderCommand::BindTextureSlot(0, texture1ID);
 		RenderCommand::BindTextureSlot(1, texture2ID);
 
-		s_PostProcessorData.AdditiveBlendingShader->Bind();
+		s_ScreenSpaceRendererData.AdditiveBlendingShader->Bind();
 
-		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
 
 	void ScreenSpaceRenderer::RenderDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
-		const uint32_t& ssaoTexID)
+		const uint32_t& ssaoTexID, const Ref<Cubemap>& skybox)
 	{
 		RenderCommand::BindTextureSlot(0, positionTexID);
 		RenderCommand::BindTextureSlot(1, normalTexID);
 		RenderCommand::BindTextureSlot(2, albedoTexID);
 		RenderCommand::BindTextureSlot(3, materialTexID);
 		RenderCommand::BindTextureSlot(4, ssaoTexID);
+		s_ScreenSpaceRendererData.BRDFLUT->Bind(5);
+		skybox->BindIrradianceMap(6);
+		skybox->BindPreFilteredMap(7);
 
-		s_PostProcessorData.DeferredLightingShader->Bind();
+		s_ScreenSpaceRendererData.DeferredLightingShader->Bind();
 
-		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
 
 	void ScreenSpaceRenderer::RenderSSAO(const uint32_t& positionTexID, const uint32_t& normalTexID)
 	{
-		s_PostProcessorData.SettingsBuffer.Strength = s_PostProcessorData.SSAOSampleSize;
-		s_PostProcessorData.SettingsBuffer.KernelOffset = 0.5f;
-		s_PostProcessorData.SettingsUniformBuffer->SetData(&s_PostProcessorData.SettingsBuffer, sizeof(Settings));
+		s_ScreenSpaceRendererData.SettingsBuffer.Strength = s_ScreenSpaceRendererData.SSAOSampleSize;
+		s_ScreenSpaceRendererData.SettingsBuffer.KernelOffset = 0.5f;
+		s_ScreenSpaceRendererData.SettingsUniformBuffer->SetData(&s_ScreenSpaceRendererData.SettingsBuffer, sizeof(Settings));
 
 		RenderCommand::BindTextureSlot(0, positionTexID);
 		RenderCommand::BindTextureSlot(1, normalTexID);
 
-		s_PostProcessorData.SSAOShader->Bind();
+		s_ScreenSpaceRendererData.SSAOShader->Bind();
 
-		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
 
 	void ScreenSpaceRenderer::RenderSSAOBlur(const uint32_t& ssaoTexID)
 	{
 		RenderCommand::BindTextureSlot(0, ssaoTexID);
 
-		s_PostProcessorData.SSAOBlurShader->Bind();
+		s_ScreenSpaceRendererData.SSAOBlurShader->Bind();
 
-		RenderCommand::DrawIndexed(s_PostProcessorData.RenderVertexArray, s_PostProcessorData.RenderIndices);
+		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
 
 	void ScreenSpaceRenderer::GenerateSSAOData()
 	{
 		std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
 		std::default_random_engine generator;
-		s_PostProcessorData.SSAOSampleSize = 64;
+		s_ScreenSpaceRendererData.SSAOSampleSize = 64;
 
-		s_PostProcessorData.SSAOSamples.reserve(s_PostProcessorData.SSAOSampleSize);
+		s_ScreenSpaceRendererData.SSAOSamples.reserve(s_ScreenSpaceRendererData.SSAOSampleSize);
 
-		for (unsigned int i = 0; i < s_PostProcessorData.SSAOSampleSize; ++i)
+		for (unsigned int i = 0; i < s_ScreenSpaceRendererData.SSAOSampleSize; ++i)
 		{
 			glm::vec3 sample(
 				randomFloats(generator) * 2.0 - 1.0,
@@ -227,11 +236,11 @@ namespace Atlas
 			sample = glm::normalize(sample);
 			sample *= randomFloats(generator);
 
-			float scale = (float)i / (float)s_PostProcessorData.SSAOSampleSize;
+			float scale = (float)i / (float)s_ScreenSpaceRendererData.SSAOSampleSize;
 			scale = Utils::lerp(0.1f, 1.0f, scale * scale);
 			sample *= scale;
 
-			s_PostProcessorData.SSAOSamples.push_back(sample);
+			s_ScreenSpaceRendererData.SSAOSamples.push_back(sample);
 		}
 
 		std::vector<glm::vec3> ssaoNoise;
@@ -256,9 +265,9 @@ namespace Atlas
 		noiseTextureSpecification.WrapS = Wrap::ClampToEdge;
 		noiseTextureSpecification.WrapT = Wrap::ClampToEdge;
 
-		s_PostProcessorData.SSAONoise = Texture2D::Create(noiseTextureSpecification);
-		s_PostProcessorData.SSAONoise->SetData(ssaoNoise.data(), ssaoNoise.size() * sizeof(glm::vec3));
+		s_ScreenSpaceRendererData.SSAONoise = Texture2D::Create(noiseTextureSpecification);
+		s_ScreenSpaceRendererData.SSAONoise->SetData(ssaoNoise.data(), ssaoNoise.size() * sizeof(glm::vec3));
 
-		s_PostProcessorData.SSAOSamplesUniformBuffer->SetData(s_PostProcessorData.SSAOSamples.data(), sizeof(glm::vec3) * s_PostProcessorData.SSAOSampleSize);
+		s_ScreenSpaceRendererData.SSAOSamplesUniformBuffer->SetData(s_ScreenSpaceRendererData.SSAOSamples.data(), sizeof(glm::vec3) * s_ScreenSpaceRendererData.SSAOSampleSize);
 	}
 }

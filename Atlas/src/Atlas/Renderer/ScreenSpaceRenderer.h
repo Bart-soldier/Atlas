@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Atlas/Renderer/Texture.h"
+#include "Atlas/Renderer/Cubemap.h"
 
 namespace Atlas
 {
@@ -38,7 +39,7 @@ namespace Atlas
 		static void RenderPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings);
 		static void RenderAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID);
 		static void RenderDeferredShading(const uint32_t& positionTexID, const uint32_t& normalTexID, const uint32_t& albedoTexID, const uint32_t& materialTexID,
-			const uint32_t& ssaoTexID);
+			const uint32_t& ssaoTexID, const Ref<Cubemap>& skybox);
 		static void RenderSSAO(const uint32_t& positionTexID, const uint32_t& normalTexID);
 		static void RenderSSAOBlur(const uint32_t& ssaoTexID);
 
