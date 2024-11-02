@@ -35,6 +35,11 @@ layout (std140, binding = 1) uniform Camera
 	vec3 u_CameraPosition;
 };
 
+layout (std140, binding = 5) uniform RayTracer
+{
+	vec3 u_RayDirection;
+};
+
 layout (std140, binding = 2) uniform LightCount
 {
 	uint u_LightCount;
@@ -57,22 +62,19 @@ layout (location = 0) out vec4 o_Color;
 
 void main()
 {
-	int width = 1816;
-	int height = 994;
-	float aspectRatio = width / float(height);
-
 	vec2 texCoords = v_TexCoords * 2.0 - 1.0; // (-1 -> 1)
-	texCoords.x *= aspectRatio;
+
+	vec4 target = inverse(u_Projection) * vec4(texCoords.x, texCoords.y, 1.0, 1.0);
+	vec3 rayDirection = vec3(inverse(u_View) * vec4(normalize(vec3(target) / target.w), 0.0));
 
 	vec3 sphereOrigin = vec3(0.0);
-	float sphereRadius = 4.0;
+	float sphereRadius = 2.0;
 
-	//vec3 lightDirection = u_Lights[0].Direction.xyz;
-	vec3 lightDirection = vec3(-1.0, -1.0, 1.0);
+	vec3 lightDirection = u_Lights[0].Direction.xyz;
+	//vec3 lightDirection = vec3(-1.0, -1.0, 1.0);
 	lightDirection = normalize(lightDirection);
 
 	vec3 rayOrigin    = u_CameraPosition;
-	vec3 rayDirection = vec3(texCoords, -1.0); // z depends on coordinate system
 	//rayDirection = normalize(rayDirection);
 
 	//float a = rayDirection.x * rayDirection.x + rayDirection.y * rayDirection.y + rayDirection.z * rayDirection.z;
