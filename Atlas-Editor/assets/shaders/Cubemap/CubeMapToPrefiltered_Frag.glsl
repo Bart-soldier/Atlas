@@ -5,6 +5,10 @@
 
 #version 450 core
 
+/* ------------------------------ */
+/* ----------- INPUTS ----------- */
+/* ------------------------------ */
+
 layout (location = 0) in vec3 v_TexCoords;
 
 layout (std140, binding = 5) uniform Roughness
@@ -13,6 +17,10 @@ layout (std140, binding = 5) uniform Roughness
 };
 
 layout (binding = 0) uniform samplerCube u_Cubemap;
+
+/* ------------------------------ */
+/* ----------- OUTPUTS ---------- */
+/* ------------------------------ */
 
 layout (location = 0) out vec4 o_Color;
 

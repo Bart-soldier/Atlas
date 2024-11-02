@@ -5,13 +5,25 @@
 
 #version 450 core
 
+/* ------------------------------ */
+/* ----------- INPUTS ----------- */
+/* ------------------------------ */
+
 layout (location = 0) in vec3 v_TexCoords;
 
 layout (binding = 0) uniform samplerCube u_Cubemap;
 
+/* ------------------------------ */
+/* ----------- OUTPUTS ---------- */
+/* ------------------------------ */
+
 layout (location = 0) out vec4 o_Color;
 
 const float PI = 3.14159265359;
+
+/* ------------------------------ */
+/* ------------ MAIN ------------ */
+/* ------------------------------ */
 
 void main()
 {
@@ -36,8 +48,8 @@ void main()
             nrSamples++;
         }
     }
+
     irradiance = PI * irradiance * (1.0 / float(nrSamples));
-  
   
     o_Color = vec4(irradiance, 1.0);
 }

@@ -160,7 +160,7 @@ namespace Atlas
 			glm::mat4 ViewProjection;
 			glm::mat4 Projection;
 			glm::mat4 View;
-			glm::vec4 Position;
+			glm::vec3 Position;
 		};
 		CameraData CameraBuffer;
 		Ref<UniformBuffer> CameraUniformBuffer;
@@ -715,7 +715,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetProjection(), glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
+		SetCameraUniformBuffer(camera.GetProjection(), glm::inverse(cameraTransform.GetTransform()), cameraTransform.Translation);
 		SetStorageBuffers(lights);
 
 		StartBatch();
@@ -725,13 +725,13 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetProjection(), camera.GetViewMatrix(), glm::vec4(camera.GetPosition(), 1.0f));
+		SetCameraUniformBuffer(camera.GetProjection(), camera.GetViewMatrix(), camera.GetPosition());
 		SetStorageBuffers(lights);
 
 		StartBatch();
 	}
 
-	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition)
+	void Renderer::SetCameraUniformBuffer(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec3& cameraPosition)
 	{
 		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
 
