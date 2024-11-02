@@ -237,8 +237,6 @@ namespace Atlas
 
 		ImGui::Begin("Renderer Stats");
 
-		ImGui::Text("API: %s", RendererAPI::GetAPI() == RendererAPI::API::OpenGL ? "OpenGL" : "None");
-
 		std::string name = "None";
 		if (m_HoveredEntity && m_HoveredEntity->HasComponent<TagComponent>())
 			name = m_HoveredEntity->GetComponent<TagComponent>().Tag;

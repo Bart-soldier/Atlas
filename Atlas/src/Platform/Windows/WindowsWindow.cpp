@@ -44,14 +44,17 @@ namespace Atlas
 
 		ATLAS_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
 
+		switch (RenderCommand::GetAPI())
+		{
+			case RendererAPI::API::OpenGL: m_Data.Title += " - OpenGL"; break;
+			case RendererAPI::API::Vulkan: m_Data.Title += " - Vulkan"; break;
+		}
+
 		if (s_GLFWWindowCount == 0)
 		{
 			ATLAS_PROFILE_SCOPE("glfwInit");
 			int success = glfwInit();
 			ATLAS_CORE_ASSERT(success, "Could not initialize GLFW!");
-			//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-			//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
@@ -62,6 +65,11 @@ namespace Atlas
 				if (RenderCommand::GetAPI() == RendererAPI::API::OpenGL)
 					glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 			#endif
+
+			//if (RenderCommand::GetAPI() == RendererAPI::API::Vulkan)
+			//{
+			//	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+			//}
 
 			glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
