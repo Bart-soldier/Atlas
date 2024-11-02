@@ -23,7 +23,7 @@ struct LightData
 /* ----------- INPUTS ----------- */
 /* ------------------------------ */
 
-layout (location = 0) in vec2 v_TexCoords;
+layout (location = 0) in vec3 v_RayDirection;
 
 layout (binding = 0) uniform sampler2D u_screenTexture;
 
@@ -62,24 +62,16 @@ layout (location = 0) out vec4 o_Color;
 
 void main()
 {
-	vec2 texCoords = v_TexCoords * 2.0 - 1.0; // (-1 -> 1)
-
-	vec4 target = inverse(u_Projection) * vec4(texCoords.x, texCoords.y, 1.0, 1.0);
-	vec3 rayDirection = vec3(inverse(u_View) * vec4(normalize(vec3(target) / target.w), 0.0));
-
 	vec3 sphereOrigin = vec3(0.0);
 	float sphereRadius = 2.0;
 
 	vec3 lightDirection = u_Lights[0].Direction.xyz;
-	//vec3 lightDirection = vec3(-1.0, -1.0, 1.0);
 	lightDirection = normalize(lightDirection);
 
 	vec3 rayOrigin    = u_CameraPosition;
-	//rayDirection = normalize(rayDirection);
 
-	//float a = rayDirection.x * rayDirection.x + rayDirection.y * rayDirection.y + rayDirection.z * rayDirection.z;
-	float a = dot(rayDirection, rayDirection);
-	float b = 2.0 * (dot(rayOrigin, rayDirection));
+	float a = dot(v_RayDirection, v_RayDirection);
+	float b = 2.0 * (dot(rayOrigin, v_RayDirection));
 	float c = dot(rayOrigin, rayOrigin) - sphereRadius * sphereRadius;
 
 	float delta = b * b - 4.0 * a * c;
@@ -90,7 +82,7 @@ void main()
 	{
 		float closestT = (-b - sqrt(delta)) / (2.0 * a);
 		
-		vec3 hitPoint = rayOrigin + rayDirection * closestT;
+		vec3 hitPoint = rayOrigin + v_RayDirection * closestT;
 
 		vec3 normal = hitPoint - sphereOrigin;
 		normal = normalize(normal);
