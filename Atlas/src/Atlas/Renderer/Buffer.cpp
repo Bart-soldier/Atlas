@@ -4,6 +4,7 @@
 #include "Atlas/Renderer/RenderCommand.h"
 
 #include "Platform/OpenGL/OpenGLBuffer.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
 
 namespace Atlas
 {
@@ -14,8 +15,8 @@ namespace Atlas
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 			return nullptr;
-		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLVertexBuffer>(size);
+		case RendererAPI::API::OpenGL: return CreateRef<OpenGLVertexBuffer>(size);
+		case RendererAPI::API::Vulkan: return CreateRef<VulkanVertexBuffer>(size);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -29,8 +30,8 @@ namespace Atlas
 			case RendererAPI::API::None:
 				ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 				return nullptr;
-			case RendererAPI::API::OpenGL:
-				return CreateRef<OpenGLVertexBuffer>(data, size);
+			case RendererAPI::API::OpenGL: return CreateRef<OpenGLVertexBuffer>(data, size);
+			case RendererAPI::API::Vulkan: return CreateRef<VulkanVertexBuffer>(data, size);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -44,8 +45,8 @@ namespace Atlas
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 			return nullptr;
-		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLIndexBuffer>(size);
+		case RendererAPI::API::OpenGL: return CreateRef<OpenGLIndexBuffer>(size);
+		case RendererAPI::API::Vulkan: return CreateRef<VulkanIndexBuffer>(size);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -59,8 +60,8 @@ namespace Atlas
 			case RendererAPI::API::None:
 				ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 				return nullptr;
-			case RendererAPI::API::OpenGL:
-				return CreateRef<OpenGLIndexBuffer>(indices, size);
+			case RendererAPI::API::OpenGL: return CreateRef<OpenGLIndexBuffer>(indices, size);
+			case RendererAPI::API::Vulkan: return CreateRef<VulkanIndexBuffer>(indices, size);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");

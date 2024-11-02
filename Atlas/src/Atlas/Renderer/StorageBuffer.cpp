@@ -3,6 +3,7 @@
 
 #include "Atlas/Renderer/RenderCommand.h"
 #include "Platform/OpenGL/OpenGLStorageBuffer.h"
+#include "Platform/Vulkan/VulkanStorageBuffer.h"
 
 namespace Atlas
 {
@@ -12,8 +13,8 @@ namespace Atlas
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLStorageBuffer>(size, binding);
+		case RendererAPI::API::OpenGL: return CreateRef<OpenGLStorageBuffer>(size, binding);
+		case RendererAPI::API::Vulkan: return CreateRef<VulkanStorageBuffer>(size, binding);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -26,8 +27,8 @@ namespace Atlas
 		{
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLStorageBuffer>(binding);
+		case RendererAPI::API::OpenGL: return CreateRef<OpenGLStorageBuffer>(binding);
+		case RendererAPI::API::Vulkan: return CreateRef<VulkanStorageBuffer>(binding);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");

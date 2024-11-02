@@ -2,20 +2,18 @@
 
 #include "Atlas/Renderer/Shader.h"
 
-#include <glm/glm.hpp>
-
 // TODO: REMOVE!
 typedef unsigned int GLenum;
 
 namespace Atlas
 {
-	class OpenGLShader : public Shader
+	class VulkanShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::filesystem::path& path);
-		OpenGLShader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
-		OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
-		virtual ~OpenGLShader();
+		VulkanShader(const std::filesystem::path& path);
+		VulkanShader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
+		VulkanShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
+		virtual ~VulkanShader();
 
 		void Bind() const override;
 		void Unbind() const override;
@@ -32,19 +30,19 @@ namespace Atlas
 
 		void UploadUniformInt(const std::string& name, int value);
 		void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
-		
+
 		void UploadUniformFloat(const std::string& name, float value);
 		void UploadUniformFloat2(const std::string& name, const glm::vec2& values);
 		void UploadUniformFloat3(const std::string& name, const glm::vec3& values);
 		void UploadUniformFloat4(const std::string& name, const glm::vec4& values);
-		
+
 		void UploadUniformMat3(const std::string& name, const glm::mat3& matrix);
 		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
 
 	private:
 		std::string ReadFile(const std::filesystem::path& path);
 		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
-		
+
 		void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
 		void CompileOrGetOpenGLBinaries();
 		void CreateProgram();

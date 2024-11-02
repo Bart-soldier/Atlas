@@ -12,7 +12,8 @@ namespace Atlas
 		enum class API
 		{
 			None = 0,
-			OpenGL = 1
+			OpenGL = 1,
+			Vulkan = 2
 		};
 
 		enum class TestFunction

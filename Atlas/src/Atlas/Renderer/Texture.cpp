@@ -3,6 +3,7 @@
 
 #include "Atlas/Renderer/RenderCommand.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
+#include "Platform/Vulkan/VulkanTexture.h"
 
 namespace Atlas
 {
@@ -13,8 +14,8 @@ namespace Atlas
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 			return nullptr;
-		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLTexture2D>(specification);
+		case RendererAPI::API::OpenGL: return CreateRef<OpenGLTexture2D>(specification);
+		case RendererAPI::API::Vulkan: return CreateRef<VulkanTexture2D>(specification);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -28,8 +29,8 @@ namespace Atlas
 		case RendererAPI::API::None:
 			ATLAS_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
 			return nullptr;
-		case RendererAPI::API::OpenGL:
-			return CreateRef<OpenGLTexture2D>(path, generateMips, flipOnLoad);
+		case RendererAPI::API::OpenGL: return CreateRef<OpenGLTexture2D>(path, generateMips, flipOnLoad);
+		case RendererAPI::API::Vulkan: return CreateRef<VulkanTexture2D>(path, generateMips, flipOnLoad);
 		}
 
 		ATLAS_CORE_ASSERT(false, "Unknown RendererAPI!");

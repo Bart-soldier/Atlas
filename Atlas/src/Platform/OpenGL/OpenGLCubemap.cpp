@@ -241,7 +241,6 @@ namespace Atlas
 		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
-
 		unsigned int maxMipLevels = 5;
 		for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
 		{
