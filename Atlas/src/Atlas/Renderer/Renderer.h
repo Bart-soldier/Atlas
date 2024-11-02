@@ -138,8 +138,7 @@ namespace Atlas
 		static void InitShaders();
 		static void InitBuffers();
 
-		static void SetCameraUniformBuffer(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec3& cameraPosition);
-		static void SetRayTracerUniformBuffer(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec3& cameraPosition);
+		static void SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec3& cameraPosition);
 		static void SetStorageBuffers(const std::vector<LightData>& lights);
 		static void EnsureLightStorageBufferCapacity(uint32_t capacity);
 		static uint32_t EnsureTextureSlot(const Ref<Texture2D>& texture);

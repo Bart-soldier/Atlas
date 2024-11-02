@@ -35,11 +35,6 @@ layout (std140, binding = 1) uniform Camera
 	vec3 u_CameraPosition;
 };
 
-layout (std140, binding = 5) uniform RayTracer
-{
-	vec3 u_RayDirection;
-};
-
 layout (std140, binding = 2) uniform LightCount
 {
 	uint u_LightCount;
@@ -62,17 +57,17 @@ layout (location = 0) out vec4 o_Color;
 
 void main()
 {
-	vec3 sphereOrigin = vec3(0.0);
+	vec3 sphereOrigin = vec3(0.0, 0.0, 0.0);
 	float sphereRadius = 2.0;
 
 	vec3 lightDirection = u_Lights[0].Direction.xyz;
 	lightDirection = normalize(lightDirection);
 
-	vec3 rayOrigin    = u_CameraPosition;
+	vec3 origin = u_CameraPosition - sphereOrigin;
 
 	float a = dot(v_RayDirection, v_RayDirection);
-	float b = 2.0 * (dot(rayOrigin, v_RayDirection));
-	float c = dot(rayOrigin, rayOrigin) - sphereRadius * sphereRadius;
+	float b = 2.0 * (dot(origin, v_RayDirection));
+	float c = dot(origin, origin) - sphereRadius * sphereRadius;
 
 	float delta = b * b - 4.0 * a * c;
 
@@ -82,9 +77,9 @@ void main()
 	{
 		float closestT = (-b - sqrt(delta)) / (2.0 * a);
 		
-		vec3 hitPoint = rayOrigin + v_RayDirection * closestT;
+		vec3 hitPoint = origin + v_RayDirection * closestT;
 
-		vec3 normal = hitPoint - sphereOrigin;
+		vec3 normal = hitPoint;
 		normal = normalize(normal);
 
 		float lightIntensity = max(dot(normal, -lightDirection), 0.0);

@@ -602,14 +602,11 @@ namespace Atlas
 		cameraTransform->Translation = glm::vec3(3.5f, 2.1f, 3.5f);
 		cameraTransform->Rotation = glm::radians(glm::vec3(-25.0f, 45.0f, 0.0f));
 
-		// TODO: Remove after ray tracing experimentation
-		Entity* lightEntity = newScene->CreateEntity("Point Light");
-		lightEntity->GetComponent<TransformComponent>().Rotation = glm::vec3(glm::radians(-90.0f), 0.0f, glm::radians(-45.0f));
+		Entity* lightEntity = newScene->CreateEntity("Light");
+		lightEntity->GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
+		lightEntity->GetComponent<TransformComponent>().Rotation = glm::vec3(glm::radians(-69.0f), 0.0f, glm::radians(-45.0f));
 		lightEntity->AddComponent<LightSourceComponent>();
-		lightEntity->GetComponent<LightSourceComponent>().Light->SetCastType(Light::CastType::DirectionalLight);
-		//Entity* lightEntity = newScene->CreateEntity("Point Light");
-		//lightEntity->GetComponent<TransformComponent>().Translation = glm::vec3(3.0f, 2.0f, 1.5f);
-		//lightEntity->AddComponent<LightSourceComponent>();
+		lightEntity->GetComponent<LightSourceComponent>().Light->SetCastType(Light::CastType::PointLight);
 
 		return newScene;
 	}
