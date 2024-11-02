@@ -1,5 +1,8 @@
 #include "atlaspch.h"
 #include "Platform/Vulkan/VulkanContext.h"
+
+#include <GLFW/glfw3.h>
+
 namespace Atlas
 {
 	VulkanContext::VulkanContext(GLFWwindow* windowHandle)
@@ -12,7 +15,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glfwMakeContextCurrent(m_WindowHandle);
+		glfwMakeContextCurrent(m_WindowHandle);
 
 		//int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		//ATLAS_CORE_ASSERT(status, "Failed to initialized Glad!");
@@ -29,6 +32,6 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glfwSwapBuffers(m_WindowHandle);
+		glfwSwapBuffers(m_WindowHandle);
 	}
 }
