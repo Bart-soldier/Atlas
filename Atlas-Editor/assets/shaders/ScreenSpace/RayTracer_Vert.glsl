@@ -1,6 +1,6 @@
 //--------------------------
-// - Atlas 2D -
-// Renderer Line Vertex Shader
+// - Atlas Screen-Space Ray-Tracer -
+// Renderer Vertex Shader
 // --------------------------
 
 #version 450 core
@@ -9,9 +9,7 @@
 /* ----------- INPUTS ----------- */
 /* ------------------------------ */
 
-layout (location = 0) in vec3 a_Position;
-layout (location = 1) in vec4 a_Color;
-layout (location = 2) in int  a_EntityID;
+layout (location = 0) in vec4 a_VertexData; // XY: Position, ZW: Texcoords
 
 layout (std140, binding = 1) uniform Camera
 {
@@ -25,8 +23,7 @@ layout (std140, binding = 1) uniform Camera
 /* ----------- OUTPUTS ---------- */
 /* ------------------------------ */
 
-layout (location = 0) out      vec4 v_Color;
-layout (location = 1) out flat int  v_EntityID;
+layout (location = 0) out vec3 v_RayDirection;
 
 /* ------------------------------ */
 /* ------------ MAIN ------------ */
@@ -34,9 +31,10 @@ layout (location = 1) out flat int  v_EntityID;
 
 void main()
 {
-	v_Color    = a_Color;
+	vec2 texCoords = a_VertexData.zw * 2.0 - 1.0; // (-1 -> 1)
 
-	v_EntityID = a_EntityID;
+	vec4 target = inverse(u_Projection) * vec4(texCoords.x, texCoords.y, 1.0, 1.0);
+	v_RayDirection = vec3(inverse(u_View) * vec4(normalize(vec3(target) / target.w), 0.0));
 
-	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+	gl_Position = vec4(a_VertexData.x, a_VertexData.y, 0.0, 1.0);
 }

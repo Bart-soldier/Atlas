@@ -58,6 +58,8 @@ namespace Atlas
 		Ref<Shader> DeferredLightingShader;
 		Ref<Shader> SSAOShader;
 		Ref<Shader> SSAOBlurShader;
+
+		Ref<Shader> RayTracerShader;
 	};
 
 	static PostProcessorData s_ScreenSpaceRendererData;
@@ -118,6 +120,8 @@ namespace Atlas
 		s_ScreenSpaceRendererData.DeferredLightingShader = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_PBRDeferredLighting.glsl"    );
 		s_ScreenSpaceRendererData.SSAOShader             = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_SSAO.glsl"                   );
 		s_ScreenSpaceRendererData.SSAOBlurShader         = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_SSAO_Blur.glsl"              );
+		
+		s_ScreenSpaceRendererData.RayTracerShader        = Shader::Create("assets/shaders/ScreenSpace/RayTracer_Vert.glsl", "assets/shaders/ScreenSpace/RayTracer_Frag.glsl"              );
 
 		// IBL
 		s_ScreenSpaceRendererData.BRDFLUT = Texture2D::Create("assets/luts/brdf_lut.png");
@@ -213,6 +217,13 @@ namespace Atlas
 		RenderCommand::BindTextureSlot(0, ssaoTexID);
 
 		s_ScreenSpaceRendererData.SSAOBlurShader->Bind();
+
+		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
+	}
+
+	void ScreenSpaceRenderer::RenderRayTracer()
+	{
+		s_ScreenSpaceRendererData.RayTracerShader->Bind();
 
 		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}

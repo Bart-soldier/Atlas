@@ -34,7 +34,7 @@ layout (std140, binding = 1) uniform Camera
 	mat4 u_ViewProjection;
 	mat4 u_Projection;
 	mat4 u_View;
-	vec4 u_CameraPosition;
+	vec3 u_CameraPosition;
 };
 
 /* ------------------------------ */
@@ -122,7 +122,7 @@ vec2 GetFinalTexCoords()
 
 	if(displacementTexIndex != 0)
 	{
-		vec3 viewDirection = normalize(transpose(v_TBN) * (u_CameraPosition.xyz - v_Position));
+		vec3 viewDirection = normalize(transpose(v_TBN) * (u_CameraPosition - v_Position));
 		texCoord = ParallaxMapping(displacementTexIndex, v_TexCoord, viewDirection);
 	}
 

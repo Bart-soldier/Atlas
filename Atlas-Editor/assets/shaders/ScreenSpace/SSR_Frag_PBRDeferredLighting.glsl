@@ -47,7 +47,7 @@ layout (std140, binding = 1) uniform Camera
 	mat4 u_ViewProjection;
 	mat4 u_Projection;
 	mat4 u_View;
-	vec4 u_CameraPosition;
+	vec3 u_CameraPosition;
 };
 
 layout (std140, binding = 2) uniform LightCount
@@ -177,7 +177,7 @@ vec3 CalculateColor(vec3 vertexPosition, vec3 vertexNormal, vec3 albedo, float m
 {
 	vec3 Lo = vec3(0.0);
 	
-	vec3 viewDirection  = normalize(u_CameraPosition.xyz - vertexPosition);
+	vec3 viewDirection  = normalize(u_CameraPosition - vertexPosition);
 	vec3 R = reflect(-viewDirection, vertexNormal); 
 
 	vec3 F0 = vec3(0.04);

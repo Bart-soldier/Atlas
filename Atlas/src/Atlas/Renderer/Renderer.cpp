@@ -160,7 +160,7 @@ namespace Atlas
 			glm::mat4 ViewProjection;
 			glm::mat4 Projection;
 			glm::mat4 View;
-			glm::vec4 Position;
+			glm::vec3 Position;
 		};
 		CameraData CameraBuffer;
 		Ref<UniformBuffer> CameraUniformBuffer;
@@ -460,9 +460,9 @@ namespace Atlas
 	void Renderer::InitBuffers()
 	{
 		// Uniform buffers
-		s_RendererData.SettingsUniformBuffer   = UniformBuffer::Create(sizeof(RendererData::Settings),   0);
-		s_RendererData.CameraUniformBuffer     = UniformBuffer::Create(sizeof(RendererData::CameraData), 1);
-		s_RendererData.LightCountUniformBuffer = UniformBuffer::Create(sizeof(uint32_t),                 2);
+		s_RendererData.SettingsUniformBuffer      = UniformBuffer::Create(sizeof(RendererData::Settings)     , 0);
+		s_RendererData.CameraUniformBuffer        = UniformBuffer::Create(sizeof(RendererData::CameraData)   , 1);
+		s_RendererData.LightCountUniformBuffer    = UniformBuffer::Create(sizeof(uint32_t)                   , 2);
 
 		// Storage buffers
 		s_RendererData.LightStorageBuffer = StorageBuffer::Create(sizeof(LightData) * s_RendererData.LightStorageBufferCapacity, 0);
@@ -715,7 +715,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetProjection(), glm::inverse(cameraTransform.GetTransform()), glm::vec4(cameraTransform.Translation, 1.0f));
+		SetUniformBuffers(camera.GetProjection(), glm::inverse(cameraTransform.GetTransform()), cameraTransform.Translation);
 		SetStorageBuffers(lights);
 
 		StartBatch();
@@ -725,13 +725,13 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		SetUniformBuffers(camera.GetProjection(), camera.GetViewMatrix(), glm::vec4(camera.GetPosition(), 1.0f));
+		SetUniformBuffers(camera.GetProjection(), camera.GetViewMatrix(), camera.GetPosition());
 		SetStorageBuffers(lights);
 
 		StartBatch();
 	}
 
-	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec4& cameraPosition)
+	void Renderer::SetUniformBuffers(const glm::mat4& cameraProjection, const glm::mat4& cameraView, const glm::vec3& cameraPosition)
 	{
 		s_RendererData.SettingsUniformBuffer->SetData(&s_RendererData.SettingsBuffer, sizeof(RendererData::Settings));
 
@@ -981,6 +981,9 @@ namespace Atlas
 		}
 		ScreenSpaceRenderer::RenderPostProcessingEffect(Renderer::GetLastDrawnFramebufferID(), ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection, Renderer::GetGamma());
 		TogglePostProcessingFramebuffers();
+
+		//ScreenSpaceRenderer::RenderRayTracer();
+		//TogglePostProcessingFramebuffers();
 
 		RenderCommand::EnableDepthTest();
 		RenderCommand::SetPolygonMode(Renderer::GetPolygonMode());
