@@ -2,6 +2,8 @@
 
 #include "Atlas/Core/PlatformDetection.h"
 
+#define GLFW_INCLUDE_VULKAN
+
 #ifdef ATLAS_PLATFORM_WINDOWS
 	#ifndef NOMINMAX
 		// See github.com/skypjack/entt/wiki/Frequently-Asked-Questions#warning-c4003-the-min-the-max-and-the-macro

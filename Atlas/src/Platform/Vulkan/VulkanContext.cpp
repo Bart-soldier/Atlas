@@ -20,7 +20,11 @@ namespace Atlas
 		//int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		//ATLAS_CORE_ASSERT(status, "Failed to initialized Glad!");
 
-		//ATLAS_CORE_INFO("Vulkan Info:");
+		uint32_t extensionCount = 0;
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+		ATLAS_CORE_INFO("Vulkan Info:");
+		ATLAS_CORE_INFO("  Extensions: {0}", extensionCount);
 		//ATLAS_CORE_INFO("  Vendor: {0}", (const char*)glGetString(GL_VENDOR));
 		//ATLAS_CORE_INFO("  Renderer: {0}", (const char*)glGetString(GL_RENDERER));
 		//ATLAS_CORE_INFO("  Version: {0}", (const char*)glGetString(GL_VERSION));

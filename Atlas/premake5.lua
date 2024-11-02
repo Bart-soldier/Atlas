@@ -54,7 +54,8 @@ project "Atlas"
 		"imgui",
 		"yaml-cpp",
 		"opengl32.lib",
-		"assimp"
+		"assimp",
+		"%{Library.Vulkan}"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
