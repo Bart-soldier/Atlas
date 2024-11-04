@@ -9,8 +9,6 @@
 
 #include "Atlas/Renderer/RenderCommand.h"
 
-#include "Platform/OpenGL/OpenGLContext.h"
-
 namespace Atlas
 {
 	static uint8_t s_GLFWWindowCount = 0;
