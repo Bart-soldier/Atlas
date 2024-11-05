@@ -20,6 +20,12 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		#if defined(ATLAS_DEBUG)
+			const bool enableValidationLayers = true;
+		#else
+			const bool enableValidationLayers = false;
+		#endif
+
 		glfwMakeContextCurrent(m_WindowHandle);
 
 		VkApplicationInfo applicationInfo{};
@@ -34,28 +40,34 @@ namespace Atlas
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceCreateInfo.pApplicationInfo = &applicationInfo;
 
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
+		/* ------------------------------ */
+		/* --------- EXTENSIONS --------- */
+		/* ------------------------------ */
 
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		std::vector<const char*> extensions;
+		GetRequiredExtensions(extensions, enableValidationLayers);
 
-		instanceCreateInfo.enabledExtensionCount = glfwExtensionCount;
-		instanceCreateInfo.ppEnabledExtensionNames = glfwExtensions;
-
-		const std::vector<const char*> validationLayers = {
-			"VK_LAYER_KHRONOS_validation"
-		};
-
-		#if defined(ATLAS_DEBUG)
-				const bool enableValidationLayers = true;
-		#else
-				const bool enableValidationLayers = false;
-		#endif
-
-		if (enableValidationLayers && VerifyValidationLayerSupport(validationLayers))
+		if (VerifyExtensionSupport(extensions))
 		{
-			instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+			instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+			instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+		}
+		else
+		{
+			instanceCreateInfo.enabledExtensionCount = 0;
+		}
+
+		/* ------------------------------ */
+		/* ----------- LAYERS ----------- */
+		/* ------------------------------ */
+
+		std::vector<const char*> layers;
+		GetRequiredLayers(layers, enableValidationLayers);
+
+		if (VerifyLayerSupport(layers))
+		{
+			instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+			instanceCreateInfo.ppEnabledLayerNames = layers.data();
 		}
 		else
 		{
@@ -65,7 +77,9 @@ namespace Atlas
 		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created Vulkan instance!");
 
-
+		/* ------------------------------ */
+		/* --------- REFLECTION --------- */
+		/* ------------------------------ */
 
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -89,16 +103,73 @@ namespace Atlas
 		//ATLAS_CORE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Atlas requires at least OpenGL version 4.5!");
 	}
 
-
-	bool VulkanContext::VerifyValidationLayerSupport(const std::vector<const char*>& validationLayers)
+	void VulkanContext::GetRequiredExtensions(std::vector<const char*>& extensions, bool enableValidationLayers)
 	{
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions;
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+		extensions = std::vector(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		if (enableValidationLayers) {
+			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+	}
+
+	void VulkanContext::GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers)
+	{
+		if (enableValidationLayers)
+		{
+			layers.push_back("VK_LAYER_KHRONOS_validation");
+		}
+	}
+
+	bool VulkanContext::VerifyExtensionSupport(const std::vector<const char*>& extensions)
+	{
+		if (extensions.size() == 0)
+		{
+			return false;
+		}
+
+		uint32_t extensionCount = 0;
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
+
+		for (const char* extensionName : extensions) {
+			bool extensionFound = false;
+
+			for (const auto& extensionProperties : availableExtensions) {
+				if (strcmp(extensionName, extensionProperties.extensionName) == 0) {
+					extensionFound = true;
+					break;
+				}
+			}
+
+			if (!extensionFound) {
+				ATLAS_CORE_WARN("Unavailable Vulkan extension requested: {0}", extensionName);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool VulkanContext::VerifyLayerSupport(const std::vector<const char*>& layers)
+	{
+		if (layers.size() == 0)
+		{
+			return false;
+		}
+
 		uint32_t layerCount = 0;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-		for (const char* layerName : validationLayers) {
+		for (const char* layerName : layers) {
 			bool layerFound = false;
 
 			for (const auto& layerProperties : availableLayers) {
@@ -109,7 +180,7 @@ namespace Atlas
 			}
 
 			if (!layerFound) {
-				ATLAS_CORE_WARN("Unavailable Vulkan validation layer requested: {0}", layerName);
+				ATLAS_CORE_WARN("Unavailable Vulkan layer requested: {0}", layerName);
 				return false;
 			}
 		}
