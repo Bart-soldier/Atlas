@@ -41,21 +41,44 @@ namespace Atlas
 
 		instanceCreateInfo.enabledExtensionCount = glfwExtensionCount;
 		instanceCreateInfo.ppEnabledExtensionNames = glfwExtensions;
-		instanceCreateInfo.enabledLayerCount = 0;
+
+		const std::vector<const char*> validationLayers = {
+			"VK_LAYER_KHRONOS_validation"
+		};
+
+		#if defined(ATLAS_DEBUG)
+				const bool enableValidationLayers = true;
+		#else
+				const bool enableValidationLayers = false;
+		#endif
+
+		if (enableValidationLayers && VerifyValidationLayerSupport(validationLayers))
+		{
+			instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+		}
+		else
+		{
+			instanceCreateInfo.enabledLayerCount = 0;
+		}
 
 		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created Vulkan instance!");
 
+
+
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-		//std::vector<VkExtensionProperties> extensions(extensionCount);
-		//vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+		uint32_t layerCount = 0;
+		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
 		ATLAS_CORE_INFO("Vulkan Info:");
-		ATLAS_CORE_INFO("  Extensions: {0}", extensionCount);
-		//for (const auto& extension : extensions) {
-		//	ATLAS_CORE_INFO("    {0}", extension.extensionName);
-		//}
+		ATLAS_CORE_INFO("  Extensions:");
+		ATLAS_CORE_INFO("    Available: {0}", extensionCount);
+		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledExtensionCount);
+		ATLAS_CORE_INFO("  Layers:");
+		ATLAS_CORE_INFO("    Available: {0}", layerCount);
+		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledLayerCount);
 
 
 
@@ -64,6 +87,34 @@ namespace Atlas
 		//ATLAS_CORE_INFO("  Version: {0}", (const char*)glGetString(GL_VERSION));
 
 		//ATLAS_CORE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Atlas requires at least OpenGL version 4.5!");
+	}
+
+
+	bool VulkanContext::VerifyValidationLayerSupport(const std::vector<const char*>& validationLayers)
+	{
+		uint32_t layerCount = 0;
+		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+		std::vector<VkLayerProperties> availableLayers(layerCount);
+		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+		for (const char* layerName : validationLayers) {
+			bool layerFound = false;
+
+			for (const auto& layerProperties : availableLayers) {
+				if (strcmp(layerName, layerProperties.layerName) == 0) {
+					layerFound = true;
+					break;
+				}
+			}
+
+			if (!layerFound) {
+				ATLAS_CORE_WARN("Unavailable Vulkan validation layer requested: {0}", layerName);
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	void VulkanContext::SwapBuffers()

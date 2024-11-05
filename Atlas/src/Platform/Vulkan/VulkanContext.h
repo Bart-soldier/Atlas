@@ -18,6 +18,8 @@ namespace Atlas
 		virtual void SwapBuffers() override;
 
 	private:
+		bool VerifyValidationLayerSupport(const std::vector<const char*>& validationLayers);
+
 		GLFWwindow* m_WindowHandle;
 		VkInstance m_Instance;
 	};
