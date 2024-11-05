@@ -17,6 +17,8 @@ namespace Atlas
 		virtual void Init() override;
 		virtual void SwapBuffers() override;
 
+		virtual void* GetInstance() const override { return m_Instance; }
+
 	private:
 		void GetRequiredExtensions(std::vector<const char*>& extensions, bool enableValidationLayers);
 		void GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers);

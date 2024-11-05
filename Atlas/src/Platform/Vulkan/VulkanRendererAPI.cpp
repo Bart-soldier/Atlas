@@ -1,6 +1,9 @@
 #include "atlaspch.h"
 #include "Platform/Vulkan/VulkanRendererAPI.h"
 
+#include "Atlas/Core/Application.h"
+#include "Atlas/Renderer/GraphicsContext.h"
+
 namespace Atlas
 {
 	namespace Utils
@@ -55,29 +58,67 @@ namespace Atlas
 		//}
 	}
 
-	//void OpenGLMessageCallback(
-	//	unsigned source,
-	//	unsigned type,
-	//	unsigned id,
-	//	unsigned severity,
-	//	int length,
-	//	const char* message,
-	//	const void* userParam)
-	//{
-	//	switch (severity)
-	//	{
-	//	case GL_DEBUG_SEVERITY_HIGH:         ATLAS_CORE_CRITICAL(message); return;
-	//	case GL_DEBUG_SEVERITY_MEDIUM:       ATLAS_CORE_ERROR(message); return;
-	//	case GL_DEBUG_SEVERITY_LOW:          ATLAS_CORE_WARN(message); return;
-	//	case GL_DEBUG_SEVERITY_NOTIFICATION: ATLAS_CORE_TRACE(message); return;
-	//	}
-	//	ATLAS_CORE_ASSERT(false, "Unknown severity level!");
-	//}
+	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanMessageCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData)
+	{
+		switch (messageSeverity)
+		{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:   ATLAS_CORE_ERROR(pCallbackData->pMessage); break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: ATLAS_CORE_WARN (pCallbackData->pMessage); break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:    ATLAS_CORE_INFO (pCallbackData->pMessage); break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: ATLAS_CORE_TRACE(pCallbackData->pMessage); break;
+
+		default: ATLAS_CORE_ASSERT(false, "Unknown severity level!"); break;
+		}
+
+		return VK_FALSE;
+	}
+
+	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+	{
+		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+
+		if (func != nullptr)
+		{
+			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+		}
+		else
+		{
+			ATLAS_CORE_ERROR("Failed to set up debug messenger!");
+			return VK_ERROR_EXTENSION_NOT_PRESENT;
+		}
+	}
+
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+	{
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+		if (func != nullptr)
+		{
+			func(instance, debugMessenger, pAllocator);
+		}
+	}
 
 	void VulkanRendererAPI::Init()
 	{
-//		ATLAS_PROFILE_FUNCTION();
-//
+		ATLAS_PROFILE_FUNCTION();
+
+#ifdef ATLAS_DEBUG
+		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		createInfo.pfnUserCallback = VulkanMessageCallback;
+
+		Application& app = Application::Get();
+		VkInstance instance = (VkInstance)app.GetGraphicsContext()->GetInstance();
+
+		CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &m_DebugMessenger);
+#endif
+
+
 //#ifdef ATLAS_DEBUG
 //		glEnable(GL_DEBUG_OUTPUT);
 //		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -99,6 +140,16 @@ namespace Atlas
 //		glEnable(GL_LINE_SMOOTH);
 //
 //		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	}
+
+	void VulkanRendererAPI::Shutdown()
+	{
+#ifdef ATLAS_DEBUG
+		Application& app = Application::Get();
+		VkInstance instance = (VkInstance)app.GetGraphicsContext()->GetInstance();
+
+		DestroyDebugUtilsMessengerEXT(instance, m_DebugMessenger, nullptr);
+#endif
 	}
 
 	void VulkanRendererAPI::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)

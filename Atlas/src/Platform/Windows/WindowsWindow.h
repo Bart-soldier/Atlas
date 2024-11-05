@@ -24,6 +24,7 @@ namespace Atlas
 		bool IsVSync() const override;
 
 		virtual void* GetNativeWindow() const override { return m_Window; }
+		virtual const Scope<GraphicsContext>& GetGraphicsContext() const override { return m_Context; }
 
 	private:
 		virtual void Init(const WindowProps& props);

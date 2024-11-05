@@ -4,6 +4,7 @@
 
 #include "Atlas/Core/Base.h"
 #include "Atlas/Events/Event.h"
+#include "Atlas/Renderer/GraphicsContext.h"
 
 namespace Atlas
 {
@@ -39,6 +40,7 @@ namespace Atlas
 		virtual bool IsVSync() const = 0;
 
 		virtual void* GetNativeWindow() const = 0;
+		virtual const Scope<GraphicsContext>& GetGraphicsContext() const = 0;
 
 		static Scope<Window> Create(const WindowProps& props = WindowProps());
 	};

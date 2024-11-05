@@ -217,8 +217,8 @@ namespace Atlas
 		// Render GBuffer: Color, EntityID, Position, Normal, Albedo, Material, Bright Color, Depth
 		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED32I, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		Application& app = Application::Get();
-		fbSpec.Width = app.GetWindow().GetWidth();
-		fbSpec.Height = app.GetWindow().GetHeight();
+		fbSpec.Width = app.GetWindow()->GetWidth();
+		fbSpec.Height = app.GetWindow()->GetHeight();
 		s_RendererData.GBufferFramebuffer = Framebuffer::Create(fbSpec);
 		s_RendererData.EntityIDAttachmentIndex = 1;
 

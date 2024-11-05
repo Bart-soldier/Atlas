@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+
 #include "Atlas/Renderer/RendererAPI.h"
 
 namespace Atlas
@@ -8,6 +10,8 @@ namespace Atlas
 	{
 	public:
 		virtual void Init() override;
+		virtual void Shutdown() override;
+
 		virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 
 		virtual void EnableDepthTest() override;
@@ -34,5 +38,8 @@ namespace Atlas
 		virtual void SetLineWidth(const float& width) override;
 
 		virtual void SetPolygonMode(const PolygonMode& mode) override;
+
+	private:
+		VkDebugUtilsMessengerEXT m_DebugMessenger;
 	};
 }

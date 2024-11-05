@@ -45,7 +45,8 @@ namespace Atlas
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overlay);
 
-		Window& GetWindow() { return *m_Window; }
+		const Scope<Window>& GetWindow() { return m_Window; }
+		const Scope<GraphicsContext>& GetGraphicsContext() { return m_Window->GetGraphicsContext(); }
 
 		void Close();
 

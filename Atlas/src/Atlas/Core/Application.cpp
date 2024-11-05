@@ -47,6 +47,7 @@ namespace Atlas
 		ATLAS_PROFILE_FUNCTION();
 
 		Renderer::Shutdown();
+		RenderCommand::Shutdown();
 	}
 
 	void Application::PushLayer(Layer* layer)

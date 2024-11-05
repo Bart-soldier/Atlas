@@ -503,7 +503,7 @@ namespace Atlas
 			SaveProject();
 
 
-			Application::Get().GetWindow().SetSecondaryTitle(newProject->GetConfig().Name);
+			Application::Get().GetWindow()->SetSecondaryTitle(newProject->GetConfig().Name);
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
 		}
 	}
@@ -527,7 +527,7 @@ namespace Atlas
 			auto startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().StartScene);
 			OpenScene(startScenePath);
 
-			Application::Get().GetWindow().SetSecondaryTitle(Project::GetActive()->GetConfig().Name);
+			Application::Get().GetWindow()->SetSecondaryTitle(Project::GetActive()->GetConfig().Name);
 			m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
 		}
 	}

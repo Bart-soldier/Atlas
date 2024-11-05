@@ -14,6 +14,8 @@ namespace Atlas
 		virtual void Init() override;
 		virtual void SwapBuffers() override;
 
+		virtual void* GetInstance() const override { return nullptr; }
+
 	private:
 		GLFWwindow* m_WindowHandle;
 	};

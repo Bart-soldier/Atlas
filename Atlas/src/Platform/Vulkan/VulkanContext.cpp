@@ -20,7 +20,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		#if defined(ATLAS_DEBUG)
+		#ifdef ATLAS_DEBUG
 			const bool enableValidationLayers = true;
 		#else
 			const bool enableValidationLayers = false;
@@ -148,7 +148,7 @@ namespace Atlas
 			}
 
 			if (!extensionFound) {
-				ATLAS_CORE_WARN("Unavailable Vulkan extension requested: {0}", extensionName);
+				ATLAS_CORE_ERROR("Unavailable Vulkan extension requested: {0}", extensionName);
 				return false;
 			}
 		}
@@ -180,7 +180,7 @@ namespace Atlas
 			}
 
 			if (!layerFound) {
-				ATLAS_CORE_WARN("Unavailable Vulkan layer requested: {0}", layerName);
+				ATLAS_CORE_ERROR("Unavailable Vulkan layer requested: {0}", layerName);
 				return false;
 			}
 		}
