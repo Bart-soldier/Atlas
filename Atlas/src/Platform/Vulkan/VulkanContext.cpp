@@ -13,6 +13,7 @@ namespace Atlas
 
 	VulkanContext::~VulkanContext()
 	{
+		vkDestroyDevice(m_LogicalDevice, nullptr);
 		vkDestroyInstance(m_Instance, nullptr);
 	}
 
@@ -85,9 +86,14 @@ namespace Atlas
 		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledLayerCount);
 
 		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
-		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created Vulkan instance!");
+		if (status != VK_SUCCESS)
+		{
+			ATLAS_CORE_ERROR("Failed to created Vulkan instance!");
+			throw std::runtime_error("Failed to created Vulkan instance!");
+		}
 
 		SelectPhysicalDevice();
+		CreateLogicalDevice(layers, enableValidationLayers);
 	}
 
 	void VulkanContext::GetRequiredExtensions(std::vector<const char*>& extensions, bool enableValidationLayers)
@@ -248,6 +254,47 @@ namespace Atlas
 
 			i++;
 		}
+	}
+
+	void VulkanContext::CreateLogicalDevice(const std::vector<const char*>& layers, bool enableValidationLayers)
+	{
+		QueueFamilyIndices indices;
+		FindQueueFamilies(m_PhysicalDevice, indices);
+
+		VkDeviceQueueCreateInfo queueCreateInfo{};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = indices.GraphicsFamily.value();
+		queueCreateInfo.queueCount = 1;
+		float queuePriority = 1.0f;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+
+		VkPhysicalDeviceFeatures deviceFeatures{};
+
+		VkDeviceCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pQueueCreateInfos = &queueCreateInfo;
+		createInfo.queueCreateInfoCount = 1;
+
+		createInfo.pEnabledFeatures = &deviceFeatures;
+
+		createInfo.enabledExtensionCount = 0;
+
+		if (enableValidationLayers)
+		{
+			createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+			createInfo.ppEnabledLayerNames = layers.data();
+		}
+		else {
+			createInfo.enabledLayerCount = 0;
+		}
+
+		if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS)
+		{
+			ATLAS_CORE_ERROR("Failed to create logical device!");
+			throw std::runtime_error("Failed to create logical device!");
+		}
+
+		vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
 	}
 
 	void VulkanContext::SwapBuffers()

@@ -41,9 +41,14 @@ namespace Atlas
 
 		void FindQueueFamilies(VkPhysicalDevice device, QueueFamilyIndices& indices);
 
+		void CreateLogicalDevice(const std::vector<const char*>& layers, bool enableValidationLayers);
+
 		GLFWwindow* m_WindowHandle;
 
 		VkInstance m_Instance;
 		VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+		VkDevice m_LogicalDevice;
+
+		VkQueue m_GraphicsQueue;
 	};
 }
