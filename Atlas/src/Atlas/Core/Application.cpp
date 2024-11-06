@@ -38,8 +38,8 @@ namespace Atlas
 			ScreenSpaceRenderer::Init();
 		}
 
-		m_ImGuiLayer = new ImGuiLayer();
-		PushOverlay(m_ImGuiLayer);
+		//m_ImGuiLayer = new ImGuiLayer();
+		//PushOverlay(m_ImGuiLayer);
 	}
 
 	Application::~Application()
@@ -88,14 +88,14 @@ namespace Atlas
 				}
 			}
 			
-			m_ImGuiLayer->Begin();
-			{
-				ATLAS_PROFILE_SCOPE("LayerStack OnImGuiRender");
+			//m_ImGuiLayer->Begin();
+			//{
+			//	ATLAS_PROFILE_SCOPE("LayerStack OnImGuiRender");
 
-				for (Layer* layer : m_LayerStack)
-					layer->OnImGuiRender();
-			}
-			m_ImGuiLayer->End();
+			//	for (Layer* layer : m_LayerStack)
+			//		layer->OnImGuiRender();
+			//}
+			//m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
 		}

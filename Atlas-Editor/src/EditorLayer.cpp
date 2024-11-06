@@ -64,10 +64,10 @@ namespace Atlas
 		}
 
 		// Get mouse position
-		auto [mx, my] = ImGui::GetMousePos();
-		int mouseX = (int)(mx - m_ViewportBounds[0].x);
-		int mouseY = (int)(m_ViewportSize.y - (my - m_ViewportBounds[0].y));
-		m_ViewportHovered = mouseX >= 0 && mouseY >= 0 && mouseX < (int)m_ViewportSize.x && mouseY < (int)m_ViewportSize.y;
+		//auto [mx, my] = ImGui::GetMousePos();
+		//int mouseX = (int)(mx - m_ViewportBounds[0].x);
+		//int mouseY = (int)(m_ViewportSize.y - (my - m_ViewportBounds[0].y));
+		//m_ViewportHovered = mouseX >= 0 && mouseY >= 0 && mouseX < (int)m_ViewportSize.x && mouseY < (int)m_ViewportSize.y;
 
 		// Render
 		Renderer::ResetStats();
@@ -103,11 +103,11 @@ namespace Atlas
 		}
 
 		// Check viewport boundaries
-		if (m_ViewportHovered)
-		{
-			int pixelData = Renderer::GetEntityIDFromPixel(mouseX, mouseY);
-			m_HoveredEntity = pixelData == -1 ? nullptr : m_ActiveScene->GetEntity((entt::entity)pixelData);
-		}
+		//if (m_ViewportHovered)
+		//{
+		//	int pixelData = Renderer::GetEntityIDFromPixel(mouseX, mouseY);
+		//	m_HoveredEntity = pixelData == -1 ? nullptr : m_ActiveScene->GetEntity((entt::entity)pixelData);
+		//}
 
 		Renderer::EndRenderingPass();
 	}
