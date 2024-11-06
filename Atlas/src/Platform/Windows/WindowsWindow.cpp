@@ -64,10 +64,10 @@ namespace Atlas
 					glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 			#endif
 
-			//if (RenderCommand::GetAPI() == RendererAPI::API::Vulkan)
-			//{
-			//	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			//}
+			if (RenderCommand::GetAPI() == RendererAPI::API::Vulkan)
+			{
+				glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+			}
 
 			glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
@@ -208,10 +208,10 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		if(enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
+		//if(enabled)
+		//	glfwSwapInterval(1);
+		//else
+		//	glfwSwapInterval(0);
 
 		m_Data.VSync = enabled;
 	}

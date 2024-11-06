@@ -4,11 +4,14 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_vulkan.h>
+
 #include <ImGuizmo.h>
 
 #include "Atlas/Core/Application.h"
+#include "Atlas/Renderer/RenderCommand.h"
 
 // TEMPORARY
 #include <GLFW/glfw3.h>
@@ -53,19 +56,23 @@ namespace Atlas
 
 		SetDarkThemeColors();
 
-		Application& app = Application::Get();
-		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow()->GetNativeWindow());
-
-		// Setup Platform/Renderer bindings
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init("#version 410");
+		Init();
 	}
 
 	void ImGuiLayer::OnDetach()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		ImGui_ImplOpenGL3_Shutdown();
+		switch (RenderCommand::GetAPI())
+		{
+		case RendererAPI::API::OpenGL:
+			ImGui_ImplOpenGL3_Shutdown();
+			break;
+		case RendererAPI::API::Vulkan:
+			ImGui_ImplVulkan_Shutdown();
+			break;
+		}
+
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
@@ -84,7 +91,16 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		ImGui_ImplOpenGL3_NewFrame();
+		switch (RenderCommand::GetAPI())
+		{
+		case RendererAPI::API::OpenGL:
+			ImGui_ImplOpenGL3_NewFrame();
+			break;
+		case RendererAPI::API::Vulkan:
+			ImGui_ImplVulkan_NewFrame();
+			break;
+		}
+
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
@@ -100,7 +116,15 @@ namespace Atlas
 
 		// Rendering
 		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		switch (RenderCommand::GetAPI())
+		{
+		case RendererAPI::API::OpenGL:
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			break;
+		case RendererAPI::API::Vulkan:
+			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData()); TODO: Complete
+			break;
+		}
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -188,5 +212,60 @@ namespace Atlas
 	uint32_t ImGuiLayer::GetActiveWidgetID() const
 	{
 		return GImGui->ActiveId;
+	}
+
+	void ImGuiLayer::Init()
+	{
+		Application& app = Application::Get();
+		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow()->GetNativeWindow());
+		const Scope<GraphicsContext>& context = app.GetGraphicsContext();
+
+		// Setup Platform/Renderer bindings
+		if (RenderCommand::GetAPI() == RendererAPI::API::OpenGL)
+		{
+			ImGui_ImplGlfw_InitForOpenGL(window, true);
+			ImGui_ImplOpenGL3_Init("#version 410");
+		}
+		else if (RenderCommand::GetAPI() == RendererAPI::API::Vulkan)
+		{
+			VkDescriptorPoolSize pool_sizes[] =
+			{
+				{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+				{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+				{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+				{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+				{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+				{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+				{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+				{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+				{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+				{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+				{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+			};
+
+			VkDescriptorPoolCreateInfo pool_info = {};
+			pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+			pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+			pool_info.maxSets = 1000;
+			pool_info.poolSizeCount = std::size(pool_sizes);
+			pool_info.pPoolSizes = pool_sizes;
+
+			VkDescriptorPool imguiPool;
+			VkResult status = vkCreateDescriptorPool((VkDevice)context->GetLogicalDevice(), &pool_info, nullptr, &imguiPool);
+			ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created ImGui descriptor pool!");
+
+			ImGui_ImplVulkan_InitInfo initInfo = {};
+			initInfo.Instance = (VkInstance)context->GetInstance();
+			initInfo.PhysicalDevice = (VkPhysicalDevice)context->GetPhysicalDevice();
+			initInfo.Device = (VkDevice)context->GetLogicalDevice();
+			initInfo.Queue = (VkQueue)context->GetGraphicsQueue();
+			initInfo.DescriptorPool = imguiPool;
+			initInfo.MinImageCount = 3;
+			initInfo.ImageCount = 3;
+			initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+			ImGui_ImplGlfw_InitForVulkan(window, true);
+			ImGui_ImplVulkan_Init(&initInfo); // TODO: Complete
+		}
 	}
 }

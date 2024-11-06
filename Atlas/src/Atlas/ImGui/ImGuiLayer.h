@@ -28,6 +28,8 @@ namespace Atlas
 		uint32_t GetActiveWidgetID() const;
 
 	private:
+		void Init();
+
 		bool m_BlockEvents = false;
 	};
 }

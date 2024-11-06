@@ -15,6 +15,9 @@ namespace Atlas
 		virtual void SwapBuffers() override;
 
 		virtual void* GetInstance() const override { return nullptr; }
+		virtual void* GetPhysicalDevice() const override { return nullptr; }
+		virtual void* GetLogicalDevice() const override { return nullptr; }
+		virtual void* GetGraphicsQueue() const override { return nullptr; }
 
 	private:
 		GLFWwindow* m_WindowHandle;

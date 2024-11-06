@@ -14,6 +14,7 @@ namespace Atlas
 	VulkanContext::~VulkanContext()
 	{
 		vkDestroyDevice(m_LogicalDevice, nullptr);
+		vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
 		vkDestroyInstance(m_Instance, nullptr);
 	}
 
@@ -27,7 +28,7 @@ namespace Atlas
 			const bool enableValidationLayers = false;
 		#endif
 
-		glfwMakeContextCurrent(m_WindowHandle);
+		//glfwMakeContextCurrent(m_WindowHandle);
 
 		VkApplicationInfo applicationInfo{};
 		applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -92,6 +93,7 @@ namespace Atlas
 			throw std::runtime_error("Failed to created Vulkan instance!");
 		}
 
+		CreateSurface();
 		SelectPhysicalDevice();
 		CreateLogicalDevice(layers, enableValidationLayers);
 	}
@@ -185,6 +187,15 @@ namespace Atlas
 		return true;
 	}
 
+	void VulkanContext::CreateSurface()
+	{
+		if (glfwCreateWindowSurface(m_Instance, m_WindowHandle, nullptr, &m_Surface) != VK_SUCCESS)
+		{
+			ATLAS_CORE_ERROR("Failed to create window surface!");
+			throw std::runtime_error("Failed to create window surface!");
+		}
+	}
+
 	void VulkanContext::SelectPhysicalDevice()
 	{
 		uint32_t deviceCount = 0;
@@ -248,6 +259,14 @@ namespace Atlas
 				indices.GraphicsFamily = i;
 			}
 
+			VkBool32 presentationSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_Surface, &presentationSupport);
+
+			if (presentationSupport)
+			{
+				indices.PresentationFamily = i;
+			}
+
 			if (indices.IsComplete()) {
 				return;
 			}
@@ -261,19 +280,26 @@ namespace Atlas
 		QueueFamilyIndices indices;
 		FindQueueFamilies(m_PhysicalDevice, indices);
 
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = indices.GraphicsFamily.value();
-		queueCreateInfo.queueCount = 1;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentationFamily.value() };
+
 		float queuePriority = 1.0f;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		for (uint32_t queueFamily : uniqueQueueFamilies)
+		{
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = &queueCreateInfo;
-		createInfo.queueCreateInfoCount = 1;
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());;
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
 		createInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -295,12 +321,13 @@ namespace Atlas
 		}
 
 		vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_LogicalDevice, indices.PresentationFamily.value(), 0, &m_PresentationQueue);
 	}
 
 	void VulkanContext::SwapBuffers()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		glfwSwapBuffers(m_WindowHandle);
+		//glfwSwapBuffers(m_WindowHandle);
 	}
 }
