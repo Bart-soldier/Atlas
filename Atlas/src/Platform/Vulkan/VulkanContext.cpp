@@ -103,14 +103,6 @@ namespace Atlas
 		}
 	}
 
-	void VulkanContext::GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers)
-	{
-		if (enableValidationLayers)
-		{
-			layers.push_back("VK_LAYER_KHRONOS_validation");
-		}
-	}
-
 	bool VulkanContext::VerifyExtensionSupport(const std::vector<const char*>& extensions)
 	{
 		if (extensions.size() == 0)
@@ -143,6 +135,14 @@ namespace Atlas
 		}
 
 		return true;
+	}
+
+	void VulkanContext::GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers)
+	{
+		if (enableValidationLayers)
+		{
+			layers.push_back("VK_LAYER_KHRONOS_validation");
+		}
 	}
 
 	bool VulkanContext::VerifyLayerSupport(const std::vector<const char*>& layers)
@@ -220,7 +220,34 @@ namespace Atlas
 
 	bool VulkanContext::IsDeviceSuitable(VkPhysicalDevice device)
 	{
-		return true;
+		QueueFamilyIndices indices;
+		FindQueueFamilies(device, indices);
+
+		return indices.IsComplete();
+	}
+
+	void VulkanContext::FindQueueFamilies(VkPhysicalDevice device, QueueFamilyIndices& indices)
+	{
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+		int i = 0;
+		for (const auto& queueFamily : queueFamilies)
+		{
+			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				indices.GraphicsFamily = i;
+			}
+
+			if (indices.IsComplete()) {
+				return;
+			}
+
+			i++;
+		}
 	}
 
 	void VulkanContext::SwapBuffers()
