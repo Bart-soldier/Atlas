@@ -40,9 +40,13 @@ namespace Atlas
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceCreateInfo.pApplicationInfo = &applicationInfo;
 
+		ATLAS_CORE_INFO("Vulkan Info:");
+
 		/* ------------------------------ */
 		/* --------- EXTENSIONS --------- */
 		/* ------------------------------ */
+
+		ATLAS_CORE_INFO("  Extensions:");
 
 		std::vector<const char*> extensions;
 		GetRequiredExtensions(extensions, enableValidationLayers);
@@ -57,9 +61,13 @@ namespace Atlas
 			instanceCreateInfo.enabledExtensionCount = 0;
 		}
 
+		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledExtensionCount);
+
 		/* ------------------------------ */
 		/* ----------- LAYERS ----------- */
 		/* ------------------------------ */
+
+		ATLAS_CORE_INFO("  Layers:");
 
 		std::vector<const char*> layers;
 		GetRequiredLayers(layers, enableValidationLayers);
@@ -74,33 +82,12 @@ namespace Atlas
 			instanceCreateInfo.enabledLayerCount = 0;
 		}
 
+		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledLayerCount);
+
 		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created Vulkan instance!");
 
-		/* ------------------------------ */
-		/* --------- REFLECTION --------- */
-		/* ------------------------------ */
-
-		uint32_t extensionCount = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-		uint32_t layerCount = 0;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-		ATLAS_CORE_INFO("Vulkan Info:");
-		ATLAS_CORE_INFO("  Extensions:");
-		ATLAS_CORE_INFO("    Available: {0}", extensionCount);
-		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledExtensionCount);
-		ATLAS_CORE_INFO("  Layers:");
-		ATLAS_CORE_INFO("    Available: {0}", layerCount);
-		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledLayerCount);
-
-
-
-		//ATLAS_CORE_INFO("  Vendor: {0}", (const char*)glGetString(GL_VENDOR));
-		//ATLAS_CORE_INFO("  Renderer: {0}", (const char*)glGetString(GL_RENDERER));
-		//ATLAS_CORE_INFO("  Version: {0}", (const char*)glGetString(GL_VERSION));
-
-		//ATLAS_CORE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Atlas requires at least OpenGL version 4.5!");
+		SelectPhysicalDevice();
 	}
 
 	void VulkanContext::GetRequiredExtensions(std::vector<const char*>& extensions, bool enableValidationLayers)
@@ -134,6 +121,8 @@ namespace Atlas
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
+		ATLAS_CORE_INFO("    Available: {0}", extensionCount);
+
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
 
@@ -166,6 +155,8 @@ namespace Atlas
 		uint32_t layerCount = 0;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
+		ATLAS_CORE_INFO("    Available: {0}", layerCount);
+
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
@@ -185,6 +176,50 @@ namespace Atlas
 			}
 		}
 
+		return true;
+	}
+
+	void VulkanContext::SelectPhysicalDevice()
+	{
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(m_Instance, &deviceCount, nullptr);
+
+		if (deviceCount == 0)
+		{
+			ATLAS_CORE_ERROR("Failed to find GPUs with Vulkan support!");
+			throw std::runtime_error("Failed to find GPUs with Vulkan support!");
+		}
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(m_Instance, &deviceCount, devices.data());
+
+		for (const auto& device : devices)
+		{
+			if (IsDeviceSuitable(device))
+			{
+				m_PhysicalDevice = device;
+				break;
+			}
+		}
+
+		if (m_PhysicalDevice == VK_NULL_HANDLE)
+		{
+			ATLAS_CORE_ERROR("Failed to find a suitable GPU!");
+			throw std::runtime_error("Failed to find a suitable GPU!");
+		}
+
+		VkPhysicalDeviceProperties deviceProperties;
+		vkGetPhysicalDeviceProperties(m_PhysicalDevice, &deviceProperties);
+		VkPhysicalDeviceFeatures deviceFeatures;
+		vkGetPhysicalDeviceFeatures(m_PhysicalDevice, &deviceFeatures);
+
+		ATLAS_CORE_INFO("  Physical Device:");
+		ATLAS_CORE_INFO("    Name: {0}", deviceProperties.deviceName);
+		ATLAS_CORE_INFO("    Driver version: {0}", deviceProperties.driverVersion);
+	}
+
+	bool VulkanContext::IsDeviceSuitable(VkPhysicalDevice device)
+	{
 		return true;
 	}
 

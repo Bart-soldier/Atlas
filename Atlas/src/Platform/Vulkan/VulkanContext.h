@@ -25,7 +25,12 @@ namespace Atlas
 		bool VerifyExtensionSupport(const std::vector<const char*>& extensions);
 		bool VerifyLayerSupport(const std::vector<const char*>& layers);
 
+		void SelectPhysicalDevice();
+		bool IsDeviceSuitable(VkPhysicalDevice device);
+
 		GLFWwindow* m_WindowHandle;
+
 		VkInstance m_Instance;
+		VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
 	};
 }
