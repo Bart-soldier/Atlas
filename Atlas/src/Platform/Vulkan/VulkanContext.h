@@ -24,6 +24,13 @@ namespace Atlas
 			}
 		};
 
+		struct SwapChainSupportDetails
+		{
+			VkSurfaceCapabilitiesKHR Capabilities;
+			std::vector<VkSurfaceFormatKHR> Formats;
+			std::vector<VkPresentModeKHR> PresentationModes;
+		};
+
 		VulkanContext(GLFWwindow* windowHandle);
 		~VulkanContext();
 
@@ -55,6 +62,12 @@ namespace Atlas
 
 		void CreateLogicalDevice(const std::vector<const char*>& extensions, const std::vector<const char*>& layers);
 
+		void QuerySwapChainSupport(VkPhysicalDevice device, SwapChainSupportDetails& details);
+		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		void CreateSwapChain();
+
 		void Reflect();
 
 		GLFWwindow* m_WindowHandle;
@@ -66,5 +79,9 @@ namespace Atlas
 
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentationQueue;
+		VkSwapchainKHR m_SwapChain;
+		std::vector<VkImage> m_SwapChainImages;
+		VkFormat m_SwapChainImageFormat;
+		VkExtent2D m_SwapChainExtent;
 	};
 }
