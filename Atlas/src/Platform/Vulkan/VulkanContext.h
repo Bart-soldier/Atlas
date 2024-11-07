@@ -36,19 +36,25 @@ namespace Atlas
 		virtual void* GetGraphicsQueue() const override { return m_GraphicsQueue; }
 
 	private:
-		void GetRequiredExtensions(std::vector<const char*>& extensions, bool enableValidationLayers);
-		bool VerifyExtensionSupport(const std::vector<const char*>& extensions);
+
+		void GetRequiredInstanceExtensions(std::vector<const char*>& extensions, bool enableValidationLayers);
+		bool VerifyInstanceExtensionSupport(const std::vector<const char*>& extensions);
+
 		void GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers);
 		bool VerifyLayerSupport(const std::vector<const char*>& layers);
 
 		void CreateSurface();
 
-		void SelectPhysicalDevice();
-		bool IsDeviceSuitable(VkPhysicalDevice device);
+		void SelectPhysicalDevice(const std::vector<const char*>& requiredExtensions);
+		bool IsDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& requiredExtensions);
+		void GetRequiredDeviceExtensions(std::vector<const char*>& extensions);
+		bool VerifyDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& extensions);
 
 		void FindQueueFamilies(VkPhysicalDevice device, QueueFamilyIndices& indices);
 
-		void CreateLogicalDevice(const std::vector<const char*>& layers, bool enableValidationLayers);
+		void CreateLogicalDevice(const std::vector<const char*>& extensions, const std::vector<const char*>& layers);
+
+		void Reflect();
 
 		GLFWwindow* m_WindowHandle;
 

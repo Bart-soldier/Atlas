@@ -42,34 +42,26 @@ namespace Atlas
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceCreateInfo.pApplicationInfo = &applicationInfo;
 
-		ATLAS_CORE_INFO("Vulkan Info:");
-
 		/* ------------------------------ */
 		/* --------- EXTENSIONS --------- */
 		/* ------------------------------ */
 
-		ATLAS_CORE_INFO("  Extensions:");
-
 		std::vector<const char*> extensions;
-		GetRequiredExtensions(extensions, enableValidationLayers);
+		GetRequiredInstanceExtensions(extensions, enableValidationLayers);
 
-		if (VerifyExtensionSupport(extensions))
+		if (VerifyInstanceExtensionSupport(extensions))
 		{
 			instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 			instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 		}
 		else
 		{
-			instanceCreateInfo.enabledExtensionCount = 0;
+			throw std::runtime_error("Failed to retrieve all requested extensions!");
 		}
-
-		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledExtensionCount);
 
 		/* ------------------------------ */
 		/* ----------- LAYERS ----------- */
 		/* ------------------------------ */
-
-		ATLAS_CORE_INFO("  Layers:");
 
 		std::vector<const char*> layers;
 		GetRequiredLayers(layers, enableValidationLayers);
@@ -81,10 +73,8 @@ namespace Atlas
 		}
 		else
 		{
-			instanceCreateInfo.enabledLayerCount = 0;
+			throw std::runtime_error("Failed to retrieve all requested layers!");
 		}
-
-		ATLAS_CORE_INFO("    Enabled:   {0}", instanceCreateInfo.enabledLayerCount);
 
 		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
 		if (status != VK_SUCCESS)
@@ -93,12 +83,17 @@ namespace Atlas
 			throw std::runtime_error("Failed to created Vulkan instance!");
 		}
 
+		std::vector<const char*> deviceExtensions;
+		GetRequiredDeviceExtensions(deviceExtensions);
+
 		CreateSurface();
-		SelectPhysicalDevice();
-		CreateLogicalDevice(layers, enableValidationLayers);
+		SelectPhysicalDevice(deviceExtensions);
+		CreateLogicalDevice(deviceExtensions, layers);
+
+		Reflect();
 	}
 
-	void VulkanContext::GetRequiredExtensions(std::vector<const char*>& extensions, bool enableValidationLayers)
+	void VulkanContext::GetRequiredInstanceExtensions(std::vector<const char*>& extensions, bool enableValidationLayers)
 	{
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
@@ -106,22 +101,21 @@ namespace Atlas
 
 		extensions = std::vector(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-		if (enableValidationLayers) {
+		if (enableValidationLayers)
+		{
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
 	}
 
-	bool VulkanContext::VerifyExtensionSupport(const std::vector<const char*>& extensions)
+	bool VulkanContext::VerifyInstanceExtensionSupport(const std::vector<const char*>& extensions)
 	{
 		if (extensions.size() == 0)
 		{
-			return false;
+			return true;
 		}
 
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-		ATLAS_CORE_INFO("    Available: {0}", extensionCount);
 
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
@@ -157,13 +151,11 @@ namespace Atlas
 	{
 		if (layers.size() == 0)
 		{
-			return false;
+			return true;
 		}
 
 		uint32_t layerCount = 0;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-		ATLAS_CORE_INFO("    Available: {0}", layerCount);
 
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
@@ -196,7 +188,7 @@ namespace Atlas
 		}
 	}
 
-	void VulkanContext::SelectPhysicalDevice()
+	void VulkanContext::SelectPhysicalDevice(const std::vector<const char*>& requiredExtensions)
 	{
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(m_Instance, &deviceCount, nullptr);
@@ -212,7 +204,7 @@ namespace Atlas
 
 		for (const auto& device : devices)
 		{
-			if (IsDeviceSuitable(device))
+			if (IsDeviceSuitable(device, requiredExtensions))
 			{
 				m_PhysicalDevice = device;
 				break;
@@ -224,23 +216,39 @@ namespace Atlas
 			ATLAS_CORE_ERROR("Failed to find a suitable GPU!");
 			throw std::runtime_error("Failed to find a suitable GPU!");
 		}
-
-		VkPhysicalDeviceProperties deviceProperties;
-		vkGetPhysicalDeviceProperties(m_PhysicalDevice, &deviceProperties);
-		VkPhysicalDeviceFeatures deviceFeatures;
-		vkGetPhysicalDeviceFeatures(m_PhysicalDevice, &deviceFeatures);
-
-		ATLAS_CORE_INFO("  Physical Device:");
-		ATLAS_CORE_INFO("    Name: {0}", deviceProperties.deviceName);
-		ATLAS_CORE_INFO("    Driver version: {0}", deviceProperties.driverVersion);
 	}
 
-	bool VulkanContext::IsDeviceSuitable(VkPhysicalDevice device)
+	bool VulkanContext::IsDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& requiredExtensions)
 	{
 		QueueFamilyIndices indices;
 		FindQueueFamilies(device, indices);
 
-		return indices.IsComplete();
+		bool extensionsSupported = VerifyDeviceExtensionSupport(device, requiredExtensions);
+
+		return indices.IsComplete() && extensionsSupported;
+	}
+
+	void VulkanContext::GetRequiredDeviceExtensions(std::vector<const char*>& extensions)
+	{
+		extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	}
+
+	bool VulkanContext::VerifyDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*>& extensions)
+	{
+		uint32_t extensionCount;
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+		std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
+
+		for (const auto& extension : availableExtensions)
+		{
+			requiredExtensions.erase(extension.extensionName);
+		}
+
+		return requiredExtensions.empty();
 	}
 
 	void VulkanContext::FindQueueFamilies(VkPhysicalDevice device, QueueFamilyIndices& indices)
@@ -275,7 +283,7 @@ namespace Atlas
 		}
 	}
 
-	void VulkanContext::CreateLogicalDevice(const std::vector<const char*>& layers, bool enableValidationLayers)
+	void VulkanContext::CreateLogicalDevice(const std::vector<const char*>& extensions, const std::vector<const char*>& layers)
 	{
 		QueueFamilyIndices indices;
 		FindQueueFamilies(m_PhysicalDevice, indices);
@@ -303,16 +311,11 @@ namespace Atlas
 
 		createInfo.pEnabledFeatures = &deviceFeatures;
 
-		createInfo.enabledExtensionCount = 0;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		createInfo.ppEnabledExtensionNames = extensions.data();
 
-		if (enableValidationLayers)
-		{
-			createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
-			createInfo.ppEnabledLayerNames = layers.data();
-		}
-		else {
-			createInfo.enabledLayerCount = 0;
-		}
+		createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+		createInfo.ppEnabledLayerNames = layers.data();
 
 		if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS)
 		{
@@ -322,6 +325,17 @@ namespace Atlas
 
 		vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
 		vkGetDeviceQueue(m_LogicalDevice, indices.PresentationFamily.value(), 0, &m_PresentationQueue);
+	}
+
+	void VulkanContext::Reflect()
+	{
+		VkPhysicalDeviceProperties deviceProperties;
+		vkGetPhysicalDeviceProperties(m_PhysicalDevice, &deviceProperties);
+
+		ATLAS_CORE_INFO("Vulkan Info:");
+		ATLAS_CORE_INFO("  Physical Device:");
+		ATLAS_CORE_INFO("    Name: {0}", deviceProperties.deviceName);
+		ATLAS_CORE_INFO("    Driver version: {0}", deviceProperties.driverVersion);
 	}
 
 	void VulkanContext::SwapBuffers()
