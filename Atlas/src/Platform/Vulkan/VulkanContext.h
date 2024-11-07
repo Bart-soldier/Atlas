@@ -67,6 +67,7 @@ namespace Atlas
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		void CreateSwapChain();
+		void CreateImageViews();
 
 		void Reflect();
 
@@ -80,8 +81,9 @@ namespace Atlas
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentationQueue;
 		VkSwapchainKHR m_SwapChain;
-		std::vector<VkImage> m_SwapChainImages;
 		VkFormat m_SwapChainImageFormat;
 		VkExtent2D m_SwapChainExtent;
+		std::vector<VkImage> m_SwapChainImages;
+		std::vector<VkImageView> m_SwapChainImageViews;
 	};
 }
