@@ -22,14 +22,6 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		#ifdef ATLAS_DEBUG
-			const bool enableValidationLayers = true;
-		#else
-			const bool enableValidationLayers = false;
-		#endif
-
-		//glfwMakeContextCurrent(m_WindowHandle);
-
 		VkApplicationInfo applicationInfo{};
 		applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		applicationInfo.pApplicationName = "Atlas Editor";
@@ -47,7 +39,7 @@ namespace Atlas
 		/* ------------------------------ */
 
 		std::vector<const char*> extensions;
-		GetRequiredInstanceExtensions(extensions, enableValidationLayers);
+		GetRequiredInstanceExtensions(extensions);
 
 		if (VerifyInstanceExtensionSupport(extensions))
 		{
@@ -64,7 +56,7 @@ namespace Atlas
 		/* ------------------------------ */
 
 		std::vector<const char*> layers;
-		GetRequiredLayers(layers, enableValidationLayers);
+		GetRequiredLayers(layers);
 
 		if (VerifyLayerSupport(layers))
 		{
@@ -76,16 +68,14 @@ namespace Atlas
 			throw std::runtime_error("Failed to retrieve all requested layers!");
 		}
 
-		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
-		if (status != VK_SUCCESS)
-		{
-			ATLAS_CORE_ERROR("Failed to created Vulkan instance!");
-			throw std::runtime_error("Failed to created Vulkan instance!");
-		}
+		/* ------------------------------ */
+		/* ------ DEVICE EXTENSIONS ----- */
+		/* ------------------------------ */
 
 		std::vector<const char*> deviceExtensions;
 		GetRequiredDeviceExtensions(deviceExtensions);
 
+		CreateInstance(instanceCreateInfo);
 		CreateSurface();
 		SelectPhysicalDevice(deviceExtensions);
 		CreateLogicalDevice(deviceExtensions, layers);
@@ -93,7 +83,7 @@ namespace Atlas
 		Reflect();
 	}
 
-	void VulkanContext::GetRequiredInstanceExtensions(std::vector<const char*>& extensions, bool enableValidationLayers)
+	void VulkanContext::GetRequiredInstanceExtensions(std::vector<const char*>& extensions)
 	{
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
@@ -101,10 +91,9 @@ namespace Atlas
 
 		extensions = std::vector(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-		if (enableValidationLayers)
-		{
-			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		}
+#ifdef ATLAS_DEBUG
+		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 	}
 
 	bool VulkanContext::VerifyInstanceExtensionSupport(const std::vector<const char*>& extensions)
@@ -139,12 +128,11 @@ namespace Atlas
 		return true;
 	}
 
-	void VulkanContext::GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers)
+	void VulkanContext::GetRequiredLayers(std::vector<const char*>& layers)
 	{
-		if (enableValidationLayers)
-		{
-			layers.push_back("VK_LAYER_KHRONOS_validation");
-		}
+#ifdef ATLAS_DEBUG
+		layers.push_back("VK_LAYER_KHRONOS_validation");
+#endif
 	}
 
 	bool VulkanContext::VerifyLayerSupport(const std::vector<const char*>& layers)
@@ -177,6 +165,15 @@ namespace Atlas
 		}
 
 		return true;
+	}
+
+	void VulkanContext::CreateInstance(const VkInstanceCreateInfo& instanceCreateInfo)
+	{
+		if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance) != VK_SUCCESS)
+		{
+			ATLAS_CORE_ERROR("Failed to created Vulkan instance!");
+			throw std::runtime_error("Failed to created Vulkan instance!");
+		}
 	}
 
 	void VulkanContext::CreateSurface()

@@ -37,12 +37,13 @@ namespace Atlas
 
 	private:
 
-		void GetRequiredInstanceExtensions(std::vector<const char*>& extensions, bool enableValidationLayers);
+		void GetRequiredInstanceExtensions(std::vector<const char*>& extensions);
 		bool VerifyInstanceExtensionSupport(const std::vector<const char*>& extensions);
 
-		void GetRequiredLayers(std::vector<const char*>& layers, bool enableValidationLayers);
+		void GetRequiredLayers(std::vector<const char*>& layers);
 		bool VerifyLayerSupport(const std::vector<const char*>& layers);
 
+		void CreateInstance(const VkInstanceCreateInfo& instanceCreateInfo);
 		void CreateSurface();
 
 		void SelectPhysicalDevice(const std::vector<const char*>& requiredExtensions);
