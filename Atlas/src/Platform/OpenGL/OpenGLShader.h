@@ -4,9 +4,6 @@
 
 #include <glm/glm.hpp>
 
-// TODO: REMOVE!
-typedef unsigned int GLenum;
-
 namespace Atlas
 {
 	class OpenGLShader : public Shader
@@ -43,21 +40,21 @@ namespace Atlas
 
 	private:
 		std::string ReadFile(const std::filesystem::path& path);
-		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
+		std::unordered_map<ShaderStage, std::string> PreProcess(const std::string& source);
 		
-		void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
+		void CompileOrGetVulkanBinaries(const std::unordered_map<ShaderStage, std::string>& shaderSources);
 		void CompileOrGetOpenGLBinaries();
 		void CreateProgram();
-		void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
+		void Reflect(ShaderStage stage, const std::vector<uint32_t>& shaderData);
 
 		uint32_t m_RendererID;
 		std::filesystem::path m_VertexPath;
 		std::filesystem::path m_FragmentPath;
 		std::string m_Name;
 
-		std::unordered_map<GLenum, std::vector<uint32_t>> m_VulkanSPIRV;
-		std::unordered_map<GLenum, std::vector<uint32_t>> m_OpenGLSPIRV;
+		std::unordered_map<ShaderStage, std::vector<uint32_t>> m_VulkanSPIRV;
+		std::unordered_map<ShaderStage, std::vector<uint32_t>> m_OpenGLSPIRV;
 
-		std::unordered_map<GLenum, std::string> m_OpenGLSourceCode;
+		std::unordered_map<ShaderStage, std::string> m_OpenGLSourceCode;
 	};
 }

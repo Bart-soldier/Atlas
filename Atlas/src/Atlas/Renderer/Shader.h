@@ -7,6 +7,13 @@
 
 namespace Atlas
 {
+	enum class ShaderStage
+	{
+		None = 0,
+		Vertex,
+		Fragment
+	};
+
 	class Shader
 	{
 	public:
