@@ -34,7 +34,7 @@ namespace Atlas
 		applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		applicationInfo.pEngineName = "Atlas Engine";
 		applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		applicationInfo.apiVersion = VK_API_VERSION_1_0;
+		applicationInfo.apiVersion = VK_API_VERSION_1_3;
 
 		VkInstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -54,7 +54,7 @@ namespace Atlas
 		}
 		else
 		{
-			throw std::runtime_error("Failed to retrieve all requested extensions!");
+			ATLAS_CORE_ASSERT(false, "Failed to retrieve all requested extensions!");
 		}
 
 		/* ------------------------------ */
@@ -71,7 +71,7 @@ namespace Atlas
 		}
 		else
 		{
-			throw std::runtime_error("Failed to retrieve all requested layers!");
+			ATLAS_CORE_ASSERT(false, "Failed to retrieve all requested layers!");
 		}
 
 		/* ------------------------------ */
@@ -176,20 +176,14 @@ namespace Atlas
 
 	void VulkanContext::CreateInstance(const VkInstanceCreateInfo& instanceCreateInfo)
 	{
-		if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance) != VK_SUCCESS)
-		{
-			ATLAS_CORE_ERROR("Failed to created Vulkan instance!");
-			throw std::runtime_error("Failed to created Vulkan instance!");
-		}
+		VkResult status = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Instance);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created Vulkan instance!");
 	}
 
 	void VulkanContext::CreateSurface()
 	{
-		if (glfwCreateWindowSurface(m_Instance, m_WindowHandle, nullptr, &m_Surface) != VK_SUCCESS)
-		{
-			ATLAS_CORE_ERROR("Failed to create window surface!");
-			throw std::runtime_error("Failed to create window surface!");
-		}
+		VkResult status = glfwCreateWindowSurface(m_Instance, m_WindowHandle, nullptr, &m_Surface);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create window surface!");
 	}
 
 	void VulkanContext::SelectPhysicalDevice(const std::vector<const char*>& requiredExtensions)
@@ -199,8 +193,7 @@ namespace Atlas
 
 		if (deviceCount == 0)
 		{
-			ATLAS_CORE_ERROR("Failed to find GPUs with Vulkan support!");
-			throw std::runtime_error("Failed to find GPUs with Vulkan support!");
+			ATLAS_CORE_ASSERT(false, "Failed to find GPUs with Vulkan support!");
 		}
 
 		std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -217,8 +210,7 @@ namespace Atlas
 
 		if (m_PhysicalDevice == VK_NULL_HANDLE)
 		{
-			ATLAS_CORE_ERROR("Failed to find a suitable GPU!");
-			throw std::runtime_error("Failed to find a suitable GPU!");
+			ATLAS_CORE_ASSERT(false, "Failed to find a suitable GPU!");
 		}
 	}
 
@@ -329,11 +321,8 @@ namespace Atlas
 		createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
 		createInfo.ppEnabledLayerNames = layers.data();
 
-		if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS)
-		{
-			ATLAS_CORE_ERROR("Failed to create logical device!");
-			throw std::runtime_error("Failed to create logical device!");
-		}
+		VkResult status = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create logical device!");
 
 		vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
 		vkGetDeviceQueue(m_LogicalDevice, indices.PresentationFamily.value(), 0, &m_PresentationQueue);
@@ -460,11 +449,8 @@ namespace Atlas
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		if (vkCreateSwapchainKHR(m_LogicalDevice, &createInfo, nullptr, &m_SwapChain) != VK_SUCCESS)
-		{
-			ATLAS_CORE_ERROR("Failed to create swap chain!");
-			throw std::runtime_error("Failed to create swap chain!");
-		}
+		VkResult status = vkCreateSwapchainKHR(m_LogicalDevice, &createInfo, nullptr, &m_SwapChain);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create swap chain!");
 
 		vkGetSwapchainImagesKHR(m_LogicalDevice, m_SwapChain, &imageCount, nullptr);
 		m_SwapChainImages.resize(imageCount);
@@ -497,11 +483,8 @@ namespace Atlas
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(m_LogicalDevice, &createInfo, nullptr, &m_SwapChainImageViews[i]) != VK_SUCCESS)
-			{
-				ATLAS_CORE_ERROR("Failed to create image views!");
-				throw std::runtime_error("Failed to create image views!");
-			}
+			VkResult status = vkCreateImageView(m_LogicalDevice, &createInfo, nullptr, &m_SwapChainImageViews[i]);
+			ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create image view!");
 		}
 	}
 

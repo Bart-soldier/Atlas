@@ -41,7 +41,6 @@ namespace Atlas
 		std::unordered_map<ShaderStage, std::string> PreProcess(const std::string& source);
 
 		void CompileOrGetVulkanBinaries(const std::unordered_map<ShaderStage, std::string>& shaderSources);
-		void CompileOrGetOpenGLBinaries();
 		void CreateProgram();
 		void Reflect(ShaderStage stage, const std::vector<uint32_t>& shaderData);
 
@@ -51,8 +50,5 @@ namespace Atlas
 		std::string m_Name;
 
 		std::unordered_map<ShaderStage, std::vector<uint32_t>> m_VulkanSPIRV;
-		std::unordered_map<ShaderStage, std::vector<uint32_t>> m_OpenGLSPIRV;
-
-		std::unordered_map<ShaderStage, std::string> m_OpenGLSourceCode;
 	};
 }

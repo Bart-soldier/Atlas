@@ -2,6 +2,7 @@
 #include "Platform/Vulkan/VulkanShader.h"
 
 #include <fstream>
+#include <vulkan/vulkan.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -10,6 +11,7 @@
 #include <spirv_cross/spirv_glsl.hpp>
 
 #include "Atlas/Core/Timer.h"
+#include "Atlas/Core/Application.h"
 
 namespace Atlas
 {
@@ -95,18 +97,18 @@ namespace Atlas
 			return "";
 		}
 
-		//static GLenum ShaderStageToGLenum(ShaderStage stage)
-		//{
-		//	switch (stage)
-		//	{
-		//	case ShaderStage::Vertex:
-		//		return GL_VERTEX_SHADER;
-		//	case ShaderStage::Fragment:
-		//		return GL_FRAGMENT_SHADER;
-		//	}
-		//	ATLAS_CORE_ASSERT(false);
-		//	return 0;
-		//}
+		static VkShaderStageFlagBits ShaderStageToVkShaderStageFlagBits(ShaderStage stage)
+		{
+			switch (stage)
+			{
+			case ShaderStage::Vertex:
+				return VK_SHADER_STAGE_VERTEX_BIT;
+			case ShaderStage::Fragment:
+				return VK_SHADER_STAGE_FRAGMENT_BIT;
+			}
+			ATLAS_CORE_ASSERT(false);
+			return (VkShaderStageFlagBits)0x00000000;
+		}
 	}
 
 	VulkanShader::VulkanShader(const std::filesystem::path& path)
@@ -122,7 +124,6 @@ namespace Atlas
 		{
 			Timer timer;
 			CompileOrGetVulkanBinaries(shaderSources);
-			CompileOrGetOpenGLBinaries();
 			CreateProgram();
 			ATLAS_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
 		}
@@ -147,7 +148,6 @@ namespace Atlas
 		{
 			Timer timer;
 			CompileOrGetVulkanBinaries(sources);
-			CompileOrGetOpenGLBinaries();
 			CreateProgram();
 			ATLAS_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
 		}
@@ -169,7 +169,6 @@ namespace Atlas
 		{
 			Timer timer;
 			CompileOrGetVulkanBinaries(sources);
-			CompileOrGetOpenGLBinaries();
 			CreateProgram();
 			ATLAS_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
 		}
@@ -294,106 +293,72 @@ namespace Atlas
 			Reflect(stage, data);
 	}
 
-	void VulkanShader::CompileOrGetOpenGLBinaries()
-	{
-		auto& shaderData = m_OpenGLSPIRV;
-
-		shaderc::Compiler compiler;
-		shaderc::CompileOptions options;
-		options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
-		const bool optimize = false;
-		if (optimize)
-			options.SetOptimizationLevel(shaderc_optimization_level_performance);
-
-		std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
-
-		shaderData.clear();
-		m_OpenGLSourceCode.clear();
-		for (auto&& [stage, spirv] : m_VulkanSPIRV)
-		{
-			std::filesystem::path shaderPath = stage == ShaderStage::Vertex ? m_VertexPath : m_FragmentPath;
-
-			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::ShaderStageCachedOpenGLFileExtension(stage));
-
-			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
-			if (in.is_open())
-			{
-				in.seekg(0, std::ios::end);
-				auto size = in.tellg();
-				in.seekg(0, std::ios::beg);
-
-				auto& data = shaderData[stage];
-				data.resize(size / sizeof(uint32_t));
-				in.read((char*)data.data(), size);
-			}
-			else
-			{
-				spirv_cross::CompilerGLSL glslCompiler(spirv);
-				m_OpenGLSourceCode[stage] = glslCompiler.compile();
-				auto& source = m_OpenGLSourceCode[stage];
-
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::ShaderStageToShaderC(stage), shaderPath.string().c_str());
-				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
-				{
-					ATLAS_CORE_ERROR(module.GetErrorMessage());
-					ATLAS_CORE_ASSERT(false);
-				}
-
-				shaderData[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
-
-				std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
-				if (out.is_open())
-				{
-					auto& data = shaderData[stage];
-					out.write((char*)data.data(), data.size() * sizeof(uint32_t));
-					out.flush();
-					out.close();
-				}
-			}
-		}
-	}
-
 	void VulkanShader::CreateProgram()
 	{
-		/*GLuint program = glCreateProgram();
+		//GLuint program = glCreateProgram();
 
-		std::vector<GLuint> shaderIDs;
-		for (auto&& [stage, spirv] : m_OpenGLSPIRV)
+		Application& app = Application::Get();
+		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+
+		std::vector<VkShaderModule> shaderModules;
+		shaderModules.reserve(m_VulkanSPIRV.size());
+		for (auto&& [stage, spirv] : m_VulkanSPIRV)
 		{
-			GLuint shaderID = shaderIDs.emplace_back(glCreateShader(Utils::ShaderStageToGLenum(stage)));
-			glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, spirv.data(), spirv.size() * sizeof(uint32_t));
-			glSpecializeShader(shaderID, "main", 0, nullptr, nullptr);
-			glAttachShader(program, shaderID);
+			VkShaderModuleCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			createInfo.codeSize = spirv.size() * sizeof(uint32_t);
+			createInfo.pCode = spirv.data();
+
+			VkShaderModule shaderModule;
+			VkResult status = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
+			ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create shader module!");
+
+			shaderModules.emplace_back(shaderModule);
+
+			VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+			fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			fragShaderStageInfo.stage = Utils::ShaderStageToVkShaderStageFlagBits(stage);
+			fragShaderStageInfo.module = shaderModule;
+			fragShaderStageInfo.pName = "main";
 		}
 
-		glLinkProgram(program);
 
-		GLint isLinked;
-		glGetProgramiv(program, GL_LINK_STATUS, &isLinked);
-		if (isLinked == GL_FALSE)
+
+
+
+		for (VkShaderModule shaderModule : shaderModules)
 		{
-			GLint maxLength;
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-
-			std::vector<GLchar> infoLog(maxLength);
-			glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
-			ATLAS_CORE_ERROR("Shader linking failed ({0}, {1}):\n{2}", m_VertexPath.string(), m_FragmentPath.string(), infoLog.data());
-
-			glDeleteProgram(program);
-
-			for (auto id : shaderIDs)
-			{
-				glDeleteShader(id);
-			}
+			vkDestroyShaderModule(device, shaderModule, nullptr);
 		}
 
-		for (auto id : shaderIDs)
-		{
-			glDetachShader(program, id);
-			glDeleteShader(id);
-		}
+		//glLinkProgram(program);
 
-		m_RendererID = program;*/
+		//GLint isLinked;
+		//glGetProgramiv(program, GL_LINK_STATUS, &isLinked);
+		//if (isLinked == GL_FALSE)
+		//{
+		//	GLint maxLength;
+		//	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+		//	std::vector<GLchar> infoLog(maxLength);
+		//	glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
+		//	ATLAS_CORE_ERROR("Shader linking failed ({0}, {1}):\n{2}", m_VertexPath.string(), m_FragmentPath.string(), infoLog.data());
+
+		//	glDeleteProgram(program);
+
+		//	for (auto id : shaderIDs)
+		//	{
+		//		glDeleteShader(id);
+		//	}
+		//}
+
+		//for (auto id : shaderIDs)
+		//{
+		//	glDetachShader(program, id);
+		//	glDeleteShader(id);
+		//}
+
+		//m_RendererID = program;
 	}
 
 	void VulkanShader::Reflect(ShaderStage stage, const std::vector<uint32_t>& shaderData)
