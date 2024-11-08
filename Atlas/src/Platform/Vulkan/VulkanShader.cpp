@@ -315,11 +315,11 @@ namespace Atlas
 
 			shaderModules.emplace_back(shaderModule);
 
-			VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-			fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			fragShaderStageInfo.stage = Utils::ShaderStageToVkShaderStageFlagBits(stage);
-			fragShaderStageInfo.module = shaderModule;
-			fragShaderStageInfo.pName = "main";
+			//VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+			//fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			//fragShaderStageInfo.stage = Utils::ShaderStageToVkShaderStageFlagBits(stage);
+			//fragShaderStageInfo.module = shaderModule;
+			//fragShaderStageInfo.pName = "main";
 		}
 
 
