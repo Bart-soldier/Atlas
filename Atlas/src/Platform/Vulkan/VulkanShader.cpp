@@ -15,46 +15,46 @@ namespace Atlas
 {
 	namespace Utils
 	{
-		/*static GLenum ShaderTypeFromString(const std::string& type)
+		static ShaderStage ShaderStageFromString(const std::string& type)
 		{
 			if (type == "vertex")
 			{
-				return GL_VERTEX_SHADER;
+				return ShaderStage::Vertex;
 			}
 			if (type == "fragment" || type == "pixel")
 			{
-				return GL_FRAGMENT_SHADER;
+				return ShaderStage::Fragment;
 			}
 
 			ATLAS_CORE_ASSERT(false, "Unknown shader type!");
-			return 0;
+			return ShaderStage::None;
 		}
 
-		static shaderc_shader_kind GLShaderStageToShaderC(GLenum stage)
+		static shaderc_shader_kind ShaderStageToShaderC(ShaderStage stage)
 		{
 			switch (stage)
 			{
-			case GL_VERTEX_SHADER:
+			case ShaderStage::Vertex:
 				return shaderc_glsl_vertex_shader;
-			case GL_FRAGMENT_SHADER:
+			case ShaderStage::Fragment:
 				return shaderc_glsl_fragment_shader;
 			}
 			ATLAS_CORE_ASSERT(false);
 			return (shaderc_shader_kind)0;
 		}
 
-		static const char* GLShaderStageToString(GLenum stage)
+		static const char* ShaderStageToString(ShaderStage stage)
 		{
 			switch (stage)
 			{
-			case GL_VERTEX_SHADER:
-				return "GL_VERTEX_SHADER";
-			case GL_FRAGMENT_SHADER:
-				return "GL_FRAGMENT_SHADER";
+			case ShaderStage::Vertex:
+				return "Vertex";
+			case ShaderStage::Fragment:
+				return "Fragment";
 			}
 			ATLAS_CORE_ASSERT(false);
 			return nullptr;
-		}*/
+		}
 
 		static const char* GetCacheDirectory()
 		{
@@ -69,30 +69,43 @@ namespace Atlas
 				std::filesystem::create_directories(cacheDirectory);
 		}
 
-		//static const char* GLShaderStageCachedOpenGLFileExtension(uint32_t stage)
-		//{
-		//	switch (stage)
-		//	{
-		//	case GL_VERTEX_SHADER:
-		//		return ".cached_opengl.vert";
-		//	case GL_FRAGMENT_SHADER:
-		//		return ".cached_opengl.frag";
-		//	}
-		//	ATLAS_CORE_ASSERT(false);
-		//	return "";
-		//}
+		static const char* ShaderStageCachedOpenGLFileExtension(ShaderStage stage)
+		{
+			switch (stage)
+			{
+			case ShaderStage::Vertex:
+				return ".cached_opengl.vert";
+			case ShaderStage::Fragment:
+				return ".cached_opengl.frag";
+			}
+			ATLAS_CORE_ASSERT(false);
+			return "";
+		}
 
-		//static const char* GLShaderStageCachedVulkanFileExtension(uint32_t stage)
+		static const char* ShaderStageCachedVulkanFileExtension(ShaderStage stage)
+		{
+			switch (stage)
+			{
+			case ShaderStage::Vertex:
+				return ".cached_vulkan.vert";
+			case ShaderStage::Fragment:
+				return ".cached_vulkan.frag";
+			}
+			ATLAS_CORE_ASSERT(false);
+			return "";
+		}
+
+		//static GLenum ShaderStageToGLenum(ShaderStage stage)
 		//{
 		//	switch (stage)
 		//	{
-		//	case GL_VERTEX_SHADER:
-		//		return ".cached_vulkan.vert";
-		//	case GL_FRAGMENT_SHADER:
-		//		return ".cached_vulkan.frag";
+		//	case ShaderStage::Vertex:
+		//		return GL_VERTEX_SHADER;
+		//	case ShaderStage::Fragment:
+		//		return GL_FRAGMENT_SHADER;
 		//	}
 		//	ATLAS_CORE_ASSERT(false);
-		//	return "";
+		//	return 0;
 		//}
 	}
 
@@ -127,9 +140,9 @@ namespace Atlas
 		std::string vertexSource = ReadFile(vertexPath);
 		std::string fragmentSource = ReadFile(fragmentPath);
 
-		std::unordered_map<GLenum, std::string> sources;
-		//sources[GL_VERTEX_SHADER] = vertexSource;
-		//sources[GL_FRAGMENT_SHADER] = fragmentSource;
+		std::unordered_map<ShaderStage, std::string> sources;
+		sources[ShaderStage::Vertex] = vertexSource;
+		sources[ShaderStage::Fragment] = fragmentSource;
 
 		{
 			Timer timer;
@@ -149,9 +162,9 @@ namespace Atlas
 
 		Utils::CreateCacheDirectoryIfNeeded();
 
-		std::unordered_map<GLenum, std::string> sources;
-		//sources[GL_VERTEX_SHADER] = vertexSrc;
-		//sources[GL_FRAGMENT_SHADER] = fragmentSrc;
+		std::unordered_map<ShaderStage, std::string> sources;
+		sources[ShaderStage::Vertex] = vertexSrc;
+		sources[ShaderStage::Fragment] = fragmentSrc;
 
 		{
 			Timer timer;
@@ -198,11 +211,11 @@ namespace Atlas
 		return result;
 	}
 
-	std::unordered_map<GLenum, std::string> VulkanShader::PreProcess(const std::string& source)
+	std::unordered_map<ShaderStage, std::string> VulkanShader::PreProcess(const std::string& source)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		std::unordered_map<GLenum, std::string> shaderSources;
+		std::unordered_map<ShaderStage, std::string> shaderSources;
 
 		const char* typeToken = "#type";
 		size_t typeTokenLength = strlen(typeToken);
@@ -213,22 +226,20 @@ namespace Atlas
 			ATLAS_CORE_ASSERT(eol != std::string::npos, "Syntax error");
 			size_t begin = pos + typeTokenLength + 1; //Start of shader type name (after "#type " keyword)
 			std::string type = source.substr(begin, eol - begin);
-			//ATLAS_CORE_ASSERT(Utils::ShaderTypeFromString(type), "Invalid shader type specified");
+			ATLAS_CORE_ASSERT(Utils::ShaderStageFromString(type) != ShaderStage::None, "Invalid shader type specified");
 
 			size_t nextLinePos = source.find_first_not_of("\r\n", eol); //Start of shader code after shader type declaration line
 			ATLAS_CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
 			pos = source.find(typeToken, nextLinePos); //Start of next shader type declaration line
 
-			//shaderSources[Utils::ShaderTypeFromString(type)] = (pos == std::string::npos) ? source.substr(nextLinePos) : source.substr(nextLinePos, pos - nextLinePos);
+			shaderSources[Utils::ShaderStageFromString(type)] = (pos == std::string::npos) ? source.substr(nextLinePos) : source.substr(nextLinePos, pos - nextLinePos);
 		}
 
 		return shaderSources;
 	}
 
-	void VulkanShader::CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources)
+	void VulkanShader::CompileOrGetVulkanBinaries(const std::unordered_map<ShaderStage, std::string>& shaderSources)
 	{
-		//GLuint program = glCreateProgram();
-
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
@@ -240,11 +251,11 @@ namespace Atlas
 
 		auto& shaderData = m_VulkanSPIRV;
 		shaderData.clear();
-		/*for (auto&& [stage, source] : shaderSources)
+		for (auto&& [stage, source] : shaderSources)
 		{
-			std::filesystem::path shaderPath = stage == GL_VERTEX_SHADER ? m_VertexPath : m_FragmentPath;
+			std::filesystem::path shaderPath = stage == ShaderStage::Vertex ? m_VertexPath : m_FragmentPath;
 
-			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
+			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::ShaderStageCachedVulkanFileExtension(stage));
 
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
@@ -259,7 +270,7 @@ namespace Atlas
 			}
 			else
 			{
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), shaderPath.string().c_str(), options);
+				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::ShaderStageToShaderC(stage), shaderPath.string().c_str(), options);
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
@@ -277,7 +288,7 @@ namespace Atlas
 					out.close();
 				}
 			}
-		}*/
+		}
 
 		for (auto&& [stage, data] : shaderData)
 			Reflect(stage, data);
@@ -298,11 +309,11 @@ namespace Atlas
 
 		shaderData.clear();
 		m_OpenGLSourceCode.clear();
-		/*for (auto&& [stage, spirv] : m_VulkanSPIRV)
+		for (auto&& [stage, spirv] : m_VulkanSPIRV)
 		{
-			std::filesystem::path shaderPath = stage == GL_VERTEX_SHADER ? m_VertexPath : m_FragmentPath;
+			std::filesystem::path shaderPath = stage == ShaderStage::Vertex ? m_VertexPath : m_FragmentPath;
 
-			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
+			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::ShaderStageCachedOpenGLFileExtension(stage));
 
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
@@ -321,7 +332,7 @@ namespace Atlas
 				m_OpenGLSourceCode[stage] = glslCompiler.compile();
 				auto& source = m_OpenGLSourceCode[stage];
 
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), shaderPath.string().c_str());
+				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::ShaderStageToShaderC(stage), shaderPath.string().c_str());
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
@@ -339,7 +350,7 @@ namespace Atlas
 					out.close();
 				}
 			}
-		}*/
+		}
 	}
 
 	void VulkanShader::CreateProgram()
@@ -349,7 +360,7 @@ namespace Atlas
 		std::vector<GLuint> shaderIDs;
 		for (auto&& [stage, spirv] : m_OpenGLSPIRV)
 		{
-			GLuint shaderID = shaderIDs.emplace_back(glCreateShader(stage));
+			GLuint shaderID = shaderIDs.emplace_back(glCreateShader(Utils::ShaderStageToGLenum(stage)));
 			glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, spirv.data(), spirv.size() * sizeof(uint32_t));
 			glSpecializeShader(shaderID, "main", 0, nullptr, nullptr);
 			glAttachShader(program, shaderID);
@@ -385,14 +396,14 @@ namespace Atlas
 		m_RendererID = program;*/
 	}
 
-	void VulkanShader::Reflect(GLenum stage, const std::vector<uint32_t>& shaderData)
+	void VulkanShader::Reflect(ShaderStage stage, const std::vector<uint32_t>& shaderData)
 	{
-		/*std::filesystem::path shaderPath = stage == GL_VERTEX_SHADER ? m_VertexPath : m_FragmentPath;
+		std::filesystem::path shaderPath = stage == ShaderStage::Vertex ? m_VertexPath : m_FragmentPath;
 
 		spirv_cross::Compiler compiler(shaderData);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-		ATLAS_CORE_TRACE("VulkanShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), shaderPath.string());
+		ATLAS_CORE_TRACE("VulkanShader::Reflect - {0} - {1}", Utils::ShaderStageToString(stage), shaderPath.string());
 		ATLAS_CORE_TRACE("    {0} inputs", resources.stage_inputs.size());
 		ATLAS_CORE_TRACE("    {0} ouputs", resources.stage_outputs.size());
 		ATLAS_CORE_TRACE("    {0} uniform buffers", resources.uniform_buffers.size());
@@ -455,7 +466,7 @@ namespace Atlas
 				ATLAS_CORE_TRACE("    Binding = {0}", binding);
 				ATLAS_CORE_TRACE("    Members = {0}", memberCount);
 			}
-		}*/
+		}
 	}
 
 	void VulkanShader::Bind() const
