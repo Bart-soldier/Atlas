@@ -46,6 +46,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		ScreenSpaceRenderer::Shutdown();
 		Renderer::Shutdown();
 		RenderCommand::Shutdown();
 	}

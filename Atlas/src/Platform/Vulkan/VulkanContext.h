@@ -41,6 +41,7 @@ namespace Atlas
 		virtual void* GetPhysicalDevice() const override { return m_PhysicalDevice; }
 		virtual void* GetLogicalDevice() const override { return m_LogicalDevice; }
 		virtual void* GetGraphicsQueue() const override { return m_GraphicsQueue; }
+		virtual int GetSwapChainImageFormat() const override { return m_SwapChainImageFormat; }
 
 	private:
 

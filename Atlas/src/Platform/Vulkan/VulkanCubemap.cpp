@@ -13,9 +13,9 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		m_MapToCubemapShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/MapToCubemap_Frag.glsl");
-		m_CubemapToIrradianceShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/CubemapToIrradiance_Frag.glsl");
-		m_CubemapToPreFilteredShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/CubemapToPreFiltered_Frag.glsl");
+		//m_MapToCubemapShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/MapToCubemap_Frag.glsl");
+		//m_CubemapToIrradianceShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/CubemapToIrradiance_Frag.glsl");
+		//m_CubemapToPreFilteredShader = Shader::Create("assets/shaders/Cubemap/Cubemap_Vert.glsl", "assets/shaders/Cubemap/CubemapToPreFiltered_Frag.glsl");
 
 		CreateMap(&m_CubemapRendererID, true);
 		CreateMap(&m_IrradianceRendererID);

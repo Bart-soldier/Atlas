@@ -18,6 +18,7 @@ namespace Atlas
 		virtual void* GetPhysicalDevice() const override { return nullptr; }
 		virtual void* GetLogicalDevice() const override { return nullptr; }
 		virtual void* GetGraphicsQueue() const override { return nullptr; }
+		virtual int GetSwapChainImageFormat() const override { return -1; }
 
 	private:
 		GLFWwindow* m_WindowHandle;

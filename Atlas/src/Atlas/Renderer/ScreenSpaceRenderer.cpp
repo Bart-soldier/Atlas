@@ -60,6 +60,9 @@ namespace Atlas
 		Ref<Shader> SSAOBlurShader;
 
 		Ref<Shader> RayTracerShader;
+
+		// TODO: Remove
+		Ref<Shader> TestShader;
 	};
 
 	static PostProcessorData s_ScreenSpaceRendererData;
@@ -108,7 +111,7 @@ namespace Atlas
 		GenerateSSAOData();
 
 		// Shaders
-		s_ScreenSpaceRendererData.InversionShader        = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Inversion.glsl"              );
+		/*s_ScreenSpaceRendererData.InversionShader        = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Inversion.glsl"              );
 		s_ScreenSpaceRendererData.GreyscaleShader        = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Greyscale.glsl"              );
 		s_ScreenSpaceRendererData.SharpenShader          = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Sharpen.glsl"                );
 		s_ScreenSpaceRendererData.BlurShader             = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_Blur.glsl"                   );
@@ -121,10 +124,18 @@ namespace Atlas
 		s_ScreenSpaceRendererData.SSAOShader             = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_SSAO.glsl"                   );
 		s_ScreenSpaceRendererData.SSAOBlurShader         = Shader::Create("assets/shaders/ScreenSpace/SSR_Vert.glsl", "assets/shaders/ScreenSpace/SSR_Frag_SSAO_Blur.glsl"              );
 		
-		s_ScreenSpaceRendererData.RayTracerShader        = Shader::Create("assets/shaders/ScreenSpace/RayTracer_Vert.glsl", "assets/shaders/ScreenSpace/RayTracer_Frag.glsl"              );
+		s_ScreenSpaceRendererData.RayTracerShader        = Shader::Create("assets/shaders/ScreenSpace/RayTracer_Vert.glsl", "assets/shaders/ScreenSpace/RayTracer_Frag.glsl"              );*/
 
 		// IBL
 		s_ScreenSpaceRendererData.BRDFLUT = Texture2D::Create("assets/luts/brdf_lut.png");
+
+
+		s_ScreenSpaceRendererData.TestShader = Shader::Create("assets/shaders/3D/Test_Vert.glsl", "assets/shaders/3D/Test_Frag.glsl");
+	}
+
+	void ScreenSpaceRenderer::Shutdown()
+	{
+		s_ScreenSpaceRendererData.TestShader = nullptr;
 	}
 
 	void ScreenSpaceRenderer::RenderPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings)
@@ -143,28 +154,36 @@ namespace Atlas
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::None:
 			return;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Inversion:
-			s_ScreenSpaceRendererData.InversionShader->Bind();
+			//s_ScreenSpaceRendererData.InversionShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Greyscale:
-			s_ScreenSpaceRendererData.GreyscaleShader->Bind();
+			//s_ScreenSpaceRendererData.GreyscaleShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Sharpen:
-			s_ScreenSpaceRendererData.SharpenShader->Bind();
+			//s_ScreenSpaceRendererData.SharpenShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Blur:
-			s_ScreenSpaceRendererData.BlurShader->Bind();
+			//s_ScreenSpaceRendererData.BlurShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::EdgeDetection:
-			s_ScreenSpaceRendererData.EdgeDetectionShader->Bind();
+			//s_ScreenSpaceRendererData.EdgeDetectionShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::GammaCorrection:
-			s_ScreenSpaceRendererData.GammaCorrectionShader->Bind();
+			//s_ScreenSpaceRendererData.GammaCorrectionShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::ToneMapping:
-			s_ScreenSpaceRendererData.ToneMappingShader->Bind();
+			//s_ScreenSpaceRendererData.ToneMappingShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		case Atlas::ScreenSpaceRenderer::PostProcessingEffects::Bloom:
-			s_ScreenSpaceRendererData.GaussianBlurShader->Bind();
+			//s_ScreenSpaceRendererData.GaussianBlurShader->Bind();
+			s_ScreenSpaceRendererData.TestShader->Bind();
 			break;
 		}
 
@@ -176,7 +195,8 @@ namespace Atlas
 		RenderCommand::BindTextureSlot(0, texture1ID);
 		RenderCommand::BindTextureSlot(1, texture2ID);
 
-		s_ScreenSpaceRendererData.AdditiveBlendingShader->Bind();
+		//s_ScreenSpaceRendererData.AdditiveBlendingShader->Bind();
+		s_ScreenSpaceRendererData.TestShader->Bind();
 
 		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
@@ -193,7 +213,8 @@ namespace Atlas
 		skybox->BindIrradianceMap(6);
 		skybox->BindPreFilteredMap(7);
 
-		s_ScreenSpaceRendererData.DeferredLightingShader->Bind();
+		//s_ScreenSpaceRendererData.DeferredLightingShader->Bind();
+		s_ScreenSpaceRendererData.TestShader->Bind();
 
 		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
@@ -207,7 +228,8 @@ namespace Atlas
 		RenderCommand::BindTextureSlot(0, positionTexID);
 		RenderCommand::BindTextureSlot(1, normalTexID);
 
-		s_ScreenSpaceRendererData.SSAOShader->Bind();
+		//s_ScreenSpaceRendererData.SSAOShader->Bind();
+		s_ScreenSpaceRendererData.TestShader->Bind();
 
 		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
@@ -216,14 +238,16 @@ namespace Atlas
 	{
 		RenderCommand::BindTextureSlot(0, ssaoTexID);
 
-		s_ScreenSpaceRendererData.SSAOBlurShader->Bind();
+		//s_ScreenSpaceRendererData.SSAOBlurShader->Bind();
+		s_ScreenSpaceRendererData.TestShader->Bind();
 
 		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}
 
 	void ScreenSpaceRenderer::RenderRayTracer()
 	{
-		s_ScreenSpaceRendererData.RayTracerShader->Bind();
+		//s_ScreenSpaceRendererData.RayTracerShader->Bind();
+		s_ScreenSpaceRendererData.TestShader->Bind();
 
 		RenderCommand::DrawIndexed(s_ScreenSpaceRendererData.RenderVertexArray, s_ScreenSpaceRendererData.RenderIndices);
 	}

@@ -35,6 +35,7 @@ namespace Atlas
 		};
 
 		static void Init();
+		static void Shutdown();
 
 		static void RenderPostProcessingEffect(const uint32_t& renderID, const PostProcessingEffects& effect, const Settings& settings);
 		static void RenderAdditiveTextureBlending(const uint32_t& texture1ID, const uint32_t& texture2ID);

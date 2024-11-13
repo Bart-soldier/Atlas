@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+
 #include "Atlas/Renderer/Shader.h"
 
 namespace Atlas
@@ -42,6 +44,8 @@ namespace Atlas
 
 		void CompileOrGetVulkanBinaries(const std::unordered_map<ShaderStage, std::string>& shaderSources);
 		void CreateProgram();
+		void CreatePipelineLayout();
+		void CreateRenderPass();
 		void Reflect(ShaderStage stage, const std::vector<uint32_t>& shaderData);
 
 		uint32_t m_RendererID;
@@ -50,5 +54,9 @@ namespace Atlas
 		std::string m_Name;
 
 		std::unordered_map<ShaderStage, std::vector<uint32_t>> m_VulkanSPIRV;
+
+		VkRenderPass m_RenderPass;
+		VkPipelineLayout m_PipelineLayout;
+		VkPipeline m_GraphicsPipeline;
 	};
 }

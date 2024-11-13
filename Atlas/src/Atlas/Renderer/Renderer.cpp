@@ -193,6 +193,9 @@ namespace Atlas
 		// Misc.
 		Renderer::Statistics Stats;
 		RendererAPI::PolygonMode PolygonMode = RendererAPI::PolygonMode::Fill;
+
+		// TODO: Remove
+		Ref<Shader> TestShader;
 	};
 
 	static RendererData s_RendererData;
@@ -449,12 +452,14 @@ namespace Atlas
 
 	void Renderer::InitShaders()
 	{
-		s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Quad_Frag.glsl"   );
-		s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle_Vert.glsl" , "assets/shaders/2D/Renderer2D_Circle_Frag.glsl" );
-		s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Line_Frag.glsl"   );
-		s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_GBuffer_Vert.glsl", "assets/shaders/3D/Renderer3D_GBuffer_Frag.glsl");
-		s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline_Vert.glsl", "assets/shaders/3D/Renderer3D_Outline_Frag.glsl");
-		s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl"        , "assets/shaders/Skybox/Skybox_Frag.glsl"        );
+		//s_RendererData.QuadShader        = Shader::Create("assets/shaders/2D/Renderer2D_Quad_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Quad_Frag.glsl"   );
+		//s_RendererData.CircleShader      = Shader::Create("assets/shaders/2D/Renderer2D_Circle_Vert.glsl" , "assets/shaders/2D/Renderer2D_Circle_Frag.glsl" );
+		//s_RendererData.LineShader        = Shader::Create("assets/shaders/2D/Renderer2D_Line_Vert.glsl"   , "assets/shaders/2D/Renderer2D_Line_Frag.glsl"   );
+		//s_RendererData.MeshShader        = Shader::Create("assets/shaders/3D/Renderer3D_GBuffer_Vert.glsl", "assets/shaders/3D/Renderer3D_GBuffer_Frag.glsl");
+		//s_RendererData.MeshOutlineShader = Shader::Create("assets/shaders/3D/Renderer3D_Outline_Vert.glsl", "assets/shaders/3D/Renderer3D_Outline_Frag.glsl");
+		//s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl"        , "assets/shaders/Skybox/Skybox_Frag.glsl"        );
+
+		s_RendererData.TestShader      = Shader::Create("assets/shaders/3D/Test_Vert.glsl", "assets/shaders/3D/Test_Frag.glsl");
 	}
 
 	void Renderer::InitBuffers()
@@ -483,6 +488,8 @@ namespace Atlas
 
 		delete[] s_RendererData.MeshOutlineVertexBufferBase;
 		delete[] s_RendererData.MeshOutlineIndexBufferBase;
+
+		s_RendererData.TestShader = nullptr;
 	}
 
 	uint32_t Renderer::GetLightStorageBufferCapacity()
@@ -818,7 +825,8 @@ namespace Atlas
 			}
 
 			// Shader
-			s_RendererData.QuadShader->Bind();
+			//s_RendererData.QuadShader->Bind();
+			s_RendererData.TestShader->Bind();
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.QuadVertexArray, s_RendererData.QuadIndexCount);
@@ -831,7 +839,8 @@ namespace Atlas
 			s_RendererData.CircleVertexBuffer->SetData(s_RendererData.CircleVertexBufferBase, sizeof(CircleVertex) * s_RendererData.CircleVertexCount);
 
 			// Shader
-			s_RendererData.CircleShader->Bind();
+			//s_RendererData.CircleShader->Bind();
+			s_RendererData.TestShader->Bind();
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.CircleVertexArray, s_RendererData.CircleIndexCount);
@@ -844,7 +853,8 @@ namespace Atlas
 			s_RendererData.LineVertexBuffer->SetData(s_RendererData.LineVertexBufferBase, sizeof(SimpleVertex) * s_RendererData.LineVertexCount);
 
 			// Shader
-			s_RendererData.LineShader->Bind();
+			//s_RendererData.LineShader->Bind();
+			s_RendererData.TestShader->Bind();
 
 			// Draw
 			RenderCommand::SetLineWidth(4.0f);
@@ -871,7 +881,8 @@ namespace Atlas
 			}
 
 			// Shader
-			s_RendererData.MeshShader->Bind();
+			//s_RendererData.MeshShader->Bind();
+			s_RendererData.TestShader->Bind();
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);
@@ -894,7 +905,8 @@ namespace Atlas
 			s_RendererData.MeshOutlineIndexBuffer->SetData(s_RendererData.MeshOutlineIndexBufferBase, sizeof(uint32_t) * s_RendererData.MeshOutlineIndexCount);
 
 			// Shader
-			s_RendererData.MeshOutlineShader->Bind();
+			//s_RendererData.MeshOutlineShader->Bind();
+			s_RendererData.TestShader->Bind();
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.MeshOutlineVertexArray, s_RendererData.MeshOutlineIndexCount);
@@ -1441,7 +1453,8 @@ namespace Atlas
 		case Cubemap::MapType::None:           return;
 		}
 
-		s_RendererData.SkyboxShader->Bind();
+		//s_RendererData.SkyboxShader->Bind();
+		s_RendererData.TestShader->Bind();
 
 		DrawCube();
 		s_RendererData.Stats.DrawCalls++;
