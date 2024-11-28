@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <optional>
 
 #include "Atlas/Renderer/GraphicsContext.h"
 
@@ -12,18 +11,6 @@ namespace Atlas
 	class VulkanContext : public GraphicsContext
 	{
 	public:
-		struct QueueFamilyIndices
-		{
-			std::optional<uint32_t> GraphicsFamily;
-			std::optional<uint32_t> PresentationFamily;
-
-			bool IsComplete() const
-			{
-				return GraphicsFamily    .has_value() &&
-					   PresentationFamily.has_value();
-			}
-		};
-
 		struct SwapChainSupportDetails
 		{
 			VkSurfaceCapabilitiesKHR Capabilities;
@@ -42,9 +29,15 @@ namespace Atlas
 		virtual void* GetLogicalDevice() const override { return m_LogicalDevice; }
 		virtual void* GetGraphicsQueue() const override { return m_GraphicsQueue; }
 		virtual int GetSwapChainImageFormat() const override { return m_SwapChainImageFormat; }
+		virtual uint32_t GetSwapChainExtentWidth() const { return m_SwapChainExtent.width; }
+		virtual uint32_t GetSwapChainExtentHeight() const { return m_SwapChainExtent.height; }
+		virtual const QueueFamilyIndices& GetQueueFamilyIndices() const override { return m_QueueFamilyIndices; }
+
+		virtual void* GetCurrentFramebuffer() const override { return m_SwapChainFramebuffers[m_SwapChainIndex]; }
+
+		virtual void ConfigureRenderPass(const Ref<Shader>& shader) override;
 
 	private:
-
 		void GetRequiredInstanceExtensions(std::vector<const char*>& extensions);
 		bool VerifyInstanceExtensionSupport(const std::vector<const char*>& extensions);
 
@@ -68,7 +61,8 @@ namespace Atlas
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		void CreateSwapChain();
-		void CreateImageViews();
+		void CreateSwapChainImageViews();
+		void CreateSwapChainFramebuffers(const VkRenderPass& renderPass);
 
 		void Reflect();
 
@@ -78,13 +72,17 @@ namespace Atlas
 		VkSurfaceKHR m_Surface;
 		VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
 		VkDevice m_LogicalDevice;
+		QueueFamilyIndices m_QueueFamilyIndices;
 
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentationQueue;
+
+		uint32_t m_SwapChainIndex;
 		VkSwapchainKHR m_SwapChain;
 		VkFormat m_SwapChainImageFormat;
 		VkExtent2D m_SwapChainExtent;
 		std::vector<VkImage> m_SwapChainImages;
 		std::vector<VkImageView> m_SwapChainImageViews;
+		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 	};
 }

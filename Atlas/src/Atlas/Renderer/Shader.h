@@ -32,6 +32,9 @@ namespace Atlas
 	
 		virtual const std::string& GetName() const = 0;
 
+		virtual void* GetRenderPass() const = 0;
+		virtual void* GetGraphicsPipeline() const = 0;
+
 		static Ref<Shader> Create(const std::filesystem::path& path);
 		static Ref<Shader> Create(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);

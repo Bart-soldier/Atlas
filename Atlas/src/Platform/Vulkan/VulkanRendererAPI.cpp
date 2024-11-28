@@ -105,18 +105,9 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-#ifdef ATLAS_DEBUG
-		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		createInfo.pfnUserCallback = VulkanMessageCallback;
-
-		Application& app = Application::Get();
-		VkInstance instance = (VkInstance)app.GetGraphicsContext()->GetInstance();
-
-		CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &m_DebugMessenger);
-#endif
+		CreateDebugMessenger();
+		CreateCommandPool();
+		CreateCommandBuffer();
 
 //
 //		glEnable(GL_BLEND);
@@ -134,19 +125,131 @@ namespace Atlas
 //		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 
-	void VulkanRendererAPI::Shutdown()
+	void VulkanRendererAPI::CreateDebugMessenger()
 	{
 #ifdef ATLAS_DEBUG
+		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		createInfo.pfnUserCallback = VulkanMessageCallback;
+
 		Application& app = Application::Get();
+		VkInstance instance = (VkInstance)app.GetGraphicsContext()->GetInstance();
+
+		CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &m_DebugMessenger);
+#endif
+	}
+
+	void VulkanRendererAPI::CreateCommandPool()
+	{
+		Application& app = Application::Get();
+		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+
+		const GraphicsContext::QueueFamilyIndices& queueFamilyIndices = app.GetGraphicsContext()->GetQueueFamilyIndices();
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = queueFamilyIndices.GraphicsFamily.value();
+
+		VkResult status = vkCreateCommandPool(device, &poolInfo, nullptr, &m_CommandPool);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create command pool!");
+	}
+
+	void VulkanRendererAPI::CreateCommandBuffer()
+	{
+		Application& app = Application::Get();
+		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = m_CommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
+
+		VkResult status = vkAllocateCommandBuffers(device, &allocInfo, &m_CommandBuffer);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to allocate command buffers!");
+	}
+
+	void VulkanRendererAPI::BeginCommandBufferRecording()
+	{
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0; // Optional
+		beginInfo.pInheritanceInfo = nullptr; // Optional
+
+		VkResult status = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to begin command buffer recording!");
+	}
+
+	void VulkanRendererAPI::EndCommandBufferRecording()
+	{
+		VkResult status = vkEndCommandBuffer(m_CommandBuffer);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to end command buffer recording!");
+	}
+
+	void VulkanRendererAPI::Shutdown()
+	{
+		Application& app = Application::Get();
+		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+
+		vkDestroyCommandPool(device, m_CommandPool, nullptr);
+
+#ifdef ATLAS_DEBUG
 		VkInstance instance = (VkInstance)app.GetGraphicsContext()->GetInstance();
 
 		DestroyDebugUtilsMessengerEXT(instance, m_DebugMessenger, nullptr);
 #endif
 	}
 
+	void VulkanRendererAPI::BeginRenderPass(const Ref<Shader>& shader)
+	{
+		Application& app = Application::Get();
+
+		VkExtent2D swapChainExtent = { app.GetGraphicsContext()->GetSwapChainExtentWidth(), app.GetGraphicsContext()->GetSwapChainExtentHeight() };
+
+		BeginCommandBufferRecording();
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = (VkRenderPass)shader->GetRenderPass();
+		renderPassInfo.framebuffer = (VkFramebuffer)app.GetGraphicsContext()->GetCurrentFramebuffer();
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = swapChainExtent;
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &m_ClearColor;
+
+		vkCmdBeginRenderPass(m_CommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (VkPipeline)shader->GetGraphicsPipeline());
+
+		SetViewport(0, 0, swapChainExtent.width, swapChainExtent.height);
+
+		// TODO: Create method
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = swapChainExtent;
+		vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
+	}
+
+	void VulkanRendererAPI::EndRenderPass()
+	{
+		vkCmdEndRenderPass(m_CommandBuffer);
+
+		EndCommandBufferRecording();
+	}
+
 	void VulkanRendererAPI::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 	{
-		//glViewport(x, y, width, height);
+		VkViewport viewport{};
+		viewport.x = x;
+		viewport.y = y;
+		viewport.width = static_cast<float>(width);
+		viewport.height = static_cast<float>(height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(m_CommandBuffer, 0, 1, &viewport);
 	}
 
 	void VulkanRendererAPI::EnableDepthTest()
@@ -191,7 +294,7 @@ namespace Atlas
 
 	void VulkanRendererAPI::SetClearColor(const glm::vec4& color)
 	{
-		//glClearColor(color.r, color.g, color.b, color.a);
+		m_ClearColor.color = { color.r, color.g, color.b, color.a };
 	}
 
 	void VulkanRendererAPI::Clear()
@@ -212,6 +315,7 @@ namespace Atlas
 	void VulkanRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
 		vertexArray->Bind();
+		vkCmdDraw(m_CommandBuffer, indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetMaxCount(), 1, 0, 0);
 		//glDrawElements(GL_TRIANGLES, indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetMaxCount(), GL_UNSIGNED_INT, nullptr);
 	}
 

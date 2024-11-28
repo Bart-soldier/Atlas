@@ -4,6 +4,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Atlas/Renderer/Shader.h"
+
 namespace Atlas
 {
 	class RendererAPI
@@ -51,6 +53,9 @@ namespace Atlas
 
 		virtual void Init() = 0;
 		virtual void Shutdown() = 0;
+
+		virtual void BeginRenderPass(const Ref<Shader>& shader) = 0;
+		virtual void EndRenderPass() = 0;
 
 		virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
 

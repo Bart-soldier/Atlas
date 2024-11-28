@@ -17,6 +17,16 @@ namespace Atlas
 			s_RendererAPI->Shutdown();
 		}
 
+		static void BeginRenderPass(const Ref<Shader>& shader)
+		{
+			s_RendererAPI->BeginRenderPass(const Ref<Shader>&shader);
+		}
+
+		static void EndRenderPass()
+		{
+			s_RendererAPI->EndRenderPass();
+		}
+
 		static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 		{
 			s_RendererAPI->SetViewport(x, y, width, height);

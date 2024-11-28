@@ -3,6 +3,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "Platform/Vulkan/VulkanShader.h"
+
 namespace Atlas
 {
 	VulkanContext::VulkanContext(GLFWwindow* windowHandle)
@@ -13,6 +15,11 @@ namespace Atlas
 
 	VulkanContext::~VulkanContext()
 	{
+		for (auto framebuffer : m_SwapChainFramebuffers)
+		{
+			vkDestroyFramebuffer(m_LogicalDevice, framebuffer, nullptr);
+		}
+
 		for (auto imageView : m_SwapChainImageViews)
 		{
 			vkDestroyImageView(m_LogicalDevice, imageView, nullptr);
@@ -88,6 +95,11 @@ namespace Atlas
 		CreateSwapChain();
 
 		Reflect();
+	}
+
+	void VulkanContext::ConfigureRenderPass(const Ref<Shader>& shader)
+	{
+		CreateSwapChainFramebuffers((VkRenderPass)shader->GetRenderPass());
 	}
 
 	void VulkanContext::GetRequiredInstanceExtensions(std::vector<const char*>& extensions)
@@ -212,6 +224,8 @@ namespace Atlas
 		{
 			ATLAS_CORE_ASSERT(false, "Failed to find a suitable GPU!");
 		}
+
+		FindQueueFamilies(m_PhysicalDevice, m_QueueFamilyIndices);
 	}
 
 	bool VulkanContext::IsDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& requiredExtensions)
@@ -289,11 +303,8 @@ namespace Atlas
 
 	void VulkanContext::CreateLogicalDevice(const std::vector<const char*>& extensions, const std::vector<const char*>& layers)
 	{
-		QueueFamilyIndices indices;
-		FindQueueFamilies(m_PhysicalDevice, indices);
-
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentationFamily.value() };
+		std::set<uint32_t> uniqueQueueFamilies = { m_QueueFamilyIndices.GraphicsFamily.value(), m_QueueFamilyIndices.PresentationFamily.value() };
 
 		float queuePriority = 1.0f;
 		for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -324,8 +335,8 @@ namespace Atlas
 		VkResult status = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create logical device!");
 
-		vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
-		vkGetDeviceQueue(m_LogicalDevice, indices.PresentationFamily.value(), 0, &m_PresentationQueue);
+		vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.PresentationFamily.value(), 0, &m_PresentationQueue);
 	}
 
 	void VulkanContext::QuerySwapChainSupport(VkPhysicalDevice device, SwapChainSupportDetails& details)
@@ -426,11 +437,9 @@ namespace Atlas
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-		QueueFamilyIndices indices;
-		FindQueueFamilies(m_PhysicalDevice, indices);
-		uint32_t queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentationFamily.value() };
+		uint32_t queueFamilyIndices[] = { m_QueueFamilyIndices.GraphicsFamily.value(), m_QueueFamilyIndices.PresentationFamily.value() };
 
-		if (indices.GraphicsFamily != indices.PresentationFamily)
+		if (m_QueueFamilyIndices.GraphicsFamily != m_QueueFamilyIndices.PresentationFamily)
 		{
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
@@ -456,13 +465,14 @@ namespace Atlas
 		m_SwapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(m_LogicalDevice, m_SwapChain, &imageCount, m_SwapChainImages.data());
 
+		m_SwapChainIndex = 0;
 		m_SwapChainImageFormat = surfaceFormat.format;
 		m_SwapChainExtent = extent;
 
-		CreateImageViews();
+		CreateSwapChainImageViews();
 	}
 
-	void VulkanContext::CreateImageViews()
+	void VulkanContext::CreateSwapChainImageViews()
 	{
 		m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
@@ -488,6 +498,30 @@ namespace Atlas
 		}
 	}
 
+	void VulkanContext::CreateSwapChainFramebuffers(const VkRenderPass& renderPass)
+	{
+		m_SwapChainFramebuffers.resize(m_SwapChainImages.size());
+
+		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) {
+			VkImageView attachments[] =
+			{
+				m_SwapChainImageViews[i]
+			};
+
+			VkFramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = renderPass;
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.width = m_SwapChainExtent.width;
+			framebufferInfo.height = m_SwapChainExtent.height;
+			framebufferInfo.layers = 1;
+
+			VkResult status = vkCreateFramebuffer(m_LogicalDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]);
+			ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create framebuffer!");
+		}
+	}
+
 	void VulkanContext::Reflect()
 	{
 		VkPhysicalDeviceProperties deviceProperties;
@@ -502,6 +536,8 @@ namespace Atlas
 	void VulkanContext::SwapBuffers()
 	{
 		ATLAS_PROFILE_FUNCTION();
+
+		m_SwapChainIndex = (m_SwapChainIndex + 1) % m_SwapChainFramebuffers.size();
 
 		//glfwSwapBuffers(m_WindowHandle);
 	}

@@ -27,6 +27,9 @@ namespace Atlas
 
 		virtual const std::string& GetName() const override { return m_Name; }
 
+		virtual void* GetRenderPass() const override { return m_RenderPass; }
+		virtual void* GetGraphicsPipeline() const override { return m_GraphicsPipeline; }
+
 		void UploadUniformInt(const std::string& name, int value);
 		void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
 
