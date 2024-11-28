@@ -28,12 +28,16 @@ namespace Atlas
 		virtual void* GetPhysicalDevice() const override { return m_PhysicalDevice; }
 		virtual void* GetLogicalDevice() const override { return m_LogicalDevice; }
 		virtual void* GetGraphicsQueue() const override { return m_GraphicsQueue; }
+		virtual void* GetPresentationQueue() const override { return m_PresentationQueue; }
+		virtual void* GetSwapChain() const override { return m_SwapChain; }
 		virtual int GetSwapChainImageFormat() const override { return m_SwapChainImageFormat; }
 		virtual uint32_t GetSwapChainExtentWidth() const { return m_SwapChainExtent.width; }
 		virtual uint32_t GetSwapChainExtentHeight() const { return m_SwapChainExtent.height; }
 		virtual const QueueFamilyIndices& GetQueueFamilyIndices() const override { return m_QueueFamilyIndices; }
+		virtual void* GetImageAvailableSemaphore() const override { return m_ImageAvailableSemaphore; }
 
-		virtual void* GetCurrentFramebuffer() const override { return m_SwapChainFramebuffers[m_SwapChainIndex]; }
+		virtual uint32_t GetCurrentSwapChainImageIndex() const override { return m_SwapChainImageIndex; }
+		virtual void* GetCurrentFramebuffer() const override { return m_SwapChainFramebuffers[m_SwapChainImageIndex]; }
 
 		virtual void ConfigureRenderPass(const Ref<Shader>& shader) override;
 
@@ -63,6 +67,7 @@ namespace Atlas
 		void CreateSwapChain();
 		void CreateSwapChainImageViews();
 		void CreateSwapChainFramebuffers(const VkRenderPass& renderPass);
+		void CreateSyncObjects();
 
 		void Reflect();
 
@@ -77,7 +82,9 @@ namespace Atlas
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentationQueue;
 
-		uint32_t m_SwapChainIndex;
+		VkSemaphore m_ImageAvailableSemaphore;
+		uint32_t m_SwapChainImageIndex;
+
 		VkSwapchainKHR m_SwapChain;
 		VkFormat m_SwapChainImageFormat;
 		VkExtent2D m_SwapChainExtent;

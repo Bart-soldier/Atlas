@@ -19,7 +19,7 @@ namespace Atlas
 
 		static void BeginRenderPass(const Ref<Shader>& shader)
 		{
-			s_RendererAPI->BeginRenderPass(const Ref<Shader>&shader);
+			s_RendererAPI->BeginRenderPass(shader);
 		}
 
 		static void EndRenderPass()

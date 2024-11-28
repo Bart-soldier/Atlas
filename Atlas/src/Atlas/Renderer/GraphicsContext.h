@@ -30,11 +30,15 @@ namespace Atlas
 		virtual void* GetPhysicalDevice() const = 0;
 		virtual void* GetLogicalDevice() const = 0;
 		virtual void* GetGraphicsQueue() const = 0;
+		virtual void* GetPresentationQueue() const = 0;
+		virtual void* GetSwapChain() const = 0;
 		virtual int GetSwapChainImageFormat() const = 0;
 		virtual uint32_t GetSwapChainExtentWidth() const = 0;
 		virtual uint32_t GetSwapChainExtentHeight() const = 0;
 		virtual const QueueFamilyIndices& GetQueueFamilyIndices() const = 0;
+		virtual void* GetImageAvailableSemaphore() const = 0;
 
+		virtual uint32_t GetCurrentSwapChainImageIndex() const = 0;
 		virtual void* GetCurrentFramebuffer() const = 0;
 
 		virtual void ConfigureRenderPass(const Ref<Shader>& shader) = 0;

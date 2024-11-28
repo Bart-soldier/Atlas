@@ -15,6 +15,8 @@ namespace Atlas
 
 	VulkanContext::~VulkanContext()
 	{
+		vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphore, nullptr);
+
 		for (auto framebuffer : m_SwapChainFramebuffers)
 		{
 			vkDestroyFramebuffer(m_LogicalDevice, framebuffer, nullptr);
@@ -93,6 +95,7 @@ namespace Atlas
 		SelectPhysicalDevice(deviceExtensions);
 		CreateLogicalDevice(deviceExtensions, layers);
 		CreateSwapChain();
+		CreateSyncObjects();
 
 		Reflect();
 	}
@@ -465,7 +468,7 @@ namespace Atlas
 		m_SwapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(m_LogicalDevice, m_SwapChain, &imageCount, m_SwapChainImages.data());
 
-		m_SwapChainIndex = 0;
+		m_SwapChainImageIndex = 0;
 		m_SwapChainImageFormat = surfaceFormat.format;
 		m_SwapChainExtent = extent;
 
@@ -522,6 +525,15 @@ namespace Atlas
 		}
 	}
 
+	void VulkanContext::CreateSyncObjects()
+	{
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkResult status = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create imageAvailable semaphore!");
+	}
+
 	void VulkanContext::Reflect()
 	{
 		VkPhysicalDeviceProperties deviceProperties;
@@ -537,7 +549,7 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		m_SwapChainIndex = (m_SwapChainIndex + 1) % m_SwapChainFramebuffers.size();
+		vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_SwapChainImageIndex);
 
 		//glfwSwapBuffers(m_WindowHandle);
 	}

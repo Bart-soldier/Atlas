@@ -46,14 +46,19 @@ namespace Atlas
 		void CreateDebugMessenger();
 		void CreateCommandPool();
 		void CreateCommandBuffer();
+		void CreateSyncObjects();
 
 		void BeginCommandBufferRecording();
 		void EndCommandBufferRecording();
+		void SubmitCommandBuffer();
 
 		VkDebugUtilsMessengerEXT m_DebugMessenger;
 
 		VkCommandPool m_CommandPool;
 		VkCommandBuffer m_CommandBuffer;
+
+		VkSemaphore m_RenderFinishedSemaphore;
+		VkFence m_InFlightFence;
 
 		VkClearValue m_ClearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 	};

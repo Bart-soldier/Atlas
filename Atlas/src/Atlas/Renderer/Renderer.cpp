@@ -460,6 +460,10 @@ namespace Atlas
 		//s_RendererData.SkyboxShader      = Shader::Create("assets/shaders/Skybox/Skybox_Vert.glsl"        , "assets/shaders/Skybox/Skybox_Frag.glsl"        );
 
 		s_RendererData.TestShader      = Shader::Create("assets/shaders/3D/Test_Vert.glsl", "assets/shaders/3D/Test_Frag.glsl");
+
+		// TODO: Remove
+		Application& app = Application::Get();
+		app.GetGraphicsContext()->ConfigureRenderPass(s_RendererData.TestShader);
 	}
 
 	void Renderer::InitBuffers()
@@ -600,6 +604,9 @@ namespace Atlas
 
 	void Renderer::BeginRenderingPass()
 	{
+		// TODO: Remove
+		RenderCommand::BeginRenderPass(s_RendererData.TestShader);
+
 		s_RendererData.GBufferFramebuffer->Bind();
 		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
 
@@ -615,6 +622,8 @@ namespace Atlas
 	void Renderer::EndRenderingPass()
 	{
 		s_RendererData.LastDrawnFramebuffer->Unbind();
+
+		RenderCommand::EndRenderPass();
 	}
 
 	void Renderer::DeferredRenderingPass(const Ref<Cubemap>& skybox)

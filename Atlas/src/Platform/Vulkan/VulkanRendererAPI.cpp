@@ -108,6 +108,7 @@ namespace Atlas
 		CreateDebugMessenger();
 		CreateCommandPool();
 		CreateCommandBuffer();
+		CreateSyncObjects();
 
 //
 //		glEnable(GL_BLEND);
@@ -172,6 +173,25 @@ namespace Atlas
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to allocate command buffers!");
 	}
 
+	void VulkanRendererAPI::CreateSyncObjects()
+	{
+		Application& app = Application::Get();
+		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		VkResult status = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create renderFinished semaphore!");
+
+		status = vkCreateFence(device, &fenceInfo, nullptr, &m_InFlightFence);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create frames in flight fence!");
+	}
+
 	void VulkanRendererAPI::BeginCommandBufferRecording()
 	{
 		VkCommandBufferBeginInfo beginInfo{};
@@ -189,10 +209,59 @@ namespace Atlas
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to end command buffer recording!");
 	}
 
+	void VulkanRendererAPI::SubmitCommandBuffer()
+	{
+		Application& app = Application::Get();
+		VkQueue graphicsQueue = (VkQueue)app.GetGraphicsContext()->GetGraphicsQueue();
+		VkQueue presentationQueue = (VkQueue)app.GetGraphicsContext()->GetPresentationQueue();
+		VkSemaphore imageAvailableSempahore = (VkSemaphore)app.GetGraphicsContext()->GetImageAvailableSemaphore();
+		VkSwapchainKHR swapChain = (VkSwapchainKHR)app.GetGraphicsContext()->GetSwapChain();
+		uint32_t swapChainImageIndex = app.GetGraphicsContext()->GetCurrentSwapChainImageIndex();
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { imageAvailableSempahore };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffer;
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		VkResult status = vkQueueSubmit(graphicsQueue, 1, &submitInfo, m_InFlightFence);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to submit draw command buffer!");
+
+		// Presentation
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { swapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &swapChainImageIndex;
+		presentInfo.pResults = nullptr; // Optional
+
+		vkQueuePresentKHR(presentationQueue, &presentInfo);
+	}
+
 	void VulkanRendererAPI::Shutdown()
 	{
 		Application& app = Application::Get();
 		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+
+		vkDeviceWaitIdle(device);
+
+		vkDestroySemaphore(device, m_RenderFinishedSemaphore, nullptr);
+		vkDestroyFence(device, m_InFlightFence, nullptr);
 
 		vkDestroyCommandPool(device, m_CommandPool, nullptr);
 
@@ -206,9 +275,16 @@ namespace Atlas
 	void VulkanRendererAPI::BeginRenderPass(const Ref<Shader>& shader)
 	{
 		Application& app = Application::Get();
-
+		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
+		VkSwapchainKHR swapChain = (VkSwapchainKHR)app.GetGraphicsContext()->GetSwapChain();
 		VkExtent2D swapChainExtent = { app.GetGraphicsContext()->GetSwapChainExtentWidth(), app.GetGraphicsContext()->GetSwapChainExtentHeight() };
 
+		vkWaitForFences(device, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &m_InFlightFence);
+
+		app.GetGraphicsContext()->SwapBuffers();
+
+		vkResetCommandBuffer(m_CommandBuffer, 0);
 		BeginCommandBufferRecording();
 
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -238,6 +314,8 @@ namespace Atlas
 		vkCmdEndRenderPass(m_CommandBuffer);
 
 		EndCommandBufferRecording();
+		
+		SubmitCommandBuffer();
 	}
 
 	void VulkanRendererAPI::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
