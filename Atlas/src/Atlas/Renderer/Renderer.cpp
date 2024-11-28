@@ -623,6 +623,7 @@ namespace Atlas
 	{
 		s_RendererData.LastDrawnFramebuffer->Unbind();
 
+		// TODO: Remove
 		RenderCommand::EndRenderPass();
 	}
 

@@ -15,6 +15,8 @@ namespace Atlas
 
 	VulkanContext::~VulkanContext()
 	{
+		vkDeviceWaitIdle(m_LogicalDevice);
+
 		vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphore, nullptr);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)

@@ -180,6 +180,8 @@ namespace Atlas
 		Application& app = Application::Get();
 		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
 
+		vkDeviceWaitIdle(device);
+
 		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 		vkDestroyRenderPass(device, m_RenderPass, nullptr);
