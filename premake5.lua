@@ -4,6 +4,7 @@ include "Dependencies.lua"
 workspace "Atlas"
 	architecture "x86_64"
 	startproject "Atlas-Editor"
+	multiprocessorcompile "On"
 
 	configurations
 	{
@@ -15,11 +16,6 @@ workspace "Atlas"
 	solution_items
 	{
 		".editorconfig"
-	}
-
-	flags
-	{
-		"MultiProcessorCompile"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
