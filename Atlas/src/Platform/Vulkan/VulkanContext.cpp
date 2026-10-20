@@ -96,6 +96,7 @@ namespace Atlas
 		CreateSurface();
 		SelectPhysicalDevice(deviceExtensions);
 		CreateLogicalDevice(deviceExtensions, layers);
+		CreateVulkanMemoryAllocator();
 		CreateSwapChain();
 		CreateSyncObjects();
 
@@ -322,14 +323,30 @@ namespace Atlas
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
-		VkPhysicalDeviceFeatures deviceFeatures{};
+		VkPhysicalDeviceVulkan12Features enabledVk12Features{};
+		enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+		enabledVk12Features.descriptorIndexing = true;
+		enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
+		enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
+		enabledVk12Features.runtimeDescriptorArray = true;
+		enabledVk12Features.bufferDeviceAddress = true;
+
+		VkPhysicalDeviceVulkan13Features enabledVk13Features{};
+		enabledVk13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+		enabledVk13Features.pNext = &enabledVk12Features;
+		enabledVk13Features.synchronization2 = true;
+		enabledVk13Features.dynamicRendering = true;
+
+		VkPhysicalDeviceFeatures enabledVk10Features{};
+		enabledVk10Features.samplerAnisotropy = VK_TRUE;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pNext = &enabledVk13Features;
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());;
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-		createInfo.pEnabledFeatures = &deviceFeatures;
+		createInfo.pEnabledFeatures = &enabledVk10Features;
 
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
@@ -342,6 +359,24 @@ namespace Atlas
 
 		vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
 		vkGetDeviceQueue(m_LogicalDevice, m_QueueFamilyIndices.PresentationFamily.value(), 0, &m_PresentationQueue);
+	}
+
+	void VulkanContext::CreateVulkanMemoryAllocator()
+	{
+		VmaVulkanFunctions vkFunctions{};
+		vkFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+		vkFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+		vkFunctions.vkCreateImage = vkCreateImage;
+
+		VmaAllocatorCreateInfo allocatorCI{};
+		allocatorCI.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+		allocatorCI.physicalDevice = m_PhysicalDevice;
+		allocatorCI.device = m_LogicalDevice;
+		allocatorCI.pVulkanFunctions = &vkFunctions;
+		allocatorCI.instance = m_Instance;
+
+		VkResult status = vmaCreateAllocator(&allocatorCI, &m_Allocator);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to VMA allocator!");
 	}
 
 	void VulkanContext::QuerySwapChainSupport(VkPhysicalDevice device, SwapChainSupportDetails& details)

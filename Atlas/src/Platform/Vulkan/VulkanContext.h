@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <vma/vk_mem_alloc.h>
+
 #include "Atlas/Renderer/GraphicsContext.h"
 
 struct GLFWwindow;
@@ -60,6 +62,8 @@ namespace Atlas
 
 		void CreateLogicalDevice(const std::vector<const char*>& extensions, const std::vector<const char*>& layers);
 
+		void CreateVulkanMemoryAllocator();
+
 		void QuerySwapChainSupport(VkPhysicalDevice device, SwapChainSupportDetails& details);
 		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -81,6 +85,8 @@ namespace Atlas
 
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentationQueue;
+
+		VmaAllocator m_Allocator;
 
 		VkSemaphore m_ImageAvailableSemaphore;
 		uint32_t m_SwapChainImageIndex;
