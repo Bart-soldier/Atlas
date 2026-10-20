@@ -40,6 +40,7 @@ namespace Atlas
 
 		void UploadUniformMat3(const std::string& name, const glm::mat3& matrix);
 		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
+		void BindResources(VkCommandBuffer commandBuffer) const;
 
 	private:
 		std::string ReadFile(const std::filesystem::path& path);
@@ -58,8 +59,12 @@ namespace Atlas
 
 		std::unordered_map<ShaderStage, std::vector<uint32_t>> m_VulkanSPIRV;
 
-		VkRenderPass m_RenderPass;
-		VkPipelineLayout m_PipelineLayout;
-		VkPipeline m_GraphicsPipeline;
+		VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
+		VkPipeline m_GraphicsPipeline = VK_NULL_HANDLE;
+		VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE;
+		VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
+		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSetLayoutBinding> m_DescriptorBindings;
 	};
 }

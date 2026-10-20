@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas/Renderer/Texture.h"
+#include <vma/vk_mem_alloc.h>
 
 namespace Atlas
 {
@@ -21,6 +22,8 @@ namespace Atlas
 		virtual void SetData(void* data, uint32_t size) override;
 
 		virtual void Bind(uint32_t slot = 0) const override;
+		VkImageView GetImageView() const { return m_ImageView; }
+		VkSampler GetSampler() const { return m_Sampler; }
 
 		virtual bool IsLoaded() const override { return m_IsLoaded; }
 
@@ -31,12 +34,16 @@ namespace Atlas
 
 	private:
 		void CreateTextureStorage(const TextureSpecification& specification);
+		void Upload(void* data, uint32_t size);
 
 		TextureSpecification m_Specification;
 
 		std::filesystem::path m_Path;
 		bool m_IsLoaded = false;
-		uint32_t m_RendererID;
-		//GLenum m_InternalFormat, m_DataFormat;
+		uint32_t m_RendererID = 0;
+		VkImage m_Image = VK_NULL_HANDLE;
+		VkImageView m_ImageView = VK_NULL_HANDLE;
+		VkSampler m_Sampler = VK_NULL_HANDLE;
+		VmaAllocation m_Allocation = VK_NULL_HANDLE;
 	};
 }

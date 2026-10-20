@@ -12,6 +12,8 @@
 
 #include "Atlas/Core/Application.h"
 #include "Atlas/Renderer/RenderCommand.h"
+#include "Platform/Vulkan/VulkanResources.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 // TEMPORARY
 #include <GLFW/glfw3.h>
@@ -35,7 +37,8 @@ namespace Atlas
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+		if (RenderCommand::GetAPI() == RendererAPI::API::OpenGL)
+			io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
@@ -53,7 +56,6 @@ namespace Atlas
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
-
 		SetDarkThemeColors();
 
 		Init();
@@ -69,7 +71,13 @@ namespace Atlas
 			ImGui_ImplOpenGL3_Shutdown();
 			break;
 		case RendererAPI::API::Vulkan:
+			static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get())->WaitIdle();
 			ImGui_ImplVulkan_Shutdown();
+			if (m_VulkanDescriptorPool)
+			{
+				vkDestroyDescriptorPool(static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get())->GetDevice(), reinterpret_cast<VkDescriptorPool>(m_VulkanDescriptorPool), nullptr);
+				m_VulkanDescriptorPool = nullptr;
+			}
 			break;
 		}
 
@@ -122,7 +130,7 @@ namespace Atlas
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			break;
 		case RendererAPI::API::Vulkan:
-			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData()); TODO: Complete
+			Application::Get().GetGraphicsContext()->RenderImGui(ImGui::GetDrawData());
 			break;
 		}
 
@@ -250,22 +258,32 @@ namespace Atlas
 			pool_info.poolSizeCount = std::size(pool_sizes);
 			pool_info.pPoolSizes = pool_sizes;
 
-			VkDescriptorPool imguiPool;
-			VkResult status = vkCreateDescriptorPool((VkDevice)context->GetLogicalDevice(), &pool_info, nullptr, &imguiPool);
+			VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+			VkResult status = vkCreateDescriptorPool((VkDevice)context->GetLogicalDevice(), &pool_info, nullptr, &descriptorPool);
 			ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to created ImGui descriptor pool!");
+			m_VulkanDescriptorPool = reinterpret_cast<void*>(descriptorPool);
 
 			ImGui_ImplVulkan_InitInfo initInfo = {};
 			initInfo.Instance = (VkInstance)context->GetInstance();
 			initInfo.PhysicalDevice = (VkPhysicalDevice)context->GetPhysicalDevice();
 			initInfo.Device = (VkDevice)context->GetLogicalDevice();
+			initInfo.QueueFamily = context->GetQueueFamilyIndices().GraphicsFamily.value();
 			initInfo.Queue = (VkQueue)context->GetGraphicsQueue();
-			initInfo.DescriptorPool = imguiPool;
-			initInfo.MinImageCount = 3;
-			initInfo.ImageCount = 3;
+			initInfo.DescriptorPool = descriptorPool;
+			initInfo.MinImageCount = std::max(2u, static_cast<VulkanContext*>(context.get())->GetSwapChainImageCount());
+			initInfo.ImageCount = static_cast<VulkanContext*>(context.get())->GetSwapChainImageCount();
 			initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+			initInfo.UseDynamicRendering = true;
+			m_VulkanColorFormat = static_cast<VulkanContext*>(context.get())->GetSwapChainFormat();
+			initInfo.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+			initInfo.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+			initInfo.PipelineRenderingCreateInfo.pColorAttachmentFormats = reinterpret_cast<const VkFormat*>(&m_VulkanColorFormat);
 
 			ImGui_ImplGlfw_InitForVulkan(window, true);
-			ImGui_ImplVulkan_Init(&initInfo); // TODO: Complete
+			bool initSuccess = ImGui_ImplVulkan_Init(&initInfo);
+			ATLAS_CORE_ASSERT(initSuccess, "Failed to initialize ImGui Vulkan backend!");
+			for (const auto& [textureID, imageInfo] : VulkanResources::s_Textures)
+				VulkanResources::SetImGuiTexture(textureID, ImGui_ImplVulkan_AddTexture(imageInfo.sampler, imageInfo.imageView, imageInfo.imageLayout));
 		}
 	}
 }

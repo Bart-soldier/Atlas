@@ -6,6 +6,8 @@
 
 namespace Atlas
 {
+	class VulkanFramebuffer;
+
 	class VulkanRendererAPI : public RendererAPI
 	{
 	public:
@@ -42,6 +44,9 @@ namespace Atlas
 
 		virtual void SetPolygonMode(const PolygonMode& mode) override;
 
+		static VkCommandBuffer GetActiveCommandBuffer() { return s_ActiveCommandBuffer; }
+		static void SwitchFramebuffer(VulkanFramebuffer* framebuffer);
+
 	private:
 		void CreateDebugMessenger();
 		void CreateCommandPool();
@@ -61,5 +66,11 @@ namespace Atlas
 		VkFence m_InFlightFence;
 
 		VkClearValue m_ClearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		inline static VkCommandBuffer s_ActiveCommandBuffer = VK_NULL_HANDLE;
+		inline static VulkanRendererAPI* s_Instance = nullptr;
+		Ref<Shader> m_ActiveShader;
+		VulkanFramebuffer* m_RenderingFramebuffer = nullptr;
+		void BeginDynamicRendering(VulkanFramebuffer* framebuffer);
+		void EndDynamicRendering(VulkanFramebuffer* framebuffer);
 	};
 }

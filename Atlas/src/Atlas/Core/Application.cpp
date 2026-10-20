@@ -38,14 +38,19 @@ namespace Atlas
 			ScreenSpaceRenderer::Init();
 		}
 
-		//m_ImGuiLayer = new ImGuiLayer();
-		//PushOverlay(m_ImGuiLayer);
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
 	}
 
 	Application::~Application()
 	{
 		ATLAS_PROFILE_FUNCTION();
 
+		if (m_ImGuiLayer)
+		{
+			m_LayerStack.PopOverlay(m_ImGuiLayer);
+			m_ImGuiLayer = nullptr;
+		}
 		ScreenSpaceRenderer::Shutdown();
 		Renderer::Shutdown();
 		RenderCommand::Shutdown();
@@ -89,14 +94,14 @@ namespace Atlas
 				}
 			}
 			
-			//m_ImGuiLayer->Begin();
-			//{
-			//	ATLAS_PROFILE_SCOPE("LayerStack OnImGuiRender");
+			m_ImGuiLayer->Begin();
+			{
+				ATLAS_PROFILE_SCOPE("LayerStack OnImGuiRender");
 
-			//	for (Layer* layer : m_LayerStack)
-			//		layer->OnImGuiRender();
-			//}
-			//m_ImGuiLayer->End();
+				for (Layer* layer : m_LayerStack)
+					layer->OnImGuiRender();
+			}
+			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
 		}
@@ -140,6 +145,7 @@ namespace Atlas
 		}
 
 		m_Minimized = false;
+		m_Window->GetGraphicsContext()->Resize(static_cast<uint32_t>(e.GetWidth()), static_cast<uint32_t>(e.GetHeight()));
 
 		return false;
 	}

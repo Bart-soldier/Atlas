@@ -1,8 +1,11 @@
 #include "atlaspch.h"
 #include "Platform/Vulkan/VulkanRendererAPI.h"
+#include "Platform/Vulkan/VulkanFramebuffer.h"
 
 #include "Atlas/Core/Application.h"
 #include "Atlas/Renderer/GraphicsContext.h"
+#include "Platform/Vulkan/VulkanResources.h"
+#include "Platform/Vulkan/VulkanShader.h"
 
 namespace Atlas
 {
@@ -213,10 +216,7 @@ namespace Atlas
 	{
 		Application& app = Application::Get();
 		VkQueue graphicsQueue = (VkQueue)app.GetGraphicsContext()->GetGraphicsQueue();
-		VkQueue presentationQueue = (VkQueue)app.GetGraphicsContext()->GetPresentationQueue();
 		VkSemaphore imageAvailableSempahore = (VkSemaphore)app.GetGraphicsContext()->GetImageAvailableSemaphore();
-		VkSwapchainKHR swapChain = (VkSwapchainKHR)app.GetGraphicsContext()->GetSwapChain();
-		uint32_t swapChainImageIndex = app.GetGraphicsContext()->GetCurrentSwapChainImageIndex();
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -229,28 +229,8 @@ namespace Atlas
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
 		VkResult status = vkQueueSubmit(graphicsQueue, 1, &submitInfo, m_InFlightFence);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to submit draw command buffer!");
-
-		// Presentation
-
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
-		VkSwapchainKHR swapChains[] = { swapChain };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &swapChainImageIndex;
-		presentInfo.pResults = nullptr; // Optional
-
-		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
 
 	void VulkanRendererAPI::Shutdown()
@@ -274,9 +254,10 @@ namespace Atlas
 
 	void VulkanRendererAPI::BeginRenderPass(const Ref<Shader>& shader)
 	{
+		s_Instance = this;
+		m_ActiveShader = shader;
 		Application& app = Application::Get();
 		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
-		VkSwapchainKHR swapChain = (VkSwapchainKHR)app.GetGraphicsContext()->GetSwapChain();
 		VkExtent2D swapChainExtent = { app.GetGraphicsContext()->GetSwapChainExtentWidth(), app.GetGraphicsContext()->GetSwapChainExtentHeight() };
 
 		vkWaitForFences(device, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
@@ -286,34 +267,181 @@ namespace Atlas
 
 		vkResetCommandBuffer(m_CommandBuffer, 0);
 		BeginCommandBufferRecording();
+		s_ActiveCommandBuffer = m_CommandBuffer;
 
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = (VkRenderPass)shader->GetRenderPass();
-		renderPassInfo.framebuffer = (VkFramebuffer)app.GetGraphicsContext()->GetCurrentFramebuffer();
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = swapChainExtent;
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &m_ClearColor;
+		VulkanFramebuffer* framebuffer = VulkanFramebuffer::GetActive();
+		ATLAS_CORE_ASSERT(framebuffer, "No active Vulkan framebuffer!");
+		m_RenderingFramebuffer = framebuffer;
+		VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		barrier.srcAccessMask = framebuffer->GetColorImageLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			? VK_ACCESS_SHADER_READ_BIT : 0;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.oldLayout = framebuffer->GetColorImageLayout();
+		barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		barrier.image = framebuffer->GetColorImage();
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+		VkPipelineStageFlags colorSourceStage = barrier.oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		vkCmdPipelineBarrier(m_CommandBuffer, colorSourceStage, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		framebuffer->SetColorImageLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+		VkImageMemoryBarrier depthBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		depthBarrier.srcAccessMask = framebuffer->GetDepthImageLayout() == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT : 0;
+		depthBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		depthBarrier.oldLayout = framebuffer->GetDepthImageLayout();
+		depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthBarrier.image = framebuffer->GetDepthImage();
+		depthBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		depthBarrier.subresourceRange.levelCount = 1;
+		depthBarrier.subresourceRange.layerCount = 1;
+		if (depthBarrier.image != VK_NULL_HANDLE)
+		{
+			VkPipelineStageFlags depthSourceStage = depthBarrier.oldLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			vkCmdPipelineBarrier(m_CommandBuffer, depthSourceStage, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthBarrier);
+			framebuffer->SetDepthImageLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+		}
 
-		vkCmdBeginRenderPass(m_CommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		VkRenderingAttachmentInfo colorAttachment{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		colorAttachment.imageView = framebuffer->GetColorImageView();
+		colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.clearValue = m_ClearColor;
+		VkRenderingInfo renderingInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
+		renderingInfo.renderArea = { { 0, 0 }, { framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height } };
+		renderingInfo.layerCount = 1;
+		renderingInfo.colorAttachmentCount = 1;
+		renderingInfo.pColorAttachments = &colorAttachment;
+		VkRenderingAttachmentInfo depthAttachment{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		depthAttachment.imageView = framebuffer->GetDepthImageView();
+		depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		depthAttachment.clearValue.depthStencil = { 1.0f, 0 };
+		if (depthAttachment.imageView != VK_NULL_HANDLE)
+			renderingInfo.pDepthAttachment = &depthAttachment;
+		vkCmdBeginRendering(m_CommandBuffer, &renderingInfo);
 
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (VkPipeline)shader->GetGraphicsPipeline());
+		if (auto vulkanShader = dynamic_cast<VulkanShader*>(shader.get()))
+			vulkanShader->BindResources(m_CommandBuffer);
 
-		SetViewport(0, 0, swapChainExtent.width, swapChainExtent.height);
+		SetViewport(0, 0, framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height);
 
 		// TODO: Create method
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent = swapChainExtent;
+		scissor.extent = { framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height };
 		vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
+	}
+
+	void VulkanRendererAPI::SwitchFramebuffer(VulkanFramebuffer* framebuffer)
+	{
+		if (!s_Instance || !s_Instance->m_RenderingFramebuffer || !framebuffer || s_Instance->m_RenderingFramebuffer == framebuffer)
+			return;
+
+		vkCmdEndRendering(s_ActiveCommandBuffer);
+		s_Instance->EndDynamicRendering(s_Instance->m_RenderingFramebuffer);
+		s_Instance->BeginDynamicRendering(framebuffer);
+		s_Instance->m_RenderingFramebuffer = framebuffer;
+	}
+
+	void VulkanRendererAPI::EndDynamicRendering(VulkanFramebuffer* framebuffer)
+	{
+		if (!framebuffer)
+			return;
+		VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.image = framebuffer->GetColorImage();
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+		vkCmdPipelineBarrier(m_CommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		framebuffer->SetColorImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	}
+
+	void VulkanRendererAPI::BeginDynamicRendering(VulkanFramebuffer* framebuffer)
+	{
+		VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		barrier.srcAccessMask = framebuffer->GetColorImageLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ? VK_ACCESS_SHADER_READ_BIT : 0;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.oldLayout = framebuffer->GetColorImageLayout();
+		barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		barrier.image = framebuffer->GetColorImage();
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.layerCount = 1;
+		VkPipelineStageFlags sourceStage = barrier.oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		vkCmdPipelineBarrier(m_CommandBuffer, sourceStage, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		framebuffer->SetColorImageLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+		VkImageMemoryBarrier depthBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		depthBarrier.srcAccessMask = framebuffer->GetDepthImageLayout() == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT : 0;
+		depthBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		depthBarrier.oldLayout = framebuffer->GetDepthImageLayout();
+		depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthBarrier.image = framebuffer->GetDepthImage();
+		depthBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		depthBarrier.subresourceRange.levelCount = 1;
+		depthBarrier.subresourceRange.layerCount = 1;
+		if (depthBarrier.image != VK_NULL_HANDLE)
+		{
+			VkPipelineStageFlags depthSourceStage = depthBarrier.oldLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ? VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			vkCmdPipelineBarrier(m_CommandBuffer, depthSourceStage, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthBarrier);
+			framebuffer->SetDepthImageLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+		}
+
+		VkRenderingAttachmentInfo color{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		color.imageView = framebuffer->GetColorImageView();
+		color.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		color.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		color.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		color.clearValue = m_ClearColor;
+		VkRenderingInfo info{ VK_STRUCTURE_TYPE_RENDERING_INFO };
+		info.renderArea = { { 0, 0 }, { framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height } };
+		info.layerCount = 1;
+		info.colorAttachmentCount = 1;
+		info.pColorAttachments = &color;
+		VkRenderingAttachmentInfo depth{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		depth.imageView = framebuffer->GetDepthImageView();
+		depth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		depth.clearValue.depthStencil = { 1.0f, 0 };
+		if (depth.imageView != VK_NULL_HANDLE)
+			info.pDepthAttachment = &depth;
+		vkCmdBeginRendering(m_CommandBuffer, &info);
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (VkPipeline)m_ActiveShader->GetGraphicsPipeline());
+		if (auto vulkanShader = dynamic_cast<VulkanShader*>(m_ActiveShader.get()))
+			vulkanShader->BindResources(m_CommandBuffer);
+		SetViewport(0, 0, framebuffer->GetSpecification().Width, framebuffer->GetSpecification().Height);
 	}
 
 	void VulkanRendererAPI::EndRenderPass()
 	{
-		vkCmdEndRenderPass(m_CommandBuffer);
+		vkCmdEndRendering(m_CommandBuffer);
+		VulkanFramebuffer* framebuffer = VulkanFramebuffer::GetActive();
+		if (framebuffer)
+		{
+			VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			barrier.image = framebuffer->GetColorImage();
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			barrier.subresourceRange.levelCount = 1;
+			barrier.subresourceRange.layerCount = 1;
+			vkCmdPipelineBarrier(m_CommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+			framebuffer->SetColorImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
 
 		EndCommandBufferRecording();
+		s_ActiveCommandBuffer = VK_NULL_HANDLE;
 		
 		SubmitCommandBuffer();
 	}
@@ -393,19 +521,19 @@ namespace Atlas
 	void VulkanRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
 		vertexArray->Bind();
-		vkCmdDraw(m_CommandBuffer, indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetMaxCount(), 1, 0, 0);
+		vkCmdDrawIndexed(m_CommandBuffer, indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetMaxCount(), 1, 0, 0, 0);
 		//glDrawElements(GL_TRIANGLES, indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetMaxCount(), GL_UNSIGNED_INT, nullptr);
 	}
 
 	void VulkanRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
 	{
 		vertexArray->Bind();
-		//glDrawArrays(GL_LINES, 0, vertexCount);
+		vkCmdDraw(m_CommandBuffer, vertexCount, 1, 0, 0);
 	}
 
 	void VulkanRendererAPI::BindTextureSlot(uint32_t slot, uint32_t rendererID)
 	{
-		//glBindTextureUnit(slot, rendererID);
+		VulkanResources::SetTextureSlot(slot, rendererID);
 	}
 
 	void VulkanRendererAPI::SetPointSize(const float& size)

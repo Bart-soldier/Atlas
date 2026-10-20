@@ -2,8 +2,10 @@
 #include "Platform/Vulkan/VulkanContext.h"
 
 #include <GLFW/glfw3.h>
+#include <backends/imgui_impl_vulkan.h>
 
 #include "Platform/Vulkan/VulkanShader.h"
+#include "Platform/Vulkan/VulkanResources.h"
 
 namespace Atlas
 {
@@ -13,11 +15,21 @@ namespace Atlas
 		ATLAS_CORE_ASSERT(windowHandle, "Window handle is null!");
 	}
 
+	void* VulkanContext::GetCommandBuffer() const
+	{
+		return nullptr;
+	}
+
 	VulkanContext::~VulkanContext()
 	{
+		if (m_LogicalDevice == VK_NULL_HANDLE)
+			return;
+
 		vkDeviceWaitIdle(m_LogicalDevice);
 
 		vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphore, nullptr);
+		if (m_ImGuiRenderFinishedSemaphore)
+			vkDestroySemaphore(m_LogicalDevice, m_ImGuiRenderFinishedSemaphore, nullptr);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)
 		{
@@ -30,6 +42,10 @@ namespace Atlas
 		}
 
 		vkDestroySwapchainKHR(m_LogicalDevice, m_SwapChain, nullptr);
+		if (m_ImmediateCommandPool)
+			vkDestroyCommandPool(m_LogicalDevice, m_ImmediateCommandPool, nullptr);
+		if (m_Allocator != VK_NULL_HANDLE)
+			vmaDestroyAllocator(m_Allocator);
 		vkDestroyDevice(m_LogicalDevice, nullptr);
 		vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
 		vkDestroyInstance(m_Instance, nullptr);
@@ -97,15 +113,161 @@ namespace Atlas
 		SelectPhysicalDevice(deviceExtensions);
 		CreateLogicalDevice(deviceExtensions, layers);
 		CreateVulkanMemoryAllocator();
+		VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+		poolInfo.queueFamilyIndex = m_QueueFamilyIndices.GraphicsFamily.value();
+		VkResult poolStatus = vkCreateCommandPool(m_LogicalDevice, &poolInfo, nullptr, &m_ImmediateCommandPool);
+		ATLAS_CORE_ASSERT(poolStatus == VK_SUCCESS, "Failed to create immediate command pool!");
 		CreateSwapChain();
 		CreateSyncObjects();
+		VkSemaphoreCreateInfo imguiSemaphoreInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+		VkResult imguiSemaphoreStatus = vkCreateSemaphore(m_LogicalDevice, &imguiSemaphoreInfo, nullptr, &m_ImGuiRenderFinishedSemaphore);
+		ATLAS_CORE_ASSERT(imguiSemaphoreStatus == VK_SUCCESS, "Failed to create ImGui render semaphore!");
 
 		Reflect();
 	}
 
+	void VulkanContext::RenderImGui(ImDrawData* drawData)
+	{
+		if (!drawData || !m_LogicalDevice || !m_SwapChain)
+			return;
+
+		// The renderer submits and presents its frame before ImGui is built by the
+		// current layer architecture. Wait for that submission before reusing the
+		// acquire semaphore for the ImGui pass.
+		vkDeviceWaitIdle(m_LogicalDevice);
+
+		// SwapBuffers acquired the image before the engine render pass. The engine
+		// submits that pass without presenting; ImGui is the final pass and owns
+		// the single presentation for the frame.
+		if (m_SwapChainImageIndex >= m_SwapChainImages.size())
+			return;
+		vkQueueWaitIdle(m_GraphicsQueue);
+
+		VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		allocateInfo.commandPool = m_ImmediateCommandPool;
+		allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocateInfo.commandBufferCount = 1;
+		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+		VkResult status = vkAllocateCommandBuffers(m_LogicalDevice, &allocateInfo, &commandBuffer);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to allocate ImGui command buffer!");
+
+		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		status = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to begin ImGui command buffer!");
+
+		VkImageMemoryBarrier toColor{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		toColor.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		toColor.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		toColor.oldLayout = m_SwapChainImageLayouts[m_SwapChainImageIndex];
+		toColor.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		toColor.image = m_SwapChainImages[m_SwapChainImageIndex];
+		toColor.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		toColor.subresourceRange.levelCount = 1;
+		toColor.subresourceRange.layerCount = 1;
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &toColor);
+		m_SwapChainImageLayouts[m_SwapChainImageIndex] = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkRenderingAttachmentInfo colorAttachment{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+		colorAttachment.imageView = m_SwapChainImageViews[m_SwapChainImageIndex];
+		colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		VkRenderingInfo renderingInfo{ VK_STRUCTURE_TYPE_RENDERING_INFO };
+		renderingInfo.renderArea = { { 0, 0 }, m_SwapChainExtent };
+		renderingInfo.layerCount = 1;
+		renderingInfo.colorAttachmentCount = 1;
+		renderingInfo.pColorAttachments = &colorAttachment;
+		vkCmdBeginRendering(commandBuffer, &renderingInfo);
+		for (const auto& [textureID, imageInfo] : VulkanResources::s_Textures)
+		{
+			if (VulkanResources::GetImGuiTexture(textureID) == VK_NULL_HANDLE)
+				VulkanResources::SetImGuiTexture(textureID, ImGui_ImplVulkan_AddTexture(imageInfo.sampler, imageInfo.imageView, imageInfo.imageLayout));
+		}
+		std::vector<std::pair<ImDrawCmd*, ImTextureID>> originalTextureIDs;
+		for (int listIndex = 0; listIndex < drawData->CmdListsCount; ++listIndex)
+		{
+			ImDrawList* list = drawData->CmdLists[listIndex];
+			for (ImDrawCmd& command : list->CmdBuffer)
+			{
+				uint32_t textureID = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(command.TextureId));
+				VkDescriptorSet descriptorSet = VulkanResources::GetImGuiTexture(textureID);
+				if (descriptorSet == VK_NULL_HANDLE && command.TextureId == nullptr)
+					descriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui::GetIO().Fonts->TexID);
+				if (descriptorSet != VK_NULL_HANDLE)
+				{
+					originalTextureIDs.emplace_back(&command, command.TextureId);
+					command.TextureId = reinterpret_cast<ImTextureID>(descriptorSet);
+				}
+			}
+		}
+		ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+		for (const auto& [command, textureID] : originalTextureIDs)
+			command->TextureId = textureID;
+		vkCmdEndRendering(commandBuffer);
+
+		VkImageMemoryBarrier toPresent = toColor;
+		toPresent.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		toPresent.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		toPresent.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		toPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &toPresent);
+		m_SwapChainImageLayouts[m_SwapChainImageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		status = vkEndCommandBuffer(commandBuffer);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to end ImGui command buffer!");
+
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.pWaitSemaphores = nullptr;
+		submitInfo.pWaitDstStageMask = nullptr;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &m_ImGuiRenderFinishedSemaphore;
+		status = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to submit ImGui command buffer!");
+
+		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &m_ImGuiRenderFinishedSemaphore;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &m_SwapChain;
+		presentInfo.pImageIndices = &m_SwapChainImageIndex;
+		status = vkQueuePresentKHR(m_PresentationQueue, &presentInfo);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS || status == VK_SUBOPTIMAL_KHR, "Failed to present ImGui frame!");
+		vkQueueWaitIdle(m_GraphicsQueue);
+		vkFreeCommandBuffers(m_LogicalDevice, m_ImmediateCommandPool, 1, &commandBuffer);
+	}
+
 	void VulkanContext::ConfigureRenderPass(const Ref<Shader>& shader)
 	{
-		CreateSwapChainFramebuffers((VkRenderPass)shader->GetRenderPass());
+		for (auto framebuffer : m_SwapChainFramebuffers)
+			vkDestroyFramebuffer(m_LogicalDevice, framebuffer, nullptr);
+		m_SwapChainFramebuffers.clear();
+		m_ConfiguredRenderPass = (VkRenderPass)shader->GetRenderPass();
+		CreateSwapChainFramebuffers(m_ConfiguredRenderPass);
+	}
+
+	void VulkanContext::Resize(uint32_t width, uint32_t height)
+	{
+		if (!width || !height || !m_LogicalDevice)
+			return;
+		vkDeviceWaitIdle(m_LogicalDevice);
+		for (auto framebuffer : m_SwapChainFramebuffers)
+			vkDestroyFramebuffer(m_LogicalDevice, framebuffer, nullptr);
+		for (auto imageView : m_SwapChainImageViews)
+			vkDestroyImageView(m_LogicalDevice, imageView, nullptr);
+		vkDestroySwapchainKHR(m_LogicalDevice, m_SwapChain, nullptr);
+		m_SwapChainFramebuffers.clear();
+		m_SwapChainImageViews.clear();
+		m_SwapChainImages.clear();
+		CreateSwapChain();
+		if (m_ConfiguredRenderPass)
+			CreateSwapChainFramebuffers(m_ConfiguredRenderPass);
+		ImGui_ImplVulkan_SetMinImageCount(std::max(2u, static_cast<uint32_t>(m_SwapChainImages.size())));
 	}
 
 	void VulkanContext::GetRequiredInstanceExtensions(std::vector<const char*>& extensions)
@@ -142,6 +304,7 @@ namespace Atlas
 					extensionFound = true;
 					break;
 				}
+
 			}
 
 			if (!extensionFound) {
@@ -351,8 +514,10 @@ namespace Atlas
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
-		createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
-		createInfo.ppEnabledLayerNames = layers.data();
+		// Validation layers are instance-scoped and must not be passed to
+		// VkDeviceCreateInfo.
+		createInfo.enabledLayerCount = 0;
+		createInfo.ppEnabledLayerNames = nullptr;
 
 		VkResult status = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicalDevice);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create logical device!");
@@ -363,16 +528,10 @@ namespace Atlas
 
 	void VulkanContext::CreateVulkanMemoryAllocator()
 	{
-		VmaVulkanFunctions vkFunctions{};
-		vkFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
-		vkFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
-		vkFunctions.vkCreateImage = vkCreateImage;
-
 		VmaAllocatorCreateInfo allocatorCI{};
-		allocatorCI.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+		allocatorCI.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 		allocatorCI.physicalDevice = m_PhysicalDevice;
 		allocatorCI.device = m_LogicalDevice;
-		allocatorCI.pVulkanFunctions = &vkFunctions;
 		allocatorCI.instance = m_Instance;
 
 		VkResult status = vmaCreateAllocator(&allocatorCI, &m_Allocator);
@@ -586,8 +745,38 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_SwapChainImageIndex);
+		VkResult result = vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_SwapChainImageIndex);
+		ATLAS_CORE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Failed to acquire a swap chain image!");
 
 		//glfwSwapBuffers(m_WindowHandle);
+	}
+
+	VkCommandBuffer VulkanContext::BeginImmediateCommands() const
+	{
+		VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		allocateInfo.commandPool = m_ImmediateCommandPool;
+		allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocateInfo.commandBufferCount = 1;
+		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+		VkResult status = vkAllocateCommandBuffers(m_LogicalDevice, &allocateInfo, &commandBuffer);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to allocate immediate command buffer!");
+		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		status = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to begin immediate command buffer!");
+		return commandBuffer;
+	}
+
+	void VulkanContext::EndImmediateCommands(VkCommandBuffer commandBuffer) const
+	{
+		VkResult status = vkEndCommandBuffer(commandBuffer);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to end immediate command buffer!");
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+		status = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to submit immediate command buffer!");
+		vkQueueWaitIdle(m_GraphicsQueue);
+		vkFreeCommandBuffers(m_LogicalDevice, m_ImmediateCommandPool, 1, &commandBuffer);
 	}
 }

@@ -1,5 +1,7 @@
 #include "atlaspch.h"
 #include "Platform/Vulkan/VulkanBuffer.h"
+#include "Platform/Vulkan/VulkanContext.h"
+#include "Atlas/Core/Application.h"
 
 namespace Atlas
 {
@@ -27,36 +29,48 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glDeleteBuffers(1, &m_RendererID);
+		if (m_RendererID)
+			vmaDestroyBuffer(static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get())->GetAllocator(), m_RendererID, m_Allocation);
 	}
 
 	void VulkanVertexBuffer::Bind() const
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 	}
 
 	void VulkanVertexBuffer::Unbind() const
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	void VulkanVertexBuffer::Initialize(const void* data, uint32_t size)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-		//glNamedBufferData(m_RendererID, size, data, data == nullptr ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+		m_Size = size;
+		VulkanContext* context = static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get());
+		VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bufferInfo.size = size;
+		bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		VmaAllocationCreateInfo allocationInfo{};
+		allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		VmaAllocationInfo allocationResult{};
+		VkResult status = vmaCreateBuffer(context->GetAllocator(), &bufferInfo, &allocationInfo, &m_RendererID, &m_Allocation, &allocationResult);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create Vulkan vertex buffer!");
+		if (data)
+			memcpy(allocationResult.pMappedData, data, size);
 	}
 
 	void VulkanVertexBuffer::SetData(const void* data, uint32_t size)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glNamedBufferSubData(m_RendererID, 0, size, data);
+		VmaAllocationInfo info{};
+		vmaGetAllocationInfo(static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get())->GetAllocator(), m_Allocation, &info);
+		memcpy(static_cast<uint8_t*>(info.pMappedData), data, size);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -85,35 +99,46 @@ namespace Atlas
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glDeleteBuffers(1, &m_RendererID);
+		if (m_RendererID)
+			vmaDestroyBuffer(static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get())->GetAllocator(), m_RendererID, m_Allocation);
 	}
 
 	void VulkanIndexBuffer::Bind() const
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 	}
 
 	void VulkanIndexBuffer::Unbind() const
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
 	void VulkanIndexBuffer::Initialize(const void* data, uint32_t size)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
-		//glNamedBufferData(m_RendererID, size, data, data == nullptr ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+		VulkanContext* context = static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get());
+		VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bufferInfo.size = size;
+		bufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		VmaAllocationCreateInfo allocationInfo{};
+		allocationInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocationInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		VmaAllocationInfo allocationResult{};
+		VkResult status = vmaCreateBuffer(context->GetAllocator(), &bufferInfo, &allocationInfo, &m_RendererID, &m_Allocation, &allocationResult);
+		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create Vulkan index buffer!");
+		if (data)
+			memcpy(allocationResult.pMappedData, data, size);
 	}
 
 	void VulkanIndexBuffer::SetData(const void* data, uint32_t size)
 	{
 		ATLAS_PROFILE_FUNCTION();
 
-		//glNamedBufferSubData(m_RendererID, 0, size, data);
+		VmaAllocationInfo info{};
+		vmaGetAllocationInfo(static_cast<VulkanContext*>(Application::Get().GetGraphicsContext().get())->GetAllocator(), m_Allocation, &info);
+		memcpy(static_cast<uint8_t*>(info.pMappedData), data, size);
 	}
 }

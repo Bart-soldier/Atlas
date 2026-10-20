@@ -1,5 +1,7 @@
 #include "atlaspch.h"
 #include "Platform/Vulkan/VulkanVertexArray.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
+#include "Platform/Vulkan/VulkanRendererAPI.h"
 
 namespace Atlas
 {
@@ -42,8 +44,20 @@ namespace Atlas
 	void VulkanVertexArray::Bind() const
 	{
 		ATLAS_PROFILE_FUNCTION();
-
-		//glBindVertexArray(m_RendererID);
+		VkCommandBuffer commandBuffer = VulkanRendererAPI::GetActiveCommandBuffer();
+		if (!commandBuffer)
+			return;
+		std::vector<VkBuffer> buffers;
+		std::vector<VkDeviceSize> offsets;
+		for (const auto& vertexBuffer : m_VertexBuffers)
+		{
+			buffers.push_back(static_cast<VulkanVertexBuffer*>(vertexBuffer.get())->GetBuffer());
+			offsets.push_back(0);
+		}
+		if (!buffers.empty())
+			vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(buffers.size()), buffers.data(), offsets.data());
+		if (m_IndexBuffer)
+			vkCmdBindIndexBuffer(commandBuffer, static_cast<VulkanIndexBuffer*>(m_IndexBuffer.get())->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 	}
 
 	void VulkanVertexArray::Unbind() const

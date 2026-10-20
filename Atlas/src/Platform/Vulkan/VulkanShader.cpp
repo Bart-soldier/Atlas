@@ -1,5 +1,7 @@
 #include "atlaspch.h"
 #include "Platform/Vulkan/VulkanShader.h"
+#include "Platform/Vulkan/VulkanResources.h"
+#include "Platform/Vulkan/VulkanRendererAPI.h"
 
 #include <fstream>
 
@@ -184,6 +186,10 @@ namespace Atlas
 
 		vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
+		if (m_DescriptorSetLayout)
+			vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+		if (m_DescriptorPool)
+			vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
 		vkDestroyRenderPass(device, m_RenderPass, nullptr);
 	}
 
@@ -253,22 +259,18 @@ namespace Atlas
 			options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
 		std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
-
 		auto& shaderData = m_VulkanSPIRV;
 		shaderData.clear();
 		for (auto&& [stage, source] : shaderSources)
 		{
 			std::filesystem::path shaderPath = stage == ShaderStage::Vertex ? m_VertexPath : m_FragmentPath;
-
 			std::filesystem::path cachedPath = cacheDirectory / (shaderPath.filename().string() + Utils::ShaderStageCachedVulkanFileExtension(stage));
-
 			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
 			if (in.is_open())
 			{
 				in.seekg(0, std::ios::end);
 				auto size = in.tellg();
 				in.seekg(0, std::ios::beg);
-
 				auto& data = shaderData[stage];
 				data.resize(size / sizeof(uint32_t));
 				in.read((char*)data.data(), size);
@@ -281,9 +283,7 @@ namespace Atlas
 					ATLAS_CORE_ERROR(module.GetErrorMessage());
 					ATLAS_CORE_ASSERT(false);
 				}
-
 				shaderData[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
-
 				std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
 				if (out.is_open())
 				{
@@ -294,7 +294,6 @@ namespace Atlas
 				}
 			}
 		}
-
 		for (auto&& [stage, data] : shaderData)
 			Reflect(stage, data);
 	}
@@ -348,10 +347,43 @@ namespace Atlas
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 0;
-		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+		VkVertexInputBindingDescription vertexBinding{};
+		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
+		for (const auto& [stage, data] : m_VulkanSPIRV)
+		{
+			if (stage != ShaderStage::Vertex)
+				continue;
+			spirv_cross::Compiler compiler(data);
+			spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+			uint32_t offset = 0;
+			for (const auto& input : resources.stage_inputs)
+			{
+				if (!compiler.has_decoration(input.id, spv::DecorationLocation))
+					continue;
+				const auto& type = compiler.get_type(input.type_id);
+				VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
+				uint32_t componentSize = 4;
+				if (type.vecsize == 1) format = VK_FORMAT_R32_SFLOAT;
+				else if (type.vecsize == 2) format = VK_FORMAT_R32G32_SFLOAT;
+				else if (type.vecsize == 3) format = VK_FORMAT_R32G32B32_SFLOAT;
+				else if (type.vecsize == 4) format = VK_FORMAT_R32G32B32A32_SFLOAT;
+				if (type.basetype == spirv_cross::SPIRType::Int) {
+					if (type.vecsize == 1) format = VK_FORMAT_R32_SINT;
+					else if (type.vecsize == 2) format = VK_FORMAT_R32G32_SINT;
+					else if (type.vecsize == 3) format = VK_FORMAT_R32G32B32_SINT;
+					else if (type.vecsize == 4) format = VK_FORMAT_R32G32B32A32_SINT;
+				}
+				vertexAttributes.push_back({ compiler.get_decoration(input.id, spv::DecorationLocation), 0, format, offset });
+				offset += componentSize * type.vecsize;
+			}
+			vertexBinding.binding = 0;
+			vertexBinding.stride = offset;
+			vertexBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		}
+		vertexInputInfo.vertexBindingDescriptionCount = vertexAttributes.empty() ? 0 : 1;
+		vertexInputInfo.pVertexBindingDescriptions = vertexAttributes.empty() ? nullptr : &vertexBinding;
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributes.size());
+		vertexInputInfo.pVertexAttributeDescriptions = vertexAttributes.data();
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -380,6 +412,14 @@ namespace Atlas
 		multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 		multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
+		VkPipelineDepthStencilStateCreateInfo depthStencil{};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
+
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_TRUE;
@@ -403,6 +443,12 @@ namespace Atlas
 
 		CreateRenderPass();
 		CreatePipelineLayout();
+		VkFormat offscreenFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+		VkPipelineRenderingCreateInfo renderingInfo{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
+		renderingInfo.colorAttachmentCount = 1;
+		renderingInfo.pColorAttachmentFormats = &offscreenFormat;
+		renderingInfo.depthAttachmentFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+		renderingInfo.stencilAttachmentFormat = VK_FORMAT_D24_UNORM_S8_UINT;
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -413,11 +459,12 @@ namespace Atlas
 		pipelineInfo.pViewportState = &viewportState;
 		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &multisampling;
-		pipelineInfo.pDepthStencilState = nullptr; // Optional
+		pipelineInfo.pDepthStencilState = &depthStencil;
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = m_PipelineLayout;
-		pipelineInfo.renderPass = m_RenderPass;
+		pipelineInfo.pNext = &renderingInfo;
+		pipelineInfo.renderPass = VK_NULL_HANDLE;
 		pipelineInfo.subpass = 0;
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
@@ -465,15 +512,128 @@ namespace Atlas
 		Application& app = Application::Get();
 		VkDevice device = (VkDevice)app.GetGraphicsContext()->GetLogicalDevice();
 
+		std::map<uint32_t, VkDescriptorSetLayoutBinding> bindings;
+		for (const auto& [stage, data] : m_VulkanSPIRV)
+		{
+			spirv_cross::Compiler compiler(data);
+			spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+			for (const auto& resource : resources.uniform_buffers)
+			{
+				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				VkShaderStageFlags stageFlags = static_cast<VkShaderStageFlags>(Utils::ShaderStageToVkShaderStageFlagBits(stage));
+				if (bindings.find(binding) != bindings.end()) bindings[binding].stageFlags |= stageFlags;
+				else bindings[binding] = { binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, stageFlags, nullptr };
+			}
+			for (const auto& resource : resources.storage_buffers)
+			{
+				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				VkShaderStageFlags stageFlags = static_cast<VkShaderStageFlags>(Utils::ShaderStageToVkShaderStageFlagBits(stage));
+				if (bindings.find(binding) != bindings.end()) bindings[binding].stageFlags |= stageFlags;
+				else bindings[binding] = { binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, stageFlags, nullptr };
+			}
+			for (const auto& resource : resources.sampled_images)
+			{
+				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				uint32_t descriptorCount = 1;
+				const auto& type = compiler.get_type(resource.type_id);
+				if (!type.array.empty() && type.array[0] > 0)
+					descriptorCount = type.array[0];
+				VkShaderStageFlags stageFlags = static_cast<VkShaderStageFlags>(Utils::ShaderStageToVkShaderStageFlagBits(stage));
+				if (bindings.find(binding) != bindings.end())
+				{
+					bindings[binding].stageFlags |= stageFlags;
+					bindings[binding].descriptorCount = std::max(bindings[binding].descriptorCount, descriptorCount);
+				}
+				else bindings[binding] = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount, stageFlags, nullptr };
+			}
+		}
+		std::vector<VkDescriptorSetLayoutBinding> descriptorBindings;
+		for (auto& [binding, layoutBinding] : bindings)
+			descriptorBindings.push_back(layoutBinding);
+		m_DescriptorBindings = descriptorBindings;
+		if (!descriptorBindings.empty())
+		{
+			VkDescriptorSetLayoutCreateInfo descriptorInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+			descriptorInfo.bindingCount = static_cast<uint32_t>(descriptorBindings.size());
+			descriptorInfo.pBindings = descriptorBindings.data();
+			VkResult descriptorStatus = vkCreateDescriptorSetLayout(device, &descriptorInfo, nullptr, &m_DescriptorSetLayout);
+			ATLAS_CORE_ASSERT(descriptorStatus == VK_SUCCESS, "Failed to create Vulkan descriptor set layout!");
+			std::map<VkDescriptorType, uint32_t> descriptorCounts;
+			for (const auto& binding : descriptorBindings)
+				descriptorCounts[binding.descriptorType] += binding.descriptorCount;
+			std::vector<VkDescriptorPoolSize> poolSizes;
+			for (const auto& [type, count] : descriptorCounts)
+				poolSizes.push_back({ type, count });
+			VkDescriptorPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+			poolInfo.maxSets = 1;
+			poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+			poolInfo.pPoolSizes = poolSizes.data();
+			descriptorStatus = vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool);
+			ATLAS_CORE_ASSERT(descriptorStatus == VK_SUCCESS, "Failed to create Vulkan descriptor pool!");
+			VkDescriptorSetAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+			allocateInfo.descriptorPool = m_DescriptorPool;
+			allocateInfo.descriptorSetCount = 1;
+			allocateInfo.pSetLayouts = &m_DescriptorSetLayout;
+			descriptorStatus = vkAllocateDescriptorSets(device, &allocateInfo, &m_DescriptorSet);
+			if (descriptorStatus != VK_SUCCESS)
+			{
+				ATLAS_CORE_ERROR("Failed to allocate Vulkan descriptor set!");
+				vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
+				vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
+				m_DescriptorPool = VK_NULL_HANDLE;
+				m_DescriptorSetLayout = VK_NULL_HANDLE;
+				m_DescriptorSet = VK_NULL_HANDLE;
+			}
+		}
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+		pipelineLayoutInfo.setLayoutCount = m_DescriptorSetLayout ? 1u : 0u;
+		pipelineLayoutInfo.pSetLayouts = m_DescriptorSetLayout ? &m_DescriptorSetLayout : nullptr;
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 		VkResult status = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
 		ATLAS_CORE_ASSERT(status == VK_SUCCESS, "Failed to create pipeline layout!");
+	}
+
+	void VulkanShader::BindResources(VkCommandBuffer commandBuffer) const
+	{
+		if (m_DescriptorBindings.empty() || !m_DescriptorSet || !m_DescriptorSetLayout || !m_DescriptorPool)
+			return;
+		VkDescriptorSet descriptorSet = m_DescriptorSet;
+		VkDevice device = static_cast<VkDevice>(Application::Get().GetGraphicsContext()->GetLogicalDevice());
+		std::vector<VkWriteDescriptorSet> writes;
+		std::vector<VkDescriptorBufferInfo> buffers;
+		std::vector<VkDescriptorImageInfo> images;
+		buffers.reserve(m_DescriptorBindings.size());
+		images.reserve(64);
+		for (const auto& binding : m_DescriptorBindings)
+		{
+			if (binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER || binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+			{
+				VkDescriptorBufferInfo info{};
+				if (!VulkanResources::GetBuffer(binding.binding, info))
+					continue;
+				buffers.push_back(info);
+				writes.push_back({ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptorSet, binding.binding, 0, 1, binding.descriptorType, nullptr, &buffers.back(), nullptr });
+			}
+			else if (binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+			{
+				for (uint32_t i = 0; i < binding.descriptorCount; ++i)
+				{
+					VkDescriptorImageInfo info{};
+					uint32_t textureID = VulkanResources::GetTextureSlot(i);
+					if (!VulkanResources::GetTexture(textureID, info))
+						VulkanResources::GetTexture(VulkanResources::GetTextureSlot(0), info);
+					images.push_back(info);
+				}
+				if (!images.empty())
+					writes.push_back({ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptorSet, binding.binding, 0, static_cast<uint32_t>(images.size()), binding.descriptorType, images.data(), nullptr, nullptr });
+			}
+		}
+		if (!writes.empty())
+			vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 	}
 
 	void VulkanShader::CreateRenderPass()

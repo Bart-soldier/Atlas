@@ -31,5 +31,7 @@ namespace Atlas
 		void Init();
 
 		bool m_BlockEvents = false;
+		void* m_VulkanDescriptorPool = nullptr;
+		uint32_t m_VulkanColorFormat = 0;
 	};
 }

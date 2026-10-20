@@ -196,6 +196,7 @@ namespace Atlas
 
 		// TODO: Remove
 		Ref<Shader> TestShader;
+		Ref<Shader> GBufferShader;
 	};
 
 	static RendererData s_RendererData;
@@ -226,7 +227,9 @@ namespace Atlas
 		s_RendererData.EntityIDAttachmentIndex = 1;
 
 		// Post Process FB: Color, Depth
-		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F };
+		fbSpec.Attachments = { FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RED32I, FramebufferTextureFormat::RGBA16F,
+			FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F, FramebufferTextureFormat::RGBA16F,
+			FramebufferTextureFormat::DEPTH24_STENCIL8 };
 		s_RendererData.PostProcessFramebufferFront = Framebuffer::Create(fbSpec);
 		s_RendererData.PostProcessFramebufferBack = Framebuffer::Create(fbSpec);
 		s_RendererData.SSAOFramebuffer = Framebuffer::Create(fbSpec);
@@ -604,11 +607,10 @@ namespace Atlas
 
 	void Renderer::BeginRenderingPass()
 	{
-		// TODO: Remove
-		RenderCommand::BeginRenderPass(s_RendererData.TestShader);
-
 		s_RendererData.GBufferFramebuffer->Bind();
 		s_RendererData.GBufferFramebuffer->EnableAllColorAttachments();
+
+		RenderCommand::BeginRenderPass(s_RendererData.TestShader);
 
 		RenderCommand::SetStencilMask(0xFF);
 		RenderCommand::SetClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
@@ -621,10 +623,10 @@ namespace Atlas
 
 	void Renderer::EndRenderingPass()
 	{
-		s_RendererData.LastDrawnFramebuffer->Unbind();
-
 		// TODO: Remove
 		RenderCommand::EndRenderPass();
+
+		s_RendererData.LastDrawnFramebuffer->Unbind();
 	}
 
 	void Renderer::DeferredRenderingPass(const Ref<Cubemap>& skybox)
@@ -891,8 +893,7 @@ namespace Atlas
 			}
 
 			// Shader
-			//s_RendererData.MeshShader->Bind();
-			s_RendererData.TestShader->Bind();
+			s_RendererData.GBufferShader->Bind();
 
 			// Draw
 			RenderCommand::DrawIndexed(s_RendererData.MeshVertexArray, s_RendererData.MeshIndexCount);

@@ -4,6 +4,8 @@
 
 #include "Atlas/Renderer/Shader.h"
 
+struct ImDrawData;
+
 namespace Atlas
 {
 	class GraphicsContext
@@ -25,6 +27,8 @@ namespace Atlas
 
 		virtual void Init() = 0;
 		virtual void SwapBuffers() = 0;
+		virtual void Resize(uint32_t width, uint32_t height) { (void)width; (void)height; }
+		virtual void RenderImGui(ImDrawData* drawData) { (void)drawData; }
 
 		virtual void* GetInstance() const = 0;
 		virtual void* GetPhysicalDevice() const = 0;
@@ -37,6 +41,7 @@ namespace Atlas
 		virtual uint32_t GetSwapChainExtentHeight() const = 0;
 		virtual const QueueFamilyIndices& GetQueueFamilyIndices() const = 0;
 		virtual void* GetImageAvailableSemaphore() const = 0;
+		virtual void* GetCommandBuffer() const { return nullptr; }
 
 		virtual uint32_t GetCurrentSwapChainImageIndex() const = 0;
 		virtual void* GetCurrentFramebuffer() const = 0;

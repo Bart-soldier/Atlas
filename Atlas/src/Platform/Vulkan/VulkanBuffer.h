@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Atlas/Renderer/Buffer.h"
+#include <vma/vk_mem_alloc.h>
 
 namespace Atlas
 {
@@ -19,11 +20,15 @@ namespace Atlas
 		virtual const BufferLayout& GetLayout() const override { return m_Layout; }
 
 		virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; }
+		VkBuffer GetBuffer() const { return m_RendererID; }
+		uint32_t GetSize() const { return m_Size; }
 
 	private:
 		void Initialize(const void* data, uint32_t size);
 
-		uint32_t m_RendererID;
+		VkBuffer m_RendererID = VK_NULL_HANDLE;
+		VmaAllocation m_Allocation = VK_NULL_HANDLE;
+		uint32_t m_Size = 0;
 		BufferLayout m_Layout;
 	};
 
@@ -40,11 +45,13 @@ namespace Atlas
 		virtual void SetData(const void* data, uint32_t size) override;
 
 		virtual uint32_t GetMaxCount() const override { return m_MaxCount; }
+		VkBuffer GetBuffer() const { return m_RendererID; }
 
 	private:
 		void Initialize(const void* data, uint32_t size);
 
-		uint32_t m_RendererID;
+		VkBuffer m_RendererID = VK_NULL_HANDLE;
+		VmaAllocation m_Allocation = VK_NULL_HANDLE;
 		uint32_t m_MaxCount;
 	};
 }
